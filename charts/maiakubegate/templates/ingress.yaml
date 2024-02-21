@@ -1,0 +1,27 @@
+{{- if .Values.ingress.enabled}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "{{ .Values.ingress.traefik_resolver }}"
+    traefik.ingress.kubernetes.io/router.middlewares: "{{.Values.traefik_middleware}}@kubernetescrd"
+  name: {{ include "hive.fullname" $ }}{{"-ingress"}}
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+    - host: {{ .Values.ingress.host}}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "hive.fullname" . }}
+                port:
+                  number: {{ .Values.ingress.port | int }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host}}
+  {{- end }}

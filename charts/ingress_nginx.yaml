@@ -1,0 +1,33 @@
+{ { - if .Values.ingress.enabled } }
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    # add an annotation indicating the issuer to use.
+    cert-manager.io/cluster-issuer: letsencrypt-ci
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/auth-url: "https://{{.Values.ingress.oauth_url}}.k8s-maia.com/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://{{.Values.ingress.oauth_url}}.k8s-maia.com/oauth2/start?rd=https://$host$uri"
+    # kubernetes.io/ingress.class: nginx
+    #acme.cert-manager.io/http01-edit-in-place: "true"
+  name: { { include "hive.fullname" $ } }{{"-nginx-ingress"}}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: { { .Values.ingress.host } }
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: { { include "hive.fullname" . } }
+                port:
+                  number: { { .Values.ingress.port | int } }
+  tls:
+    - hosts:
+        - { { .Values.ingress.host } }
+      secretName: { { include "hive.fullname" $ } }{{"-nginx-ingress-secret"}}
+  { { - end } }

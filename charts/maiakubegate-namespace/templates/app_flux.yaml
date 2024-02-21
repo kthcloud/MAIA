@@ -1,0 +1,60 @@
+{{ $release_name  := include "hive-namespace.fullname" .}}
+{{- range .Values.apps }}
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: {{ $release_name }}-{{ .name }}
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: {{ .chart_name }}
+      version: {{ .chart_version }}
+      sourceRef:
+        kind: HelmRepository
+        name: {{ $release_name }}-{{ .name }}
+  valuesFrom:
+    - kind: ConfigMap
+      name: {{ $release_name }}-{{ .name }}-values
+      valuesKey: values.yaml
+---
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: {{ $release_name }}-{{ .name }}
+spec:
+  resourceSelectors:
+    - apiVersion: source.toolkit.fluxcd.io/v1beta2
+      kind: HelmRepository
+      name: {{ $release_name }}-{{ .name }}
+    - apiVersion: v1
+      kind: ConfigMap
+      name: {{ $release_name }}-{{ .name }}-values
+    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+      kind: HelmRelease
+      name: {{ $release_name }}-{{ .name }}
+    {{- if .additional_propagation }}
+    {{- toYaml .additional_propagation | nindent 4}}
+    {{- end}}
+  placement:
+    clusterAffinity:
+      clusterNames:
+        {{- toYaml .clusters | nindent 8 }}
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: {{ $release_name }}-{{ .name }}
+spec:
+  interval: 1m
+  url: {{ .url }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $release_name }}-{{ .name }}-values
+data:
+  values.yaml: |-
+{{ .values | indent 4}}
+---
+  {{- end }}

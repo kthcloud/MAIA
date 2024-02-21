@@ -1,0 +1,28 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: {{.Values.team_ID | lower }}-roles-propagation
+spec:
+  resourceSelectors:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      name: {{.Values.team_ID | lower}}-role
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: {{.Values.team_ID | lower}}-role-binding
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      name: {{.Values.team_ID | lower}}-namespace-allow
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      name: {{.Values.team_ID | lower}}-no-inbound-policy
+    - apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      name: {{.Values.team_ID | lower}}-traefik-allow
+    - apiVersion: v1
+      kind: Secret
+      name: docker-registry-secret
+  placement:
+    clusterAffinity:
+      clusterNames:
+        {{- toYaml .Values.role_clusters | nindent 8 }}
