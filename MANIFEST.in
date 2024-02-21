@@ -1,0 +1,5 @@
+include versioneer.py
+include _version.py
+
+include README.md
+include LICENSE
