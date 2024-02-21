@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: {{ include "hive-deploy.fullname" . }}
+  name: {{ include "maiakubegate-deploy.fullname" . }}
 spec:
   interval: 1m
   url: {{ .Values.chart_url }}
@@ -9,7 +9,7 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: {{ include "hive-deploy.fullname" . }}
+  name: {{ include "maiakubegate-deploy.fullname" . }}
 spec:
   interval: 5m
   chart:
@@ -18,7 +18,7 @@ spec:
       version: {{ .Values.chart_version }}
       sourceRef:
         kind: HelmRepository
-        name: {{ include "hive-deploy.fullname" . }}
+        name: {{ include "maiakubegate-deploy.fullname" . }}
   valuesFrom:
     - kind: ConfigMap
       name: {{ .Values.config_map }}
@@ -27,18 +27,18 @@ spec:
 apiVersion: policy.karmada.io/v1alpha1
 kind: PropagationPolicy
 metadata:
-  name: {{ include "hive-deploy.fullname" . }}
+  name: {{ include "maiakubegate-deploy.fullname" . }}
 spec:
   resourceSelectors:
     - apiVersion: source.toolkit.fluxcd.io/v1beta2
       kind: HelmRepository
-      name: {{ include "hive-deploy.fullname" . }}
+      name: {{ include "maiakubegate-deploy.fullname" . }}
     - apiVersion: v1
       kind: ConfigMap
       name: {{ .Values.config_map }}
     - apiVersion: helm.toolkit.fluxcd.io/v2beta1
       kind: HelmRelease
-      name: {{ include "hive-deploy.fullname" . }}
+      name: {{ include "maiakubegate-deploy.fullname" . }}
     {{- if .Values.additional_propagation }}
     {{- toYaml .Values.additional_propagation | nindent 4}}
     {{- end}}

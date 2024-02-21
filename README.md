@@ -14,7 +14,7 @@ application to the external traffic using the HTTPS protocol.
 To add the chart to Helm, run:
 
 ```
-helm repo add maiakubegate https://github.com/SimoneBendazzoli93/MAIAKubeGate
+helm repo add maiakubegate https://simonebendazzoli93.github.io/MAIAKubeGate/
 helm repo update
 ```
 

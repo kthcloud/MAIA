@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
-chart_url: https://maia-kth.github.io/MAIAKubeGate/
+chart_url: https://simonebendazzoli93.github.io/MAIAKubeGate/
 image:
   repository: nginx
   pullPolicy: IfNotPresent

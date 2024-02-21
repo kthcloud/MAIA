@@ -116,7 +116,7 @@ def main():
 
         chart_url = "https://simonebendazzoli93.github.io/MAIAKubeGate/"  # TODO set this as a customizable parameter
         chart_name = "maiakubegate"  # TODO set this as a customizable parameter
-        chart_version = "1.0.0"  # TODO set this as a customizable parameter
+        chart_version = "1.0.1"  # TODO set this as a customizable parameter
 
         sshProcess.stdin.write(
             "helm upgrade --install {} --namespace={} maiakubegate/hive-deploy --set chart_url={},chart_name={},chart_version={},config_map={}{}\n".format(
