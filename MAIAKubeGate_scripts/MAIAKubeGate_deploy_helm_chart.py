@@ -114,7 +114,7 @@ def main():
                                     kubeconfig,
                                     )
 
-        chart_url = "https://github.com/SimoneBendazzoli93/MAIAKubeGate"  # TODO set this as a customizable parameter
+        chart_url = "https://simonebendazzoli93.github.io/MAIAKubeGate/"  # TODO set this as a customizable parameter
         chart_name = "maiakubegate"  # TODO set this as a customizable parameter
         chart_version = "1.0.0"  # TODO set this as a customizable parameter
 

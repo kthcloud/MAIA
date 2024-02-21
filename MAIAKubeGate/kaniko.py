@@ -131,7 +131,7 @@ def build_and_upload_image_on_docker_registry(config_dict: Dict, kubeconfig_dict
                                 "{}-values".format(config_dict["docker_image"].lower()),
                                 config_dict["namespace"], kubeconfig_dict=kubeconfig_dict)
 
-    chart_url = "https://github.com/SimoneBendazzoli93/MAIAKubeGate"  # TODO
+    chart_url = "https://simonebendazzoli93.github.io/MAIAKubeGate/"  # TODO
     chart_name = "maiakubegate-kaniko"  # TODO
     chart_version = "1.0.0"  # TODO
     sshProcess = subprocess.Popen(["sh"],
