@@ -3,7 +3,7 @@ entries:
   maiakubegate:
     - apiVersion: v2
       appVersion: 1.0.0
-      created: "2024-02-21T13:51:31.070036772+01:00"
+      created: "2024-02-21T13:58:01.975248369+01:00"
       description: A Helm chart to deploy environments (pods, services, ingresses) and
         run experiments and applications in MAIA cluster
       digest: 5e2827dbfcd9cfbd7f1830b17408190a9dc3daa52aa567296743a39a7461a2ae
@@ -14,8 +14,20 @@ entries:
       version: 1.0.0
   maiakubegate-deploy:
     - apiVersion: v2
+      appVersion: 1.0.2
+      created: "2024-02-21T13:58:01.978428498+01:00"
+      description: A Helm chart to deploy environments (pods, services, ingresses) and
+        run experiments and applications in MAIA cluster running behind a Cluster Aggregator
+        (e.g. Karmada)
+      digest: e8c9b9b3fd3566d65806926f7d24a0dbbc364f74490d79458d23781acf237d7e
+      name: maiakubegate-deploy
+      type: application
+      urls:
+        - maiakubegate-deploy-1.0.2.tgz
+      version: 1.0.2
+    - apiVersion: v2
       appVersion: 1.0.1
-      created: "2024-02-21T13:51:31.072443149+01:00"
+      created: "2024-02-21T13:58:01.977582227+01:00"
       description: A Helm chart to deploy environments (pods, services, ingresses) and
         run experiments and applications in MAIA cluster running behind a Cluster Aggregator
         (e.g. Karmada)
@@ -27,7 +39,7 @@ entries:
       version: 1.0.1
     - apiVersion: v2
       appVersion: 1.0.0
-      created: "2024-02-21T13:51:31.071462754+01:00"
+      created: "2024-02-21T13:58:01.976685528+01:00"
       description: A Helm chart to deploy environments (pods, services, ingresses) and
         run experiments and applications in MAIA cluster running behind a Cluster Aggregator
         (e.g. Karmada)
@@ -40,7 +52,7 @@ entries:
   maiakubegate-kaniko:
     - apiVersion: v2
       appVersion: 1.0.0
-      created: "2024-02-21T13:51:31.073491838+01:00"
+      created: "2024-02-21T13:58:01.979167158+01:00"
       description: A Helm chart to deploy Kaniko Pod in MAIA cluster, used to build
         Docker Images and deploy to the private Docker Registry
       digest: 3eb361198d90a60e4abc9accda7b78cea100aef7392c3e1030b16b2a8eb0df70
@@ -52,7 +64,7 @@ entries:
   maiakubegate-namespace:
     - apiVersion: v2
       appVersion: 1.0.0
-      created: "2024-02-21T13:51:31.073895973+01:00"
+      created: "2024-02-21T13:58:01.979683075+01:00"
       description: A Helm chart to create a complete Namespace in MAIA cluster, deploying
         all the default MAIA components, including namespaced Network Policies, namespaced
         Role and Role Bindings, and the selected Secrets.
@@ -62,4 +74,4 @@ entries:
       urls:
         - maiakubegate-namespace-1.0.0.tgz
       version: 1.0.0
-generated: "2024-02-21T13:51:31.068985117+01:00"
+generated: "2024-02-21T13:58:01.974402418+01:00"
