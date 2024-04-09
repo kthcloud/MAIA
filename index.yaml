@@ -124,4 +124,15 @@ entries:
       urls:
         - mkg-ns-1.0.1.tgz
       version: 1.0.1
+  mkg-des:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-04-09T10:51:00.820707486+02:00"
+    description: A Helm chart for Kubernetes
+    digest: de1bfa0ac11e1501ceafd24e0b98f822f025cb8891e775facd42246ca70936fd
+    name: mkg-des
+    type: application
+    urls:
+    - mkg-des-0.1.0.tgz
+    version: 0.1.0
 generated: "2024-02-22T10:25:10.630304393+01:00"
