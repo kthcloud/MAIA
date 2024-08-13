@@ -335,7 +335,7 @@ def create_jupyterhub_config( form,
         "name": "jupyter/datascience-notebook",
         "tag": "latest",
         "pullSecrets": [
-            cluster_config["maia_registry_pull_secret"]
+            cluster_config["imagePullSecrets"]
         ]
     }
     maia_workspace_version = user_form["maia_workspace_version"]
