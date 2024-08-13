@@ -133,10 +133,7 @@ spec:
         {{- end}}
         {{- if .Values.gpuSelected}}
         {{- if .Values.gpuSelected.type}}
-        "gpu.type": {{ .Values.gpuSelected.type}}
-        {{- end}}
-        {{- if .Values.gpuSelected.vram}}
-        "gpu.vram": {{ .Values.gpuSelected.vram}}
+        "gpu.type": {{ .Values.gpuSelected.product}}
         {{- end}}
         {{- end}}
         {{- end}}

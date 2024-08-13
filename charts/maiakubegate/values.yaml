@@ -28,7 +28,10 @@ autoscaling:
   enabled: False
 
 ingress:
-  enabled: False
+  traefik:
+    enabled: False
+  nginx:
+    enabled: False
 service:
   type: ClusterIP
 
