@@ -64,14 +64,6 @@ def get_arg_parser():
         help="Flag to save the generated Helm values on the specified file and exit.",
     )
 
-    pars.add_argument(
-        "--deploy-on-karmada",
-        type=str2bool,
-        required=False,
-        default="true",
-        help="Flag to set if the chart is deployed on Karmada ( Cluster Federation). Default is true.",
-    )
-
     pars.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
 
     return pars
@@ -103,39 +95,14 @@ def main():
             yaml.dump(helm_dict, f)
         return
 
-    set_cluster = ""
-    for idx, cluster in enumerate(config_dict["clusters"]):
-        set_cluster += ",clusters[{}]={}".format(idx, cluster)
 
-    if arguments["deploy_on_karmada"]:
-        create_config_map_from_data(yaml.dump(helm_dict),
-                                    "{}-values".format(config_dict["chart_name"].lower()),
-                                    config_dict["namespace"],
-                                    kubeconfig,
-                                    )
+    chart_name = config_dict["chart_name"]
+    with open(f"./{chart_name}_values.yaml", "w") as f:  # TODO: remove this and load values from memory
+        yaml.dump(helm_dict, f)
 
-        chart_url = "https://simonebendazzoli93.github.io/MAIAKubeGate/"  # TODO set this as a customizable parameter
-        chart_name = "maiakubegate"  # TODO set this as a customizable parameter
-        chart_version = "1.0.1"  # TODO set this as a customizable parameter
-
-        sshProcess.stdin.write(
-            "helm upgrade --install {} --namespace={} maiakubegate/hive-deploy --set chart_url={},chart_name={},chart_version={},config_map={}{}\n".format(
-                config_dict["chart_name"],
-                config_dict["namespace"],
-                chart_url,
-                chart_name,
-                chart_version,
-                "{}-values".format(config_dict["chart_name"].lower(),
-                                   ),
-                set_cluster
-            ))
-    else:
-        with open("./values.yaml", "w") as f:  # TODO: remove this and load values from memory
-            yaml.dump(helm_dict, f)
-
-        sshProcess.stdin.write(
-            "helm upgrade --install {} --namespace={} maiakubegate/maiakubegate --values ./values.yaml\n".format(
-                config_dict["chart_name"], config_dict["namespace"]))
+    sshProcess.stdin.write(
+        "helm upgrade --install {} --namespace={} maiakubegate/mkg --values ./{}_values.yaml\n".format(
+            config_dict["chart_name"], config_dict["namespace"],config_dict["chart_name"]))
 
     sshProcess.stdin.close()
     for line in sshProcess.stdout:

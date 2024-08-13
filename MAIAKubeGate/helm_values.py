@@ -142,18 +142,19 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
                 value_dict["extraVolumeMounts"].append({
                     "name": mount_file,
                     "mountPath": config_dict['mount_files'][mount_file][1],
-                    "readOnly": "true"
+                    "readOnly": True
                 })
             else:
                 value_dict["extraVolumeMounts"].append({
                     "name": mount_file,
                     "mountPath": config_dict['mount_files'][mount_file][1],
-                    "readOnly": "false"
+                    "readOnly": False
                 })
 
             with open(config_dict['mount_files'][mount_file][0], "r") as f:
-                d = json.load(f)
-                create_config_map_from_data(json.dumps(d),
+                #d = json.load(f)
+                create_config_map_from_data(#json.dumps(d),
+                                            f.read(),
                                             mount_file,
                                             config_dict["namespace"],
                                             kubeconfig_dict,
@@ -165,8 +166,8 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
             value_dict["extraConfigMapVolumes"].append({
                 "name": mount_file,
                 "configMapName": mount_file,
-                "configMapFile": config_dict['mount_files'][mount_file][0],
-                "configMapPath": config_dict['mount_files'][mount_file][0]
+                "configMapFile": Path(config_dict['mount_files'][mount_file][0]).name,
+                "configMapPath": Path(config_dict['mount_files'][mount_file][0]).name
             })
 
     if 'env_variables' in config_dict:
@@ -210,14 +211,26 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
 
     if "ingress" in config_dict:
         value_dict["ingress"] = {}
-        value_dict["ingress"]["enabled"] = "True"
-        value_dict["ingress"]["traefik_resolver"] = config_dict["ingress"][
-            "traefik_resolver"]  # TODO: set as options [Check with corresponding Helm Chart]
-        value_dict["traefik_middleware"] = config_dict[
-            "traefik_middleware"]  # TODO: set as options [Check with corresponding Helm Chart]
+
+        if "traefik_resolver" in config_dict["ingress"]:
+            value_dict["ingress"]["traefik"] = {"enabled": True}
+            value_dict["ingress"]["traefik_resolver"] = config_dict["ingress"][
+            "traefik_resolver"]
+        if "traefik_middleware" in config_dict["ingress"]:
+            value_dict["ingress"]["traefik"] = {"enabled": True}
+            value_dict["ingress"]["traefik_middleware"] = config_dict["ingress"][
+            "traefik_middleware"]
+
+        if "nginx_issuer" in config_dict["ingress"]:
+            value_dict["ingress"]["nginx"] = {"enabled": True}
+            value_dict["ingress"]["nginx_issuer"] = config_dict["ingress"]["nginx_issuer"]
+
         value_dict["ingress"]["host"] = config_dict["ingress"]["host"]
+        if "path" in value_dict["ingress"]:
+            value_dict["ingress"]["path"] = config_dict["ingress"]["path"]
         value_dict["ingress"]["port"] = config_dict["ingress"]["port"]
-        # value_list.append("ingress.oauth_url={}".format(config_dict["ingress"]["oauth_url"]))
+        if "oauth_url" in config_dict:
+            value_dict["ingress"]["oauth_url"] = config_dict["ingress"]["oauth_url"]
 
     if "node_selector" in config_dict:
         value_dict["nodeSelected"] = config_dict["node_selector"]
@@ -231,5 +244,7 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
         value_dict["deploy_as_job"] = False
     if "command" in config_dict:
         value_dict["command"] = config_dict["command"]
-    value_dict["imagePullSecrets"] = [{"name": "docker-registry-secret"}]
+
+    if "image_pull_secret" in config_dict:
+        value_dict["imagePullSecrets"] = [{"name": config_dict["image_pull_secret"]}]
     return value_dict
