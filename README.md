@@ -215,15 +215,13 @@ To optionally select which node in the cluster to use for deploying the applicat
 
 #### GPU Selection
 
-To optionally select which available GPUs in the cluster to request. `type` and `vram` attribute can be specified (only
-one of them is needed, both can be included).
-Example: `type: "RTX-2070-Super"`, `vram: "8G"`
+To optionally select which available GPUs in the cluster to request. `product` attribute can be specified.
+Example: `product: "RTX-2070-Super"`
 
 ```json
 {
   "gpu_selector": {
-    "type": "GPU_TYPE",
-    "vram": "VRAM_SIZE"
+    "product": "GPU_TYPE"
   }
 }
 ```
@@ -231,21 +229,43 @@ Example: `type: "RTX-2070-Super"`, `vram: "8G"`
 #### Ingress
 
 Used to create an Ingress resources to access the application at the specified port by using an HTTPS address.
+Two types of Ingress are currently supported: **NGINX** and **TRAEFIK**.
 
 IMPORTANT! The specified DNS needs to be active and connected to the cluster DNS (**".maia.cloud.cbh.kth.se"**)
 
-IMPORTANT! *traefik_resolver* should be explicitly specified, since only oauth-based authenticated users can be
-authorized
+IMPORTANT! When working with the **TRAEFIK** Ingress, the *traefik_middleware* and *traefik_resolver* should be
+should be explicitly specified, since only oauth-based authenticated users can be authorized
 through the ingress.
 Contact the MAIA admin to retrieve this information.
+
+IMPORTANT! When working with the **NGINX** Ingress, the *oauth_url* and *nginx_issuer* should be explicitly specified,
+since only oauth-based authenticated users can be authorized through the ingress.
+Contact the MAIA admin to retrieve this information.
+
 
 ```json
 {
   "ingress": {
     "host": "SUBDOMAIN.maia.cloud.cbh.kth.se",
     "port": "SERVICE_PORT",
-    "oauth_url": "oauth.MY_NAMESPACE"
+    "path": "/<PATH>",
+    "oauth_url": "SUBDOMAIN.maia.cloud.cbh.kth.se",
+    "nginx_issuer": "<NGINX_ISSUER_NAME>"
   }
+  
+}
+```
+
+```json
+{
+  "ingress": {
+    "host": "SUBDOMAIN.maia.cloud.cbh.kth.se",
+    "port": "SERVICE_PORT",
+    "path": "/<PATH>",
+    "traefik_middleware": "<MIDDLEWARE_NAME>",
+    "traefik_resolver": "<TRAEFIK_RESOLVER_NAME>"
+  }
+  
 }
 ```
 
@@ -263,19 +283,47 @@ for the Docker Image).
 }
 ```
 
-### Hive Docker Configuration
+#### Deployment
+By default, the deployment is done as a Job. To deploy as a Deployment, the following field should be added:
+
+```json
+{
+  "deployment": "true"
+}
+```
+
+#### Commmand
+To specify a custom command to run inside the container:
+
+```json
+{
+  "command": [
+    "command",
+    "arg1",
+    "arg2"
+  ]
+}
+```
+
+#### Image Pull Secret
+If the Docker image is stored in a private repository, the user can specify the secret to use to pull the image.
+
+```json
+{
+  "image_pull_secret": "SECRET NAME"
+}
+```
 
 #### User info
 
-When deploying Hive-based applications, it is possible to create single-multiple user account in the environment.
-For each of the users, *username*, *password* *email*, and, optionally, an *ssh public key* are required.
+When deploying MAIA-based applications, it is possible to create single/multiple user account in the environment.
+For each of the users, *username*, *password*, and, optionally, an *ssh public key* are required.
 This information is stored inside Secrets:
 
 ```
 USER_1_SECRET:
     user: USER_1
     password: pw
-    email: user@email.com
     ssh_publickey [Optional]: "ssh-rsa ..." 
 ```
 
@@ -290,7 +338,6 @@ To provide the user information to the Pod:
   "user_secret_params": [
     "user",
     "password",
-    "email",
     "ssh_publickey"
   ]
 }
@@ -300,7 +347,7 @@ To provide the user information to the Pod:
 
 ```json
 {
-  "namespace": "machine-learning",
+  "namespace": "demo",
   "chart_name": "jupyterlab-1-v1",
   "docker_image": "jupyter/scipy-notebook",
   "tag": "latest",
@@ -317,7 +364,7 @@ To provide the user information to the Pod:
       "mountPath": "/home/jovyan",
       "size": "100Gi",
       "access_mode": "ReadWriteOnce",
-      "pvc_type": "local-hostpath"
+      "pvc_type": "microk8s-hostpath"
     }
   ]
 }
