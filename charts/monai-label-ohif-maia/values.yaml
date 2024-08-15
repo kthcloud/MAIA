@@ -1,0 +1,14 @@
+pvc:
+  pvc_type: <STORAGE_CLASS>
+  access_mode: ReadWriteMany
+  size: 10Gi
+
+imagePullSecret: <IMAGE_PULL_SECRET>
+
+image:
+  repository: registry.maia.cloud.cbh.kth.se/monai-label-ohif
+  tag: 1.13
+
+hostname: "<SUBDOMAIN>.<DOMAIN>"
+oauth_url: "<SUBDOMAIN>.<DOMAIN>"
+namespace: ""

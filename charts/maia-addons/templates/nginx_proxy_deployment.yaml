@@ -1,0 +1,47 @@
+{{- if .Values.proxy_nginx.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+        app: nginx
+  template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        imagePullSecrets:
+            - name: "{{ .Values.proxy_nginx.imagePullSecrets }}"
+        containers:
+          - name: nginx
+            image: {{ .Values.proxy_nginx.image }}
+            env:
+              - name: MINIO_CONSOLE
+                value: {{ .Values.proxy_nginx.console_service }}
+              - name: MLFLOW
+                value: {{ .Values.proxy_nginx.mlflow }}
+            ports:
+              - name: http
+                containerPort: 80
+                protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+    ports:
+      - name: http
+        protocol: TCP
+        port: 80
+        targetPort: http
+    selector:
+        app: nginx
+{{- end }}

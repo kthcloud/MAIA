@@ -1,0 +1,29 @@
+{{- if .Values.traefik.enabled }}
+{{- range .Values.users }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dtale-{{ .jupyterhub_username }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $.Release.Namespace }}-auth@kubernetescrd
+spec:
+  tls:
+    - hosts:
+        - {{ $.Values.ingress_host }}
+  rules:
+    - host: {{ $.Values.ingress_host }}
+      http:
+        paths:
+          - path: /user/{{ .username }}/proxy
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: jupyter-{{ .jupyterhub_username }}
+                port:
+                  number: 8888
+---
+  {{- end }}
+    {{- end }}

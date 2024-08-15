@@ -1,0 +1,134 @@
+{{- if .Values.proxy_nginx.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-console
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $.Values.nginx.cluster_issuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ $.Values.ingress_host }}
+      secretName: {{ $.Values.ingress_host }}-tls
+  rules:
+    - host: {{ $.Values.ingress_host }}
+      http:
+        paths:
+          - path: /minio-console
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $.Values.nginx.cluster_issuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ $.Values.ingress_host }}
+      secretName: {{ $.Values.ingress_host }}-tls
+  rules:
+    - host: {{ $.Values.ingress_host }}
+      http:
+        paths:
+          - path: /minio
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mlflow
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $.Values.nginx.cluster_issuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/auth-signin: https://{{$.Values.oauth_url}}/oauth2/start?rd=https://$host$uri
+    nginx.ingress.kubernetes.io/auth-url: http://oauth2-proxy.{{$.Values.namespace}}.svc.cluster.local:80/oauth2/auth
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ $.Values.ingress_host }}
+      secretName: {{ $.Values.ingress_host }}-tls
+  rules:
+    - host: {{ $.Values.ingress_host }}
+      http:
+        paths:
+          - path: /mlflow
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: label-studio
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $.Values.nginx.cluster_issuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ $.Values.ingress_host }}
+      secretName: {{ $.Values.ingress_host }}-tls
+  rules:
+    - host: {{ $.Values.ingress_host }}
+      http:
+        paths:
+          - path: /label-studio
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubeflow
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $.Values.nginx.cluster_issuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/auth-signin: https://{{$.Values.oauth_url}}/oauth2/start?rd=https://$host$uri
+    nginx.ingress.kubernetes.io/auth-url: http://oauth2-proxy.{{$.Values.namespace}}.svc.cluster.local:80/oauth2/auth
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ $.Values.ingress_host }}
+      secretName: {{ $.Values.ingress_host }}-tls
+  rules:
+    - host: {{ $.Values.ingress_host }}
+      http:
+        paths:
+          - path: /kubeflow
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+{{- end }}

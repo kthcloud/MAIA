@@ -1,0 +1,71 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app-name: {{ .Release.Name }}
+    spec:
+      restartPolicy: Always
+      containers:
+        # ToDo add init-container to wait for db-host
+      - name: monai-label-ohif
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        resources:
+          requests:
+            cpu: 8000m
+            memory: 8Gi
+            #nvidia.com/gpu: "1"
+          limits:
+            cpu: 8000m
+            memory: 8Gi
+            #nvidia.com/gpu: "1"
+        env:
+          - name: INGRESS_PATH
+            value: /{{ .Release.Name }}
+          - name: MONAI_LABEL_INGRESS_PATH
+            value: /{{ .Release.Name }}-monai-label
+          - name: ORTHANC_DICOMWEB_ADDRESS
+            value: "http://localhost:8042/dicom-web"
+          #- name: MLFLOW_MODEL_PATH
+          #  value: "/workspace/mlflow"
+          #- name: MLFLOW_TRACKING_URI
+          #  value: "https://mlflow.translymphoma.maia.cloud.cbh.kth.se"
+          #- name: MLFLOW_MODEL
+         #   value: "nnUNet_Bone_Metastasis_segmentation"
+         # - name: MONAI_BUNDLE_PATH
+         #   value: "/workspace/MONAILabel/monaibundle/model"
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: cache-volume
+        - mountPath: /var/lib/orthanc/db
+          name: orthanc
+      volumes:
+        - emptyDir:
+            medium: Memory
+          name: cache-volume
+        - name: orthanc
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-pvc
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecret }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-pvc
+  labels:
+   app-name: {{ .Release.Name }}
+spec:
+  storageClassName: {{ .Values.pvc.pvc_type }}
+  accessModes:
+    - {{ .Values.pvc.access_mode}}
+  resources:
+    requests:
+      storage: {{ .Values.pvc.size }}

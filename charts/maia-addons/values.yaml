@@ -1,0 +1,12 @@
+# Default values for maia-addons.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+traefik:
+  enabled: false
+
+nginx:
+  enabled: false
+
+proxy_nginx:
+  enabled: false
