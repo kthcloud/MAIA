@@ -1,9 +1,21 @@
 apiVersion: v1
 entries:
+  maia-addons:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-08-15T07:58:37.871573666+02:00"
+    description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
+      MAIA Workspace
+    digest: bbac6b64138c85b6cd2469fe287747c5d5abfec563a8d8baa95c4ffb0e65fc15
+    name: maia-addons
+    type: application
+    urls:
+    - maia-addons-0.1.0.tgz
+    version: 0.1.0
   mkg:
   - apiVersion: v2
     appVersion: 1.0.1
-    created: "2024-08-13T08:39:26.429345773+02:00"
+    created: "2024-08-15T07:58:37.887796972+02:00"
     description: A Helm chart to deploy environments (pods, services, ingresses) and
       run experiments and applications in MAIA cluster
     digest: b718ddaeca25a8270a17dafa51a686c57c3049dcb2da03969d5170294472eb95
@@ -12,4 +24,14 @@ entries:
     urls:
     - mkg-1.0.1.tgz
     version: 1.0.1
-generated: "2024-08-13T08:39:26.4286054+02:00"
+  monai-label-ohif-maia:
+  - apiVersion: v1
+    appVersion: 5.6.1
+    created: "2024-08-15T07:58:37.888306989+02:00"
+    description: Chart for MONAI Label OHIF App
+    digest: 6cc93003b034afc56e25e46df7bea0935bf5a62a687a025d0b08f59a0555518c
+    name: monai-label-ohif-maia
+    urls:
+    - monai-label-ohif-maia-0.0.1.tgz
+    version: 0.0.1
+generated: "2024-08-15T07:58:37.870902502+02:00"
