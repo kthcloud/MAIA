@@ -4,12 +4,18 @@ import json
 import yaml
 import click
 from minio import Minio
+from pathlib import Path
+
 
 @click.command()
 @click.option("--form", type=str)
 @click.option("--cluster-config-file", type=str)
-def create_jupyterhub_config( form,
+def create_jupyterhub_config(form,cluster_config_file):
+    create_jupyterhub_config_api(form,cluster_config_file)
+
+def create_jupyterhub_config_api( form,
                               cluster_config_file,
+                                  config_folder = None
                              ):
 
 
@@ -48,7 +54,7 @@ def create_jupyterhub_config( form,
         keycloack = cluster_config["keycloack"]
 
     namespace = user_form["group_ID"]
-    namespace_hub_address = user_form["namespace_hub_address"]
+    group_subdomain = user_form["group_subdomain"]
     team_id = user_form["group_ID"]
     resources_limits = user_form["resources_limits"]
 
@@ -60,7 +66,7 @@ def create_jupyterhub_config( form,
 
     if "url_type" in cluster_config:
         if cluster_config["url_type"] == "subdomain":
-            hub_address = f"{namespace_hub_address}.{domain}"
+            hub_address = f"{group_subdomain}.{domain}"
         elif cluster_config["url_type"] == "subpath":
             hub_address = domain
         else:
@@ -86,7 +92,7 @@ def create_jupyterhub_config( form,
       "resource": {
         "helm_release": {
           "jupyterhub": {
-            "name": "jupyterhub",
+            "name": "jupyterhub-{}".format(namespace.lower()),
             "repository": "https://hub.jupyter.org/helm-chart/",
             "chart": "jupyterhub",
             "version": "3.1.0",
@@ -211,7 +217,7 @@ def create_jupyterhub_config( form,
 
     if "url_type" in cluster_config:
         if cluster_config["url_type"] == "subpath":
-            jh_template["hub"]["baseUrl"] = f"/{namespace_hub_address}-hub"
+            jh_template["hub"]["baseUrl"] = f"/{group_subdomain}-hub"
 
 
     if keycloack is not None:
@@ -227,9 +233,9 @@ def create_jupyterhub_config( form,
                 print(f"https://{hub_address}/hub/oauth_callback")
             elif cluster_config["url_type"]  == "subpath":
                 jh_template["hub"]["config"]["GenericOAuthenticator"][
-                    "oauth_callback_url"] = f"https://{hub_address}/{namespace_hub_address}-hub/oauth_callback"
+                    "oauth_callback_url"] = f"https://{hub_address}/{group_subdomain}-hub/oauth_callback"
                 print("Register Callback: ")
-                print(f"https://{hub_address}/{namespace_hub_address}-hub/oauth_callback")
+                print(f"https://{hub_address}/{group_subdomain}-hub/oauth_callback")
 
 
     if "custom_hub" in user_form:
@@ -341,7 +347,7 @@ def create_jupyterhub_config( form,
     maia_workspace_version = user_form["maia_workspace_version"]
     jh_template["singleuser"]["profileList"] = [
         {"display_name": "MAIA Workspace", "description": f"MAIA Workspace {maia_workspace_version}", "default": True,
-        "kubespawner_override":{"image": f"registry.maia.cloud.cbh.kth.se/maia-workspace:{maia_workspace_version}",
+        "kubespawner_override":{"image": f"registry.maia.cloud.cbh.kth.se/maia-workspace-ssh-addons:{maia_workspace_version}",
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
                                "extra_resource_limits": {
@@ -361,23 +367,30 @@ def create_jupyterhub_config( form,
         yaml.dump(jh_template)
     ]
 
+    if config_folder is None:
+        config_folder = "."
 
-    with open(f"{namespace}_jupyterhub.tf.json", "w") as f:
+    with open(Path(config_folder).joinpath(f"{namespace}_jupyterhub.tf.json"), "w") as f:
         json.dump(jh_helm_template, f, indent=2)
 
-    with open(f"{namespace}_jupyterhub_values.yaml", "w") as f:
+    with open(Path(config_folder).joinpath(f"{namespace}_jupyterhub_values.yaml"), "w") as f:
         print(jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"][0],file=f)
 
 
     helm_namespace = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["namespace"]
     helm_chart = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["chart"]
+    helm_name = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["name"]
     helm_repo = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
     helm_repo_version = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
 
-    print("Run the following command to deploy JupyterHub: ")
-    print(f"helm repo add jupyterhub {helm_repo}")
-    print(f"helm upgrade --install -n {helm_namespace} jupyterhub jupyterhub/{helm_chart} --values {namespace}_jupyterhub_values.yaml --version={helm_repo_version}")
+    config_path = Path(config_folder).joinpath(f"{namespace}_jupyterhub_values.yaml")
+    cmds = ["Run the following command to deploy JupyterHub: ",
+            f"helm repo add jupyterhub {helm_repo}",
+            f"helm upgrade --install -n {helm_namespace} {helm_name} jupyterhub/{helm_chart} --values {config_path} --version={helm_repo_version}"]
 
+    print("\n".join(cmds))
+
+    return cmds
 
 if __name__ == "__main__":
     create_jupyterhub_config(
