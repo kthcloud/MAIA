@@ -4,19 +4,7 @@
 
 MAIAKubeGate is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
 applications in MAIA (including pods, services and ingresses).
-The package uses Helm charts to deploy the applications, and it is available as a Helm
-chart: [MAIAKubeGate](https://github.com/kthcloud/MAIAKubeGate).
 
-With the **MAIAKubeGate** chart it is possible to deploy any *Docker Image* as a Pod, expose the required ports as
-services, mount persistent volumes on the specified locations and optionally create Ingress resources to expose the
-application to the external traffic using the HTTPS protocol.
-
-To add the chart to Helm, run:
-
-```
-helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/
-helm repo update
-```
 
 # Deploying a MAIA Namespace
 
@@ -114,6 +102,19 @@ MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE>
 
 # Deploy an Application in MAIA Namespace
 
+The script to deploy custom applications uses Helm charts to deploy the applications, and it is available as a Helm
+chart: [MAIAKubeGate](https://github.com/kthcloud/MAIAKubeGate).
+
+With the **MAIAKubeGate** chart it is possible to deploy any *Docker Image* as a Pod, expose the required ports as
+services, mount persistent volumes on the specified locations and optionally create Ingress resources to expose the
+application to the external traffic using the HTTPS protocol.
+
+To add the chart to Helm, run:
+
+```
+helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/
+helm repo update
+```
 ## Custom Helm values
 
 A number of custom parameters can be specified for the Helm chart, including the Docker image to deploy, the port to
