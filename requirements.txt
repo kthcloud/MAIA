@@ -1,2 +1,5 @@
 ruamel_yaml
 kubernetes
+minio
+click
+toml
