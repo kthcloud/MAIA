@@ -3,40 +3,9 @@
 import json
 import yaml
 import click
-from kubernetes import client, config
+from MAIAKubeGate.maia_fn import get_ssh_ports
 from pathlib import Path
-def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
 
-    config.load_kube_config()
-
-    v1 = client.CoreV1Api()
-
-
-    used_port = []
-    services = v1.list_service_for_all_namespaces(watch=False)
-    for svc in services.items:
-        if port_type == 'LoadBalancer':
-            if svc.status.load_balancer.ingress is not None:
-
-                if svc.spec.type == 'LoadBalancer' and svc.status.load_balancer.ingress[0].ip == maia_metallb_ip:
-                    for port in svc.spec.ports:
-                        if port.name == 'ssh':
-                            used_port.append(int(port.port))
-        elif port_type == "NodePort":
-            if svc.spec.type == 'NodePort':
-                for port in svc.spec.ports:
-                    used_port.append(int(port.port))
-
-    ports = []
-    print(used_port)
-    for request in range(n_requested_ports):
-        for port in range(ip_range[0], ip_range[1]):
-            if port not in used_port:
-                ports.append(port)
-                used_port.append(port)
-                break
-    print(ports)
-    return ports
 
 
 @click.command()
@@ -133,7 +102,7 @@ def create_maia_addons_config_api( form,
             "helm_release": {
                 "maia-addons": {
                     "name": "maia-addons-{}".format(namespace.lower()),
-                    "repository": "https://simonebendazzoli93.github.io/MAIAKubeGate/",
+                    "repository": "https://kthcloud.github.io/MAIAKubeGate/",
                     "chart": "maia-addons",
                     "version": "0.1.0",
                     "namespace": namespace.lower(),
@@ -150,10 +119,11 @@ def create_maia_addons_config_api( form,
     if config_folder is None:
         config_folder = "."
 
-    with open(Path(config_folder).joinpath(f"{namespace}_maia_addons.tf.json"), "w") as f:
+    Path(config_folder).joinpath(namespace).mkdir(parents=True, exist_ok=True)
+    with open(Path(config_folder).joinpath(namespace,f"{namespace}_maia_addons.tf.json"), "w") as f:
         json.dump(maia_addons_template, f, indent=2)
 
-    with open(Path(config_folder).joinpath(f"{namespace}_maia_addons_values.yaml"), "w") as f:
+    with open(Path(config_folder).joinpath(namespace,f"{namespace}_maia_addons_values.yaml"), "w") as f:
         print(maia_addons_template["resource"]["helm_release"]["maia-addons"]["values"][0], file=f)
 
     helm_namespace = maia_addons_template["resource"]["helm_release"]["maia-addons"]["namespace"]
@@ -162,7 +132,7 @@ def create_maia_addons_config_api( form,
     helm_repo = maia_addons_template["resource"]["helm_release"]["maia-addons"]["repository"]
     helm_repo_version = maia_addons_template["resource"]["helm_release"]["maia-addons"]["version"]
 
-    config_path = Path(config_folder).joinpath(f"{namespace}_maia_addons_values.yaml")
+    config_path = Path(config_folder).joinpath(namespace,f"{namespace}_maia_addons_values.yaml")
     cmds =[
         "Run the following command to deploy JupyterHub: ",
         f"helm repo add maiakubegate {helm_repo}",

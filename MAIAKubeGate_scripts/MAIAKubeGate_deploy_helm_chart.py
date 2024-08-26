@@ -13,7 +13,6 @@ import yaml
 
 import MAIAKubeGate
 from MAIAKubeGate.helm_values import read_config_dict_and_generate_helm_values_dict
-from MAIAKubeGate.kaniko import create_config_map_from_data
 
 version = MAIAKubeGate.__version__
 

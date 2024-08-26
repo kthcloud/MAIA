@@ -346,8 +346,8 @@ def create_jupyterhub_config_api( form,
     }
     maia_workspace_version = user_form["maia_workspace_version"]
     jh_template["singleuser"]["profileList"] = [
-        {"display_name": "MAIA Workspace", "description": f"MAIA Workspace {maia_workspace_version}", "default": True,
-        "kubespawner_override":{"image": f"registry.maia.cloud.cbh.kth.se/maia-workspace-ssh-addons:{maia_workspace_version}",
+        {"display_name": "MAIA Workspace v{maia_workspace_version}", "description": "MAIA Workspace with Python 3.10, Anaconda, MatLab, RStudio, VSCode and SSH Connection", "default": True,
+        "kubespawner_override":{"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
                                "extra_resource_limits": {
@@ -370,10 +370,11 @@ def create_jupyterhub_config_api( form,
     if config_folder is None:
         config_folder = "."
 
-    with open(Path(config_folder).joinpath(f"{namespace}_jupyterhub.tf.json"), "w") as f:
+    Path(config_folder).joinpath(namespace).mkdir(parents=True, exist_ok=True)
+    with open(Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub.tf.json"), "w") as f:
         json.dump(jh_helm_template, f, indent=2)
 
-    with open(Path(config_folder).joinpath(f"{namespace}_jupyterhub_values.yaml"), "w") as f:
+    with open(Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub_values.yaml"), "w") as f:
         print(jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"][0],file=f)
 
 
@@ -383,7 +384,7 @@ def create_jupyterhub_config_api( form,
     helm_repo = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
     helm_repo_version = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
 
-    config_path = Path(config_folder).joinpath(f"{namespace}_jupyterhub_values.yaml")
+    config_path = Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub_values.yaml")
     cmds = ["Run the following command to deploy JupyterHub: ",
             f"helm repo add jupyterhub {helm_repo}",
             f"helm upgrade --install -n {helm_namespace} {helm_name} jupyterhub/{helm_chart} --values {config_path} --version={helm_repo_version}"]
