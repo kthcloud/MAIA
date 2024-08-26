@@ -1,6 +1,6 @@
 # MAIAKubeGate
 
-[![Build](https://github.com/MAIA-KTH/MAIAKubeGate/actions/workflows/build.yaml/badge.svg)](https://github.com/MAIA-KTH/MAIAKubeGate/actions/workflows/build.yaml)
+[![Build](https://github.com/kthcloud/MAIAKubeGate/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIAKubeGate/actions/workflows/build.yaml)
 
 MAIAKubeGate is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
 applications in MAIA (including pods, services and ingresses).
@@ -14,7 +14,7 @@ application to the external traffic using the HTTPS protocol.
 To add the chart to Helm, run:
 
 ```
-helm repo add maiakubegate https://simonebendazzoli93.github.io/MAIAKubeGate/
+helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/
 helm repo update
 ```
 
