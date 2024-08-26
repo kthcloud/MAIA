@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import json
-import yaml
-import click
-from MAIAKubeGate.maia_fn import get_ssh_ports
 from pathlib import Path
 
+import click
+import yaml
+
+from MAIAKubeGate.maia_fn import get_ssh_ports
 
 
 @click.command()
@@ -134,7 +135,7 @@ def create_maia_addons_config_api( form,
 
     config_path = Path(config_folder).joinpath(namespace,f"{namespace}_maia_addons_values.yaml")
     cmds =[
-        "Run the following command to deploy JupyterHub: ",
+        # "Run the following command to deploy JupyterHub: ",
         f"helm repo add maiakubegate {helm_repo}",
         f"helm upgrade --install -n {helm_namespace} {helm_name} maiakubegate/{helm_chart} --values {config_path} --version={helm_repo_version}"
 

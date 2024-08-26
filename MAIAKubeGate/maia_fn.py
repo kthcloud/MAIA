@@ -1,17 +1,18 @@
-import json
-import toml
-import kubernetes
-from kubernetes.client.rest import ApiException
-import os
 import base64
-from kubernetes import config
-from secrets import token_urlsafe
-import yaml
-from pathlib import Path
+import json
+import os
 import subprocess
-from kubernetes import client, config
-from typing import Dict
+from pathlib import Path
 from pprint import pprint
+from secrets import token_urlsafe
+from typing import Dict
+
+import kubernetes
+import toml
+import yaml
+from kubernetes import client, config
+from kubernetes.client.rest import ApiException
+
 
 def create_config_map_from_data(data: str, config_map_name: str, namespace: str, kubeconfig_dict: Dict,
                                 data_key: str = "values.yaml"):
@@ -54,38 +55,51 @@ def create_config_map_from_data(data: str, config_map_name: str, namespace: str,
             pprint(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->delete_namespaced_config_map: %s\n" % e)
-def create_ssh_service(namespace,users, service_type):
+
+
+def create_ssh_service(namespace, users, service_type, create_script=False):
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
-    with kubernetes.client.ApiClient() as api_client:
-        for user in users:
-            api_instance = kubernetes.client.CoreV1Api(api_client)
-            body = kubernetes.client.V1Service()
 
-            metadata = kubernetes.client.V1ObjectMeta()
-            metadata.name = user["jupyterhub_username"]
+    cmds = []
+    for user in users:
+        jupyterhub_username = user['jupyterhub_username']
+        ssh_port = user['ssh_port']
+        cmds.append(
+            f"kubectl create -f - <<EOF\napiVersion: v1\nkind: Service\nmetadata:\n  name: {jupyterhub_username}\n  namespace: {namespace}\nspec:\n  ports:\n    - port: {ssh_port}\n      targetPort: 2022\n      name: ssh\n      protocol: TCP\n      {f'nodePort: {ssh_port}' if service_type == 'NodePort' else ''}\n  selector:\n    hub.jupyter.org/username: {jupyterhub_username}\n  type: {service_type}\nEOF")
+    if not create_script:
+        with kubernetes.client.ApiClient() as api_client:
+            for user in users:
+                api_instance = kubernetes.client.CoreV1Api(api_client)
+                body = kubernetes.client.V1Service()
 
-            body.metadata = metadata
+                metadata = kubernetes.client.V1ObjectMeta()
+                metadata.name = user["jupyterhub_username"]
 
-            # Creating spec
-            spec = kubernetes.client.V1ServiceSpec()
+                body.metadata = metadata
 
-            # Creating Port object
-            port = kubernetes.client.V1ServicePort(port=user["ssh_port"],target_port=2022,name="ssh",protocol="TCP")
-            if service_type == "NodePort":
-                port.node_port = user["ssh_port"]
+                # Creating spec
+                spec = kubernetes.client.V1ServiceSpec()
 
-            spec.ports = [port]
-            spec.type = service_type
-            spec.selector = {"hub.jupyter.org/username": user["jupyterhub_username"]}
+                # Creating Port object
+                port = kubernetes.client.V1ServicePort(port=user["ssh_port"], target_port=2022, name="ssh",
+                                                       protocol="TCP")
+                if service_type == "NodePort":
+                    port.node_port = user["ssh_port"]
 
-            body.spec = spec
-            try:
-                api_response = api_instance.create_namespaced_service(namespace, body)
+                spec.ports = [port]
+                spec.type = service_type
+                spec.selector = {"hub.jupyter.org/username": user["jupyterhub_username"]}
 
-                print(api_response)
-            except ApiException as e:
-                print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
+                body.spec = spec
+                try:
+                    api_response = api_instance.create_namespaced_service(namespace, body)
+
+                    print(api_response)
+                except ApiException as e:
+                    print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
+
+    return cmds
 
 def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
 
@@ -110,17 +124,20 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
                     used_port.append(int(port.port))
 
     ports = []
-    print(used_port)
+
     for request in range(n_requested_ports):
         for port in range(ip_range[0], ip_range[1]):
             if port not in used_port:
                 ports.append(port)
                 used_port.append(port)
                 break
-    print(ports)
+
     return ports
 
-def create_namespace(namespace):
+
+def create_namespace(namespace, create_script=False):
+    if create_script:
+        return f"kubectl create namespace {namespace}"
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
     with kubernetes.client.ApiClient() as api_client:
@@ -133,8 +150,13 @@ def create_namespace(namespace):
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespace: %s\n" % e)
 
+    return f"kubectl create namespace {namespace}"
 
-def create_docker_registry_secret(namespace, secret_name, docker_server, docker_username, docker_password):
+
+def create_docker_registry_secret(namespace, secret_name, docker_server, docker_username, docker_password,
+                                  create_script=False):
+    if create_script:
+        return f"kubectl create secret docker-registry {secret_name} --docker-server={docker_server} --docker-username={docker_username} --docker-password={docker_password} --namespace {namespace}"
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
     with kubernetes.client.ApiClient() as api_client:
@@ -167,7 +189,12 @@ def create_docker_registry_secret(namespace, secret_name, docker_server, docker_
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
 
-def create_share_pvc(namespace, pvc_name, storage_class, storage_size):
+    return f"kubectl create secret docker-registry {secret_name} --docker-server={docker_server} --docker-username={docker_username} --docker-password={docker_password} --namespace {namespace}"
+
+
+def create_share_pvc(namespace, pvc_name, storage_class, storage_size, create_script=False):
+    if create_script:
+        return f"kubectl create -f - <<EOF\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: {pvc_name}\n  namespace: {namespace}\nspec:\n  accessModes:\n    - ReadWriteMany\n  storageClassName: {storage_class}\n  resources:\n    requests:\n      storage: {storage_size}\nEOF"
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
     with kubernetes.client.ApiClient() as api_client:
@@ -188,8 +215,10 @@ def create_share_pvc(namespace, pvc_name, storage_class, storage_size):
             print(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespaced_persistent_volume_claim: %s\n" % e)
+    return f"kubectl create -f - <<EOF\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: {pvc_name}\n  namespace: {namespace}\nspec:\n  accessModes:\n    - ReadWriteMany\n  storageClassName: {storage_class}\n  resources:\n    requests:\n      storage: {storage_size}\nEOF"
 
-def deploy_oauth2_proxy(cluster_config,user_config,config_folder):
+
+def deploy_oauth2_proxy(cluster_config, user_config, config_folder, create_script=False):
 
     config_file = {
         "oidc_issuer_url": cluster_config["keycloack"]["issuer_url"],
@@ -263,13 +292,26 @@ def deploy_oauth2_proxy(cluster_config,user_config,config_folder):
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_oauth2_proxy_values.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(oauth2_proxy_config, f)
 
-    subprocess.run(["helm", "repo", "add", "oauth2-proxy", "https://oauth2-proxy.github.io/manifests"])
-    subprocess.run(["helm", "repo", "update"])
-    subprocess.run(["helm","upgrade", "--install", "oauth2-proxy", "oauth2-proxy/oauth2-proxy", "-f", Path(config_folder).joinpath(user_config["group_ID"],"{}_oauth2_proxy_values.yaml".format(user_config["group_ID"])), "--namespace", user_config["group_ID"].lower()])
+    cmds = [
+        "helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests",
+        "helm repo update",
+        "helm upgrade --install oauth2-proxy oauth2-proxy/oauth2-proxy -f {} --namespace {}".format(
+            Path(config_folder).joinpath(user_config["group_ID"],
+                                         "{}_oauth2_proxy_values.yaml".format(user_config["group_ID"])),
+            user_config["group_ID"].lower())
+    ]
 
-    return {"oauth_url": "{}.{}".format(user_config["group_subdomain"],cluster_config["domain"])}
+    if create_script:
 
-def deploy_minio_tenant(namespace,config_folder,user_config,cluster_config):
+        return {"oauth_url": "{}.{}".format(user_config["group_subdomain"], cluster_config["domain"])}, cmds
+    else:
+        for cmd in cmds:
+            subprocess.run(cmd.split(' '))
+
+    return {"oauth_url": "{}.{}".format(user_config["group_subdomain"], cluster_config["domain"])}, cmds
+
+
+def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, create_script=False):
     #kubectl kustomize https://github.com/minio/operator/examples/kustomization/base/
     with open(Path(config_folder).joinpath("tenant-base.yaml"), "r") as f:
         tenant = yaml.safe_load(f)
@@ -317,9 +359,29 @@ def deploy_minio_tenant(namespace,config_folder,user_config,cluster_config):
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant_secret_user.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(minio_user, f)
 
-    subprocess.run(["kubectl","apply","-f",Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant.yaml".format(user_config["group_ID"]))])
-    subprocess.run(["kubectl","apply","-f",Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant_secret_configuration.yaml".format(user_config["group_ID"]))])
-    subprocess.run(["kubectl","apply","-f",Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant_secret_user.yaml".format(user_config["group_ID"]))])
+    cmds = [
+        "kubectl apply -f {}".format(Path(config_folder).joinpath(user_config["group_ID"],
+                                                                  "{}_minio_tenant.yaml".format(
+                                                                      user_config["group_ID"]))),
+        "kubectl apply -f {}".format(Path(config_folder).joinpath(user_config["group_ID"],
+                                                                  "{}_minio_tenant_secret_configuration.yaml".format(
+                                                                      user_config["group_ID"]))),
+        "kubectl apply -f {}".format(Path(config_folder).joinpath(user_config["group_ID"],
+                                                                  "{}_minio_tenant_secret_user.yaml".format(
+                                                                      user_config["group_ID"])))
+    ]
+
+    if create_script:
+        return {
+            "minio_console_service": "{}-console".format(namespace),
+            "minio_access_key": access_key,
+            "minio_secret_key": secret_key,
+            "minio_root_user": "admin",
+            "minio_root_password": root_password
+        }, cmds
+    else:
+        for cmd in cmds:
+            subprocess.run(cmd.split(' '))
 
     return {
         "minio_console_service": "{}-console".format(namespace),
@@ -329,7 +391,8 @@ def deploy_minio_tenant(namespace,config_folder,user_config,cluster_config):
         "minio_root_password": root_password
     }
 
-def deploy_mysql(namespace,cluster_config,user_config,config_folder):
+
+def deploy_mysql(namespace, cluster_config, user_config, config_folder, create_script=False):
     mysql_pw = token_urlsafe(16)
     mysql_config = {
         "namespace": namespace,
@@ -363,32 +426,49 @@ def deploy_mysql(namespace,cluster_config,user_config,config_folder):
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_mysql_values.json".format(user_config["group_ID"])), "w") as f:
         json.dump(mysql_config, f)
 
-    subprocess.run(["MAIAKubeGate_deploy_helm_chart","--config-file",Path(config_folder).joinpath(user_config["group_ID"],"{}_mysql_values.json".format(user_config["group_ID"]))])
+    if create_script:
+        return {"MYSQL_PASSWORD": mysql_pw, "MYSQL_USERNAME": namespace}, [
+            "MAIAKubeGate_deploy_helm_chart --config-file " + str(Path(config_folder).joinpath(user_config["group_ID"],
+                                                                                               "{}_mysql_values.json".format(
+                                                                                                   user_config[
+                                                                                                       "group_ID"])))]
+    else:
+        subprocess.run(["MAIAKubeGate_deploy_helm_chart", "--config-file",
+                        Path(config_folder).joinpath(user_config["group_ID"],
+                                                     "{}_mysql_values.json".format(user_config["group_ID"]))])
 
     return {"MYSQL_PASSWORD": mysql_pw, "MYSQL_USERNAME": namespace}
 
-def deploy_mlflow(namespace,cluster_config,user_config,config_folder):
+
+def deploy_mlflow(namespace, cluster_config, user_config, config_folder, create_script=False):
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
-    with kubernetes.client.ApiClient() as api_client:
-        # Create an instance of the API class
-        api_instance = kubernetes.client.CoreV1Api(api_client)
 
+    script = []
 
-        body = kubernetes.client.V1Secret(
-            metadata=kubernetes.client.V1ObjectMeta(name=namespace),
-            type="Opaque",
-            data =
-            {"user":base64.b64encode(namespace.encode("ascii")).decode("ascii"),
-            "password":base64.b64encode(token_urlsafe(16).encode("ascii")).decode("ascii")
-            }
-        )
+    user_pw = token_urlsafe(16)
+    if create_script:
+        script.append(
+            f"kubectl create secret generic {namespace} --from-literal=user={namespace} --from-literal=password={user_pw} --namespace {namespace}")
+    else:
+        with kubernetes.client.ApiClient() as api_client:
+            # Create an instance of the API class
+            api_instance = kubernetes.client.CoreV1Api(api_client)
 
-        try:
-            api_response = api_instance.create_namespaced_secret(namespace, body)
-            print(api_response)
-        except ApiException as e:
-            print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
+            body = kubernetes.client.V1Secret(
+                metadata=kubernetes.client.V1ObjectMeta(name=namespace),
+                type="Opaque",
+                data=
+                {"user": base64.b64encode(namespace.encode("ascii")).decode("ascii"),
+                 "password": base64.b64encode(user_pw.encode("ascii")).decode("ascii")
+                 }
+            )
+
+            try:
+                api_response = api_instance.create_namespaced_secret(namespace, body)
+                print(api_response)
+            except ApiException as e:
+                print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
 
     mlflow_config = {
   "namespace": namespace,
@@ -426,11 +506,20 @@ def deploy_mlflow(namespace,cluster_config,user_config,config_folder):
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_mlflow_values.json".format(user_config["group_ID"])), "w") as f:
         json.dump(mlflow_config, f)
 
-    subprocess.run(["MAIAKubeGate_deploy_helm_chart","--config-file",Path(config_folder).joinpath(user_config["group_ID"],"{}_mlflow_values.json".format(user_config["group_ID"]))])
+    if create_script:
+        script.append(f"MAIAKubeGate_deploy_helm_chart --config-file " + str(
+            Path(config_folder).joinpath(user_config["group_ID"],
+                                         "{}_mlflow_values.json".format(user_config["group_ID"]))))
+        return {"mlflow_service": "mlflow-v1-mkg"}, script
+    else:
+        subprocess.run(["MAIAKubeGate_deploy_helm_chart", "--config-file",
+                        Path(config_folder).joinpath(user_config["group_ID"],
+                                                     "{}_mlflow_values.json".format(user_config["group_ID"]))])
 
     return {"mlflow_service": "mlflow-v1-mkg"}
 
-def deploy_orthanc_ohif(namespace,cluster_config,user_config,config_folder):
+
+def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, create_script=False):
     orthanc_ohif_config = {
         "pvc" : {
             "pvc_type": cluster_config["storage_class"],
@@ -452,11 +541,26 @@ def deploy_orthanc_ohif(namespace,cluster_config,user_config,config_folder):
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_orthanc_ohif_values.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(orthanc_ohif_config, f)
 
-    subprocess.run(["helm", "repo", "add", "maiakubegate", "https://kthcloud.github.io/MAIAKubeGate/"])
-    subprocess.run(["helm", "repo", "update"])
-    subprocess.run(["helm","upgrade", "--install", namespace, "maiakubegate/monai-label-ohif-maia","-n", namespace, "-f", Path(config_folder).joinpath(user_config["group_ID"],"{}_orthanc_ohif_values.yaml".format(user_config["group_ID"])), "--namespace", user_config["group_ID"].lower()])
+    cmds = [
+        "helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/",
+        "helm repo update",
+        "helm upgrade --install {} maiakubegate/monai-label-ohif-maia -f {} --namespace {}".format(namespace, Path(
+            config_folder).joinpath(user_config["group_ID"],
+                                    "{}_orthanc_ohif_values.yaml".format(user_config["group_ID"])), namespace)
+    ]
 
-def deploy_label_studio(namespace,cluster_config,user_config,config_folder):
+    if create_script:
+        return cmds
+
+    for cmd in cmds:
+        subprocess.run(cmd.split(' '))
+
+    return cmds
+
+
+def deploy_label_studio(namespace, cluster_config, user_config, config_folder, create_script=False):
+    if "nginx_cluster_issuer" not in cluster_config:
+        cluster_config["nginx_cluster_issuer"] = "N/A"
     label_studio_pw = token_urlsafe(16)
     label_studio_config = {
         "app":{
@@ -499,57 +603,101 @@ def deploy_label_studio(namespace,cluster_config,user_config,config_folder):
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_label_studio_values.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(label_studio_config, f)
 
-    subprocess.run(["helm", "repo", "add", "heartrex", "https://charts.heartex.com/"])
-    subprocess.run(["helm", "repo", "update"])
-    subprocess.run(["helm","upgrade", "--install", "label-studio", "heartrex/label-studio","-n", namespace, "-f", Path(config_folder).joinpath(user_config["group_ID"],"{}_label_studio_values.yaml".format(user_config["group_ID"])), "--namespace", user_config["group_ID"].lower()])
+    cmds = [
+        "helm repo add heartrex https://charts.heartex.com/",
+        "helm repo update",
+        "helm upgrade --install label-studio heartrex/label-studio -f {} -n {} --namespace {}".format(
+            Path(config_folder).joinpath(user_config["group_ID"],
+                                         "{}_label_studio_values.yaml".format(user_config["group_ID"])), namespace,
+            namespace)
+    ]
+    if create_script:
+        return {"label_studio_password": label_studio_pw}, cmds
 
-    return {"label_studio_password": label_studio_pw}
+    for cmd in cmds:
+        subprocess.run(cmd.split(' '))
 
-def deploy_kubeflow(namespace,user_config, cluster_config, config_folder, manifest_folder):
+    return {"label_studio_password": label_studio_pw}, cmds
+
+
+def deploy_kubeflow(namespace, user_config, cluster_config, config_folder, manifest_folder, create_script=False):
     os.environ["namespace"] = namespace
     os.environ["storageClassName"] = cluster_config["storage_class"]
-    ps = subprocess.Popen(("./kustomize","build", Path(manifest_folder).joinpath("kustomize/cluster-scoped-resources")), stdout=subprocess.PIPE)
-    output = subprocess.check_output(("envsubst",), stdin=ps.stdout)
+    script = []
 
-    ps.wait()
-    with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_kf_custom_resources.yaml".format(user_config["group_ID"])),"w") as f:
-        f.write(output.decode("utf-8"))
+    script.append("export namespace={}".format(namespace))
+    script.append("export storageClassName={}".format(cluster_config["storage_class"]))
+    script.append("kustomize build {} | kubectl apply -f -".format(
+        Path(manifest_folder).joinpath("kustomize/cluster-scoped-resources")))
 
-    subprocess.run(["kubectl","apply","-f",Path(config_folder).joinpath(user_config["group_ID"],"{}_kf_custom_resources.yaml".format(user_config["group_ID"]))])
+    if not create_script:
+        ps = subprocess.Popen(
+            ("kustomize", "build", Path(manifest_folder).joinpath("kustomize/cluster-scoped-resources")),
+            stdout=subprocess.PIPE)
+        output = subprocess.check_output(("envsubst",), stdin=ps.stdout)
+
+        ps.wait()
+
+        with open(Path(config_folder).joinpath(user_config["group_ID"],
+                                               "{}_kf_custom_resources.yaml".format(user_config["group_ID"])),
+                  "w") as f:
+            f.write(output.decode("utf-8"))
+
+        subprocess.run(["kubectl", "apply", "-f", Path(config_folder).joinpath(user_config["group_ID"],
+                                                                               "{}_kf_custom_resources.yaml".format(
+                                                                                   user_config["group_ID"]))])
+
+    script.append("kustomize build {} | kubectl apply -f -".format(Path(manifest_folder).joinpath("kustomize/env/dev")))
+    if not create_script:
+        ps = subprocess.Popen(("kustomize", "build", Path(manifest_folder).joinpath("kustomize/env/dev")),
+                              stdout=subprocess.PIPE)
+        output = subprocess.check_output(("envsubst",), stdin=ps.stdout)
+
+        ps.wait()
+        with open(Path(config_folder).joinpath(user_config["group_ID"], "{}_kf.yaml".format(user_config["group_ID"])),
+                  "w") as f:
+            f.write(output.decode("utf-8"))
+
+        subprocess.run(["kubectl", "apply", "-f", Path(config_folder).joinpath(user_config["group_ID"],
+                                                                               "{}_kf.yaml".format(
+                                                                                   user_config["group_ID"]))])
+
+    return script
 
 
-
-    ps = subprocess.Popen(("./kustomize","build", Path(manifest_folder).joinpath("kustomize/env/dev")), stdout=subprocess.PIPE)
-    output = subprocess.check_output(("envsubst",), stdin=ps.stdout)
-
-    ps.wait()
-    with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_kf.yaml".format(user_config["group_ID"])),"w") as f:
-        f.write(output.decode("utf-8"))
-
-    subprocess.run(["kubectl","apply","-f",Path(config_folder).joinpath(user_config["group_ID"],"{}_kf.yaml".format(user_config["group_ID"]))])
-
-def configure_minio(namespace,user_config,cluster_config, config_folder):
+def configure_minio(namespace, user_config, cluster_config, config_folder, create_script=False):
     alias_cmd = "mc alias set {} https://minio.{}.{} {} {}".format(namespace,
                                                                                                user_config["group_subdomain"],
                                                                                                cluster_config["domain"],
                                                                                                user_config["minio_root_user"],
                                                                                                user_config["minio_root_password"])
-    print(alias_cmd)
-    subprocess.run(alias_cmd.split(' '))
+    cmds = [alias_cmd]
+    if not create_script:
+        subprocess.run(alias_cmd.split(' '))
 
     add_user_cmd = "mc admin user add {} {} {}".format(namespace, user_config["minio_access_key"], user_config["minio_secret_key"])
 
-    subprocess.run(add_user_cmd.split(' '))
+    cmds.append(add_user_cmd)
+    if not create_script:
+        subprocess.run(add_user_cmd.split(' '))
 
     attach_policy_cmd = "mc admin policy attach {} readwrite --user {}".format(namespace,user_config["minio_access_key"])
+    cmds.append(attach_policy_cmd)
 
-    subprocess.run(attach_policy_cmd.split(' '))
+    if not create_script:
+        subprocess.run(attach_policy_cmd.split(' '))
 
     add_maia_policy = "mc admin policy create {} MAIA:{} {}/readwrite.json".format(namespace,user_config["group_ID"],config_folder)
+    cmds.append(add_maia_policy)
 
-    subprocess.run(add_maia_policy.split(' '))
+    if not create_script:
+        subprocess.run(add_maia_policy.split(' '))
 
     add_maia_admin_policy = "mc admin policy create {} MAIA:admin {}/admin.json".format(namespace,
                                                                                    config_folder)
+    cmds.append(add_maia_admin_policy)
 
-    subprocess.run(add_maia_admin_policy.split(' '))
+    if not create_script:
+        subprocess.run(add_maia_admin_policy.split(' '))
+
+    return cmds

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import json
-import yaml
-import click
-from minio import Minio
 from pathlib import Path
+
+import click
+import yaml
+from minio import Minio
 
 
 @click.command()
@@ -229,13 +230,13 @@ def create_jupyterhub_config_api( form,
         if "url_type" in cluster_config:
             if cluster_config["url_type"]  == "subdomain" :
                 jh_template["hub"]["config"]["GenericOAuthenticator"]["oauth_callback_url"] = f"https://{hub_address}/hub/oauth_callback"
-                print("Register Callback: ")
-                print(f"https://{hub_address}/hub/oauth_callback")
+                # print("Register Callback: ")
+                # print(f"https://{hub_address}/hub/oauth_callback")
             elif cluster_config["url_type"]  == "subpath":
                 jh_template["hub"]["config"]["GenericOAuthenticator"][
                     "oauth_callback_url"] = f"https://{hub_address}/{group_subdomain}-hub/oauth_callback"
-                print("Register Callback: ")
-                print(f"https://{hub_address}/{group_subdomain}-hub/oauth_callback")
+                # print("Register Callback: ")
+                #print(f"https://{hub_address}/{group_subdomain}-hub/oauth_callback")
 
 
     if "custom_hub" in user_form:
@@ -385,7 +386,8 @@ def create_jupyterhub_config_api( form,
     helm_repo_version = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
 
     config_path = Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub_values.yaml")
-    cmds = ["Run the following command to deploy JupyterHub: ",
+    cmds = [
+        #"Run the following command to deploy JupyterHub: ",
             f"helm repo add jupyterhub {helm_repo}",
             f"helm upgrade --install -n {helm_namespace} {helm_name} jupyterhub/{helm_chart} --values {config_path} --version={helm_repo_version}"]
 

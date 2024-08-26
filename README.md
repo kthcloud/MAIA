@@ -5,7 +5,7 @@
 MAIAKubeGate is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
 applications in MAIA (including pods, services and ingresses).
 The package uses Helm charts to deploy the applications, and it is available as a Helm
-chart: [MAIAKubeGate](https://github.com/SimoneBendazzoli93/MAIAKubeGate).
+chart: [MAIAKubeGate](https://github.com/kthcloud/MAIAKubeGate).
 
 With the **MAIAKubeGate** chart it is possible to deploy any *Docker Image* as a Pod, expose the required ports as
 services, mount persistent volumes on the specified locations and optionally create Ingress resources to expose the
@@ -17,6 +17,102 @@ To add the chart to Helm, run:
 helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/
 helm repo update
 ```
+
+# Deploying a MAIA Namespace
+
+To deploy a MAIA namespace in a Kubernetes cluster, the script `MAIAKubeGate_deploy_MAIA_namespace` can be used.
+The script requires a configuration file with the following parameters:
+
+```yaml
+group_subdomain: <>         # The group subdomain to be used in the URLs
+group_ID: <>                # The group ID in Keycloak, following the format MAIA:<group_ID>
+users: # List of user emails to be added to the group
+  -
+  -
+resources_limits: # List of resources limits to be used in the namespace
+  "memory":
+    - "4G"                 # Memory usage lower limit
+    - "8G"                 # Memory usage upper limit
+  "cpu":
+    - 4.0                 # CPU usage lower limit
+    - 4.0                 # CPU usage upper limit 
+gpu_request: "1"          # Number of GPUs to be requested per user ( omit the field if no GPU is needed)
+```
+
+And, additionally, a cluster-specific configuration file with the following parameters:
+
+```yaml
+docker_server: ""                   # Docker server URL
+docker_username: ""                 # Docker username
+docker_password: ""                 # Docker password
+"storage_class": ""                 # k8s Storage class to be used
+"shared_storage_class": ""          # k8s Storage class to be used for shared storage
+"traefik_resolver": ""              # Traefik resolver to be used for k8s Ingress (only for Traefik)
+"hub_storage_class": ""             # k8s Storage class to be used for JupyterHub storage
+url_type: "subdomain"               # URL type to be used for the MAIA Applications (subdomain or path)
+domain: ""                          # k8s cluster domain
+nginx_proxy_image: ""               # NGINX proxy image to be used
+imagePullSecrets: ""                # Image pull secrets to be used
+admins: # List of admin emails
+  - ""
+  - ""
+ssh_port_type: ""                   # SSH port type to be used. It can be either "NodePort" or "LoadBalancer"
+ssh_hostname: ""                    # SSH hostname to be used   
+port_range: # Port range to be used for SSH ports, according to the cluster configuration for NodePort or LoadBalancer
+  - MIN_PORT
+  - MAX_PORT
+keycloack: # Keycloak configuration for Authentication
+  client_id: ""                     # Keycloak client ID
+  issuer_url: ""                    # Keycloak issuer URL
+  client_secret: ""                 # Keycloak client secret
+  authorize_url: ""                 # Keycloak authorize URL
+  token_url: ""                    # Keycloak token URL
+  userdata_url: ""                  # Keycloak user data URL
+```
+
+In order to deploy the MAIA namespace, the `minio` and `kustomize` CLI should be installed locally, to be able to
+interact with the cluster.
+
+To install the `minio` CLI, run:
+
+```shell
+curl https://dl.min.io/client/mc/release/linux-amd64/mc --create-dirs -o /usr/local/bin/mc
+chmod +x /usr/local/bin/mc
+```
+
+To install the `kustomize` CLI, run:
+
+```shell
+cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+```
+
+```shell
+To deploy the MAIA namespace, run:
+
+```shell
+export KUBECONFIG=<PATH/TO/KUBECONFIG>
+
+MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER>
+```
+
+## Offline Deployment
+
+If you only want to create a deployment script, to review and run it later, you can use the `--create-script` flag:
+
+```shell
+MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --create-script
+```
+
+## Minimal Installation
+
+A minimal installation can be done, only deploying the JupyterHub interface and the required SSH services.
+To install the MAIA namespace with the minimal configuration, you can use the `--minimal` flag:
+
+```shell
+MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --minimal
+```
+
+# Deploy an Application in MAIA Namespace
 
 ## Custom Helm values
 
