@@ -57,7 +57,8 @@ def create_config_map_from_data(data: str, config_map_name: str, namespace: str,
             print("Exception when calling CoreV1Api->delete_namespaced_config_map: %s\n" % e)
 
 
-def create_ssh_service(namespace, users, service_type, create_script=False):
+def create_ssh_service(namespace, users, service_type, create_script=False, metallb_shared_ip=None,
+                       metallb_ip_pool=None, load_balancer_ip=None):
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
@@ -65,7 +66,12 @@ def create_ssh_service(namespace, users, service_type, create_script=False):
     for user in users:
         jupyterhub_username = user['jupyterhub_username']
         ssh_port = user['ssh_port']
-        cmds.append(
+        if metallb_shared_ip is not None and metallb_ip_pool is not None and load_balancer_ip is not None:
+            cmds.append(
+                f"kubectl create -f - <<EOF\napiVersion: v1\nkind: Service\nmetadata:\n  name: {jupyterhub_username}\n  namespace: {namespace}\n  annotations:\n    metallb.universe.tf/allow-shared-ip: {metallb_shared_ip}\n    metallb.universe.tf/ip-allocated-from-pool: {metallb_ip_pool}\nspec:\n  loadBalancerIP: {load_balancer_ip}\n  ports:\n    - port: {ssh_port}\n      targetPort: 2022\n      name: ssh\n      protocol: TCP\n      {f'nodePort: {ssh_port}' if service_type == 'NodePort' else ''}\n  selector:\n    hub.jupyter.org/username: {jupyterhub_username}\n  type: {service_type}\nEOF")
+
+        else:
+            cmds.append(
             f"kubectl create -f - <<EOF\napiVersion: v1\nkind: Service\nmetadata:\n  name: {jupyterhub_username}\n  namespace: {namespace}\nspec:\n  ports:\n    - port: {ssh_port}\n      targetPort: 2022\n      name: ssh\n      protocol: TCP\n      {f'nodePort: {ssh_port}' if service_type == 'NodePort' else ''}\n  selector:\n    hub.jupyter.org/username: {jupyterhub_username}\n  type: {service_type}\nEOF")
     if not create_script:
         with kubernetes.client.ApiClient() as api_client:

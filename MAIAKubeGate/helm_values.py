@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from typing import Dict, Any
 
@@ -229,7 +228,7 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
         if "path" in value_dict["ingress"]:
             value_dict["ingress"]["path"] = config_dict["ingress"]["path"]
         value_dict["ingress"]["port"] = config_dict["ingress"]["port"]
-        if "oauth_url" in config_dict:
+        if "oauth_url" in config_dict["ingress"]:
             value_dict["ingress"]["oauth_url"] = config_dict["ingress"]["oauth_url"]
 
     if "node_selector" in config_dict:
