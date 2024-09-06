@@ -7,8 +7,8 @@ import yaml
 from MAIAKubeGate.maia_fn import configure_minio, create_share_pvc, create_namespace, create_docker_registry_secret, \
     deploy_kubeflow, deploy_orthanc_ohif, deploy_mysql, deploy_mlflow, deploy_label_studio, get_ssh_ports, \
     create_ssh_service, deploy_minio_tenant, deploy_oauth2_proxy
-from MAIAKubeGate_create_JupyterHub_config import create_jupyterhub_config_api
-from MAIAKubeGate_create_MAIA_Addons_config import create_maia_addons_config_api
+from MAIAKubeGate_scripts.MAIAKubeGate_create_JupyterHub_config import create_jupyterhub_config_api
+from MAIAKubeGate_scripts.MAIAKubeGate_create_MAIA_Addons_config import create_maia_addons_config_api
 
 
 @click.command()
@@ -72,7 +72,8 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
         user_form_dict.update(label_studio_conf)
         script.extend(cmds)
 
-        cmds = deploy_kubeflow(namespace, user_form_dict, cluster_config_dict, config_folder, "configs/pipelines",
+        cmds = deploy_kubeflow(namespace, user_form_dict, cluster_config_dict, config_folder,
+                               Path(config_folder).joinpath("pipelines"),
                                create_script=create_script)
         script.extend(cmds)
 
@@ -98,17 +99,21 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
                                create_script=create_script)
         script.extend(cmds)
 
-    user_form_dict["maia_workspace_version"] = "1.2"
+    user_form_dict["maia_workspace_version"] = "1.3"
 
     if minimal:
         user_form_dict["ssh_users"] = []
         users = user_form_dict["users"]
-        metallb_shared_ip = cluster_config_dict["maia_metallb_ip"] if "maia_metallb_ip" in cluster_config_dict else None
+        load_balancer_ip = cluster_config_dict["maia_metallb_ip"] if "maia_metallb_ip" in cluster_config_dict else None
+        metallb_ip_pool = cluster_config_dict["metallb_ip_pool"] if "metallb_ip_pool" in cluster_config_dict else None
+        metallb_shared_ip = cluster_config_dict[
+            "metallb_shared_ip"] if "metallb_shared_ip" in cluster_config_dict else None
+
         jupyterhub_users = []
         for user in users:
             jupyterhub_users.append(user.replace("-", "-2d").replace("@", "-40").replace(".", "-2e"))
         ssh_ports = get_ssh_ports(len(users), cluster_config_dict["ssh_port_type"], cluster_config_dict["port_range"],
-                                  maia_metallb_ip=metallb_shared_ip)
+                                  maia_metallb_ip=load_balancer_ip)
         for user, jupyterhub_user, ssh_port in zip(users, jupyterhub_users, ssh_ports):
             user_form_dict["ssh_users"].append(
                 {"jupyterhub_username": jupyterhub_user,
@@ -116,7 +121,8 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
                  "ssh_port": ssh_port
                  })
         cmds = create_ssh_service(namespace, user_form_dict["ssh_users"], cluster_config_dict["ssh_port_type"],
-                                  create_script=create_script)
+                                  create_script=create_script, metallb_shared_ip=metallb_shared_ip,
+                                  metallb_ip_pool=metallb_ip_pool, load_balancer_ip=load_balancer_ip)
         script.extend(cmds)
     else:
         with open(Path(config_folder).joinpath(user_form_dict["group_ID"],

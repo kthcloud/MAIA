@@ -127,8 +127,8 @@ def create_jupyterhub_config_api( form,
             ]
         },
         "hub":{
-
-
+            # activeServerLimit
+            # concurrentSpawnLimit
         #"loadRoles": {
        #
         #    "user": {
@@ -212,9 +212,11 @@ def create_jupyterhub_config_api( form,
         client.fget_object(cluster_config["bucket_name"], minio_env_name, minio_env_name)
         with open(minio_env_name, "r") as f:
             file_string = f.read()
+            if file_string.startswith("name:"):
+                jh_template["singleuser"]["extraEnv"]["CONDA_ENV"] = str(file_string)
+            else:
+                jh_template["singleuser"]["extraEnv"]["PIP_ENV"] = str(file_string)
 
-        jh_template["singleuser"]["extraEnv"]["PIP_ENV"] = str(file_string)
-        jh_template["singleuser"]["extraEnv"]["CONDA_ENV"] = str(file_string)
 
     if "url_type" in cluster_config:
         if cluster_config["url_type"] == "subpath":
@@ -347,7 +349,9 @@ def create_jupyterhub_config_api( form,
     }
     maia_workspace_version = user_form["maia_workspace_version"]
     jh_template["singleuser"]["profileList"] = [
-        {"display_name": "MAIA Workspace v{maia_workspace_version}", "description": "MAIA Workspace with Python 3.10, Anaconda, MatLab, RStudio, VSCode and SSH Connection", "default": True,
+        {"display_name": f"MAIA Workspace v{maia_workspace_version}",
+         "description": "MAIA Workspace with Python 3.10, Anaconda, MatLab, RStudio, VSCode and SSH Connection",
+         "default": True,
         "kubespawner_override":{"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
@@ -395,6 +399,9 @@ def create_jupyterhub_config_api( form,
 
     return cmds
 
+
+def main():
+    create_jupyterhub_config()
+
 if __name__ == "__main__":
-    create_jupyterhub_config(
-    )
+    main()

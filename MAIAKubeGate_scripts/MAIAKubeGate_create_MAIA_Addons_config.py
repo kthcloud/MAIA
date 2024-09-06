@@ -66,6 +66,7 @@ def create_maia_addons_config_api( form,
         maia_addons_values_template["metallb"]["ip_pool"] = cluster_config["metallb_ip_pool"]
 
     metallb_shared_ip = cluster_config["maia_metallb_ip"] if "maia_metallb_ip" in cluster_config else None
+    maia_addons_values_template["metallb"]["load_balancer_ip"] = metallb_shared_ip
     ssh_ports = get_ssh_ports(len(users),cluster_config["ssh_port_type"],cluster_config["port_range"],maia_metallb_ip=metallb_shared_ip)
     for user, jupyterhub_user,ssh_port in zip(users,jupyterhub_users, ssh_ports):
         maia_addons_values_template["users"].append(
@@ -145,6 +146,9 @@ def create_maia_addons_config_api( form,
     return cmds
 
 
+def main():
+    create_maia_addons_config()
+
+
 if __name__ == "__main__":
-    create_maia_addons_config(
-    )
+    main()
