@@ -18,8 +18,8 @@ spec:
   selector:
     hub.jupyter.org/username: {{ .jupyterhub_username }}
   type: {{ $.Values.ssh_port_type }}
-  {{ - if eq $.Values.ssh_port_type "LoadBalancer" }}
+  {{- if eq $.Values.ssh_port_type "LoadBalancer" }}
   loadBalancerIP: {{ $.Values.metallb.load_balancer_ip }}
-  {{ - end }}
+  {{- end }}
 ---
 {{- end }}
