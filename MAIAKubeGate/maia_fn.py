@@ -345,7 +345,11 @@ def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, c
     root_user = "admin"
     root_password = token_urlsafe(16)
     root_password = root_password.replace("-","_")
-    minio_conf["stringData"]["config.env"] = "export MINIO_BROWSER='on'\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET='{}'\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME='groups'\nexport MINIO_IDENTITY_OPENID_SCOPES='email,openid,profile'\nexport MINIO_ROOT_USER='{}'\nexport MINIO_ROOT_PASSWORD='{}'\nexport MINIO_IDENTITY_OPENID_CONFIG_URL='{}'\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME='MAIA'".format(cluster_config["keycloack"]["client_secret"],root_user,root_password,cluster_config["keycloack"]["issuer_url"]+"/.well-known/openid-configuration",cluster_config["keycloack"]["client_id"])
+    minio_conf["stringData"][
+        "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET='{}'\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME='groups'\nexport MINIO_IDENTITY_OPENID_SCOPES='email,openid,profile'\nexport MINIO_ROOT_USER='{}'\nexport MINIO_ROOT_PASSWORD='{}'\nexport MINIO_IDENTITY_OPENID_CONFIG_URL='{}'\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME='MAIA'".format(
+        cluster_config["keycloack"]["client_secret"], root_user, root_password,
+        cluster_config["keycloack"]["issuer_url"] + "/.well-known/openid-configuration",
+        cluster_config["keycloack"]["client_id"])
 
 
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant_secret_configuration.yaml".format(user_config["group_ID"])), "w") as f:
@@ -606,6 +610,13 @@ def deploy_label_studio(namespace, cluster_config, user_config, config_folder, c
         }
     }
 
+    if "traefik_resolver" in cluster_config:
+        label_studio_config["app"]["ingress"]["annotations"][
+            "traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
+        label_studio_config["app"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = "true"
+        label_studio_config["app"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = \
+        cluster_config["traefik_resolver"]
+
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_label_studio_values.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(label_studio_config, f)
 
@@ -633,7 +644,7 @@ def deploy_kubeflow(namespace, user_config, cluster_config, config_folder, manif
 
     script.append("export namespace={}".format(namespace))
     script.append("export storageClassName={}".format(cluster_config["storage_class"]))
-    script.append("kustomize build {} | kubectl apply -f -".format(
+    script.append("kustomize build {} | envsusbst | kubectl apply -f -".format(
         Path(manifest_folder).joinpath("kustomize/cluster-scoped-resources")))
 
     if not create_script:
@@ -653,7 +664,8 @@ def deploy_kubeflow(namespace, user_config, cluster_config, config_folder, manif
                                                                                "{}_kf_custom_resources.yaml".format(
                                                                                    user_config["group_ID"]))])
 
-    script.append("kustomize build {} | kubectl apply -f -".format(Path(manifest_folder).joinpath("kustomize/env/dev")))
+    script.append("kustomize build {}| envsusbst | kubectl apply -f -".format(
+        Path(manifest_folder).joinpath("kustomize/env/dev")))
     if not create_script:
         ps = subprocess.Popen(("kustomize", "build", Path(manifest_folder).joinpath("kustomize/env/dev")),
                               stdout=subprocess.PIPE)

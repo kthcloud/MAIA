@@ -356,8 +356,18 @@ def create_jupyterhub_config_api( form,
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
                                "extra_resource_limits": {
-             }
-        }}
+                               },
+
+                                "container_security_context": {
+                                    "privileged": True,
+                                    "procMount": "unmasked",
+                                    "seccompProfile": {
+                                        "type": "Unconfined"
+                                    }
+                                }
+                                }
+         }
+
     ]
 
     if gpu_request:
