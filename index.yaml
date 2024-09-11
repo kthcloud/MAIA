@@ -35,17 +35,17 @@ entries:
       urls:
         - mkg-1.0.2.tgz
       version: 1.0.2
-  - apiVersion: v2
-    appVersion: 1.0.1
-    created: "2024-09-11T14:23:58.610034184+02:00"
-    description: A Helm chart to deploy environments (pods, services, ingresses) and
-      run experiments and applications in MAIA cluster
-    digest: b718ddaeca25a8270a17dafa51a686c57c3049dcb2da03969d5170294472eb95
-    name: mkg
-    type: application
-    urls:
-    - mkg-1.0.1.tgz
-    version: 1.0.1
+    - apiVersion: v2
+      appVersion: 1.0.1
+      created: "2024-09-11T14:23:58.610034184+02:00"
+      description: A Helm chart to deploy environments (pods, services, ingresses) and
+        run experiments and applications in MAIA cluster
+      digest: b718ddaeca25a8270a17dafa51a686c57c3049dcb2da03969d5170294472eb95
+      name: mkg
+      type: application
+      urls:
+        - mkg-1.0.1.tgz
+      version: 1.0.1
   monai-label-ohif-maia:
   - apiVersion: v1
     appVersion: 5.6.1
