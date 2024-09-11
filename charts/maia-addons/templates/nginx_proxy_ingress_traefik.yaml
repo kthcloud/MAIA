@@ -1,5 +1,5 @@
-{ { - if .Values.traefik.enabled } }
-  { { - if .Values.proxy_nginx.enabled } }
+{{ - if .Values.traefik.enabled }}
+{{ - if .Values.proxy_nginx.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,13 +7,13 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: 'true'
-    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
 spec:
   tls:
     - hosts:
-        - { { $.Values.ingress_host } }
+        - {{ $.Values.ingress_host }}
   rules:
-    - host: { { $.Values.ingress_host } }
+    - host: {{ $.Values.ingress_host }}
       http:
         paths:
           - path: /minio-console
@@ -31,13 +31,13 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: 'true'
-    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
 spec:
   tls:
     - hosts:
-        - { { $.Values.ingress_host } }
+        - {{ $.Values.ingress_host }}
   rules:
-    - host: { { $.Values.ingress_host } }
+    - host: {{ $.Values.ingress_host }}
       http:
         paths:
           - path: /minio
@@ -55,13 +55,13 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: 'true'
-    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
 spec:
   tls:
     - hosts:
-        - { { $.Values.ingress_host } }
+        - {{ $.Values.ingress_host }}
   rules:
-    - host: { { $.Values.ingress_host } }
+    - host: {{ $.Values.ingress_host }}
       http:
         paths:
           - path: /mlflow
@@ -79,13 +79,13 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: 'true'
-    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
 spec:
   tls:
     - hosts:
-        - { { $.Values.ingress_host } }
+        - {{ $.Values.ingress_host }}
   rules:
-    - host: { { $.Values.ingress_host } }
+    - host: {{ $.Values.ingress_host }}
       http:
         paths:
           - path: /label-studio
@@ -103,13 +103,13 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: 'true'
-    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
 spec:
   tls:
     - hosts:
-        - { { $.Values.ingress_host } }
+        - {{ $.Values.ingress_host }}
   rules:
-    - host: { { $.Values.ingress_host } }
+    - host: {{ $.Values.ingress_host }}
       http:
         paths:
           - path: /kubeflow
@@ -119,5 +119,5 @@ spec:
                 name: nginx
                 port:
                   number: 80
-  { { - end } }
-  { { - end } }
+  {{ - end }}
+  {{ - end }}
