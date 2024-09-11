@@ -1,0 +1,123 @@
+{ { - if .Values.traefik.enabled } }
+  { { - if .Values.proxy_nginx.enabled } }
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-console
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+spec:
+  tls:
+    - hosts:
+        - { { $.Values.ingress_host } }
+  rules:
+    - host: { { $.Values.ingress_host } }
+      http:
+        paths:
+          - path: /minio-console
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+spec:
+  tls:
+    - hosts:
+        - { { $.Values.ingress_host } }
+  rules:
+    - host: { { $.Values.ingress_host } }
+      http:
+        paths:
+          - path: /minio
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mlflow
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+spec:
+  tls:
+    - hosts:
+        - { { $.Values.ingress_host } }
+  rules:
+    - host: { { $.Values.ingress_host } }
+      http:
+        paths:
+          - path: /mlflow
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: label-studio
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+spec:
+  tls:
+    - hosts:
+        - { { $.Values.ingress_host } }
+  rules:
+    - host: { { $.Values.ingress_host } }
+      http:
+        paths:
+          - path: /label-studio
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubeflow
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    traefik.ingress.kubernetes.io/router.tls.certresolver: { { $.Values.traefik.traefik_resolver } }
+spec:
+  tls:
+    - hosts:
+        - { { $.Values.ingress_host } }
+  rules:
+    - host: { { $.Values.ingress_host } }
+      http:
+        paths:
+          - path: /kubeflow
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+  { { - end } }
+  { { - end } }
