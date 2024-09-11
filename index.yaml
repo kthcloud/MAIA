@@ -2,8 +2,19 @@ apiVersion: v1
 entries:
   maia-addons:
   - apiVersion: v2
+    appVersion: 0.1.1
+    created: "2024-09-11T14:23:58.59704648+02:00"
+    description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
+      MAIA Workspace
+    digest: 9e9f62b0a6c9e9ae19b276af58054d7210c8d45477213d0147791379a76b2aa1
+    name: maia-addons
+    type: application
+    urls:
+      - maia-addons-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-08-15T07:58:37.871573666+02:00"
+    created: "2024-09-11T14:23:58.596088109+02:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: bbac6b64138c85b6cd2469fe287747c5d5abfec563a8d8baa95c4ffb0e65fc15
@@ -13,9 +24,20 @@ entries:
     - maia-addons-0.1.0.tgz
     version: 0.1.0
   mkg:
+    - apiVersion: v2
+      appVersion: 1.0.2
+      created: "2024-09-11T14:23:58.610957306+02:00"
+      description: A Helm chart to deploy environments (pods, services, ingresses) and
+        run experiments and applications in MAIA cluster
+      digest: a68950f3b91fadd60ca91561dfe7d8f0c7acca1dc611b2b3e5ea11231ce96570
+      name: mkg
+      type: application
+      urls:
+        - mkg-1.0.2.tgz
+      version: 1.0.2
   - apiVersion: v2
     appVersion: 1.0.1
-    created: "2024-08-15T07:58:37.887796972+02:00"
+    created: "2024-09-11T14:23:58.610034184+02:00"
     description: A Helm chart to deploy environments (pods, services, ingresses) and
       run experiments and applications in MAIA cluster
     digest: b718ddaeca25a8270a17dafa51a686c57c3049dcb2da03969d5170294472eb95
@@ -27,11 +49,11 @@ entries:
   monai-label-ohif-maia:
   - apiVersion: v1
     appVersion: 5.6.1
-    created: "2024-08-15T07:58:37.888306989+02:00"
+    created: "2024-09-11T14:23:58.623271512+02:00"
     description: Chart for MONAI Label OHIF App
     digest: 6cc93003b034afc56e25e46df7bea0935bf5a62a687a025d0b08f59a0555518c
     name: monai-label-ohif-maia
     urls:
     - monai-label-ohif-maia-0.0.1.tgz
     version: 0.0.1
-generated: "2024-08-15T07:58:37.870902502+02:00"
+generated: "2024-09-11T14:23:58.57980752+02:00"
