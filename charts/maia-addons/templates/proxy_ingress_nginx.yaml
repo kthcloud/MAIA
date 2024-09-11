@@ -3,7 +3,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dtale-{{ .jupyterhub_username }}
+  name: proxy-{{ .jupyterhub_username }}
   annotations:
     cert-manager.io/cluster-issuer: {{ $.Values.nginx.cluster_issuer }}
     nginx.ingress.kubernetes.io/proxy-body-size: 500m

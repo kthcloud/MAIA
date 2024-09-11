@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 500m
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/auth-signin: https://{{$.Values.ingress.oauth_url}}/oauth2/start?rd=https://$host$uri
-    nginx.ingress.kubernetes.io/auth-url: http://oauth2-proxy.{{$.Values.namespace}}.svc.cluster.local:80/oauth2/auth
+    nginx.ingress.kubernetes.io/auth-url: http://oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local:80/oauth2/auth
   name: {{ include "hive.fullname" $ }}{{"-ingress"}}
   namespace: {{ .Release.Namespace }}
 spec:

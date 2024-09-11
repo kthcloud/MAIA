@@ -8,7 +8,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.tls.certresolver: {{ $.Values.traefik.traefik_resolver }}
 spec:
-  ingressClassName: nginx
   tls:
     - hosts:
         - minio.{{ $.Values.ingress_host }}
