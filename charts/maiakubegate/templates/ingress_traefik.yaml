@@ -6,7 +6,9 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: "{{ .Values.ingress.traefik_resolver }}"
+    {{- if .Values.ingress.traefik_middleware }}
     traefik.ingress.kubernetes.io/router.middlewares: "{{.Values.ingress.traefik_middleware}}@kubernetescrd"
+    {{- end }}
   name: {{ include "hive.fullname" $ }}{{"-ingress"}}
   namespace: {{ .Release.Namespace }}
 spec:

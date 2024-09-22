@@ -225,7 +225,7 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
             value_dict["ingress"]["nginx_issuer"] = config_dict["ingress"]["nginx_issuer"]
 
         value_dict["ingress"]["host"] = config_dict["ingress"]["host"]
-        if "path" in value_dict["ingress"]:
+        if "path" in config_dict["ingress"]:
             value_dict["ingress"]["path"] = config_dict["ingress"]["path"]
         value_dict["ingress"]["port"] = config_dict["ingress"]["port"]
         if "oauth_url" in config_dict["ingress"]:
