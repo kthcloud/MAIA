@@ -346,7 +346,7 @@ def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, c
     root_password = token_urlsafe(16)
     root_password = root_password.replace("-","_")
     minio_conf["stringData"][
-        "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET='{}'\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME='groups'\nexport MINIO_IDENTITY_OPENID_SCOPES='email,openid,profile'\nexport MINIO_ROOT_USER='{}'\nexport MINIO_ROOT_PASSWORD='{}'\nexport MINIO_IDENTITY_OPENID_CONFIG_URL='{}'\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME='MAIA'".format(
+        "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET={}\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME=groups\nexport MINIO_IDENTITY_OPENID_SCOPES=email,openid,profile\nexport MINIO_ROOT_USER={}\nexport MINIO_ROOT_PASSWORD={}\nexport MINIO_IDENTITY_OPENID_CONFIG_URL={}\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME=MAIA".format(
         cluster_config["keycloack"]["client_secret"], root_user, root_password,
         cluster_config["keycloack"]["issuer_url"] + "/.well-known/openid-configuration",
         cluster_config["keycloack"]["client_id"])

@@ -355,6 +355,10 @@ def create_jupyterhub_config_api( form,
         "kubespawner_override":{"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
+                                #mem_limit
+                                #cpu_limit
+                                #mem_guarantee
+                                #cpu_guarantee
                                "extra_resource_limits": {
                                },
 
@@ -403,6 +407,7 @@ def create_jupyterhub_config_api( form,
     cmds = [
         #"Run the following command to deploy JupyterHub: ",
             f"helm repo add jupyterhub {helm_repo}",
+            f"helm repo update",
             f"helm upgrade --install -n {helm_namespace} {helm_name} jupyterhub/{helm_chart} --values {config_path} --version={helm_repo_version}"]
 
     print("\n".join(cmds))

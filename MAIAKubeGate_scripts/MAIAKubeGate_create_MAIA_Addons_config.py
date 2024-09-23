@@ -106,7 +106,7 @@ def create_maia_addons_config_api( form,
                     "name": "maia-addons-{}".format(namespace.lower()),
                     "repository": "https://kthcloud.github.io/MAIAKubeGate/",
                     "chart": "maia-addons",
-                    "version": "0.1.0",
+                    "version": "0.1.2",
                     "namespace": namespace.lower(),
                     "create_namespace": False,
                     "values": [
@@ -138,6 +138,7 @@ def create_maia_addons_config_api( form,
     cmds =[
         # "Run the following command to deploy JupyterHub: ",
         f"helm repo add maiakubegate {helm_repo}",
+        f"helm repo update",
         f"helm upgrade --install -n {helm_namespace} {helm_name} maiakubegate/{helm_chart} --values {config_path} --version={helm_repo_version}"
 
     ]
