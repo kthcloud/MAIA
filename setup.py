@@ -34,10 +34,10 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "MAIAKubeGate_deploy_helm_chart = MAIAKubeGate_scripts.MAIAKubeGate_deploy_helm_chart:main",
-            "MAIAKubeGate_deploy_MAIA_namespace = MAIAKubeGate_scripts.MAIAKubeGate_deploy_MAIA_namespace:main",
-            "MAIAKubeGate_create_JupyterHub_config = MAIAKubeGate_scripts.MAIAKubeGate_create_JupyterHub_config:main",
-            "MAIAKubeGate_create_MAIA_Addons_config =  MAIAKubeGate_scripts.MAIAKubeGate_create_MAIA_Addons_config:main",
+            "MAIA_deploy_helm_chart = MAIA_scripts.MAIA_deploy_helm_chart:main",
+            "MAIA_deploy_MAIA_namespace = MAIA_scripts.MAIA_deploy_MAIA_namespace:main",
+            "MAIA_create_JupyterHub_config = MAIA_scripts.MAIA_create_JupyterHub_config:main",
+            "MAIA_create_MAIA_Addons_config =  MAIA_scripts.MAIA_create_MAIA_Addons_config:main",
         ],
     },
     keywords=["helm", "kubernetes", "maia", "resource deployment"],

@@ -1,8 +1,8 @@
-# MAIAKubeGate
+# MAIA Toolkit
 
-[![Build](https://github.com/kthcloud/MAIAKubeGate/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIAKubeGate/actions/workflows/build.yaml)
+[![Build](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml)
 
-MAIAKubeGate is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
+MAIA Toolkit is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
 applications in MAIA (including pods, services and ingresses).
 
 # Installation
@@ -20,7 +20,7 @@ the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/install-ku
 
 # Deploying a MAIA Namespace
 
-To deploy a MAIA namespace in a Kubernetes cluster, the script `MAIAKubeGate_deploy_MAIA_namespace` can be used.
+To deploy a MAIA namespace in a Kubernetes cluster, the script `MAIA_deploy_MAIA_namespace` can be used.
 The script requires a configuration file with the following parameters:
 
 ```yaml
@@ -92,7 +92,7 @@ To deploy the MAIA namespace, run:
 ```shell
 export KUBECONFIG=<PATH/TO/KUBECONFIG>
 
-MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER>
+MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER>
 ```
 
 ## Offline Deployment
@@ -100,7 +100,7 @@ MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE>
 If you only want to create a deployment script, to review and run it later, you can use the `--create-script` flag:
 
 ```shell
-MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --create-script
+MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --create-script
 ```
 
 ## Minimal Installation
@@ -109,22 +109,22 @@ A minimal installation can be done, only deploying the JupyterHub interface and 
 To install the MAIA namespace with the minimal configuration, you can use the `--minimal` flag:
 
 ```shell
-MAIAKubeGate_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --minimal
+MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --minimal
 ```
 
 # Deploy an Application in MAIA Namespace
 
 The script to deploy custom applications uses Helm charts to deploy the applications, and it is available as a Helm
-chart: [MAIAKubeGate](https://github.com/kthcloud/MAIAKubeGate).
+chart: [MAIA](https://github.com/kthcloud/MAIA).
 
-With the **MAIAKubeGate** chart it is possible to deploy any *Docker Image* as a Pod, expose the required ports as
+With the **MAIA** chart it is possible to deploy any *Docker Image* as a Pod, expose the required ports as
 services, mount persistent volumes on the specified locations and optionally create Ingress resources to expose the
 application to the external traffic using the HTTPS protocol.
 
 To add the chart to Helm, run:
 
 ```
-helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/
+helm repo add maiakubegate https://kthcloud.github.io/MAIA/
 helm repo update
 ```
 ## Custom Helm values
@@ -481,10 +481,10 @@ To provide the user information to the Pod:
 
 # Tools
 
-Install the **MAIAKubeGate** package running:
+Install the **MAIA** package running:
 
 ```
-pip install maiakubegate
+pip install maia-tookit
 ```
 
 Requirements:
@@ -502,5 +502,5 @@ described [above](#Custom Helm values)).
 After creating the config file, run:
 
 ```shell
-MAIAKubeGate_deploy_helm_chart --config-file <PATH/TO/CONFIG/FILE>
+MAIA_deploy_helm_chart --config-file <PATH/TO/CONFIG/FILE>
 ```
