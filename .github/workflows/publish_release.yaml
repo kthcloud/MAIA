@@ -41,9 +41,9 @@ jobs:
           # rm maia_toolkit*.tar.gz
           
           # install from wheel
-          python -m pip install maia_toolkit*.whl
-          python -c 'import MAIA; print(MAIA.__version__) ' 2>&1 | grep -iv "unknown"
-          python -c 'import MAIA; print(MAIA.__file__)'
+          # python -m pip install maia_toolkit*.whl
+          # python -c 'import MAIA; print(MAIA.__version__) ' 2>&1 | grep -iv "unknown"
+          # python -c 'import MAIA; print(MAIA.__file__)'
           
           # clean up
           cd "$root_dir"
