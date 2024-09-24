@@ -11,7 +11,7 @@ The requirements for the package are ``Helm`` and ``kubectl``. To install
 the package, clone the repository and run:
 
 ```shell
-pip install -e .
+pip install maia-toolkit
 ```
 
 To install ``Helm`` follow the instructions in the [Helm documentation](https://helm.sh/docs/intro/install/).
@@ -30,10 +30,10 @@ users: # List of user emails to be added to the group
   -
   -
 resources_limits: # List of resources limits to be used in the namespace
-  "memory":
+  memory:
     - "4G"                 # Memory usage lower limit
     - "8G"                 # Memory usage upper limit
-  "cpu":
+  cpu:
     - 4.0                 # CPU usage lower limit
     - 4.0                 # CPU usage upper limit 
 gpu_request: "1"          # Number of GPUs to be requested per user ( omit the field if no GPU is needed)
@@ -45,10 +45,10 @@ And, additionally, a cluster-specific configuration file with the following para
 docker_server: ""                   # Docker server URL
 docker_username: ""                 # Docker username
 docker_password: ""                 # Docker password
-"storage_class": ""                 # k8s Storage class to be used
-"shared_storage_class": ""          # k8s Storage class to be used for shared storage
-"traefik_resolver": ""              # Traefik resolver to be used for k8s Ingress (only for Traefik)
-"hub_storage_class": ""             # k8s Storage class to be used for JupyterHub storage
+storage_class: ""                 # k8s Storage class to be used
+shared_storage_class: ""          # k8s Storage class to be used for shared storage
+traefik_resolver: ""              # Traefik resolver to be used for k8s Ingress (only for Traefik)
+hub_storage_class": ""             # k8s Storage class to be used for JupyterHub storage
 url_type: "subdomain"               # URL type to be used for the MAIA Applications (subdomain or path)
 domain: ""                          # k8s cluster domain
 nginx_proxy_image: ""               # NGINX proxy image to be used
@@ -86,7 +86,6 @@ To install the `kustomize` CLI, run:
 cd /usr/local/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
 ```
 
-```shell
 To deploy the MAIA namespace, run:
 
 ```shell
