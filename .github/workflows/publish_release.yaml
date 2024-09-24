@@ -34,11 +34,11 @@ jobs:
           
           
           # install from tar.gz
-          python -m pip install maia-toolkit*.tar.gz
+          python -m pip install maia_toolkit*.tar.gz
           python -c 'import MAIA; print(MAIA.__version__) ' 2>&1 | grep -iv "unknown"
           python -c 'import MAIA; print(MAIA.__file__)'
           python -m pip uninstall -y maia-toolkit
-          rm MAIA*.tar.gz
+          rm maia_toolkit*.tar.gz
           
           # install from wheel
           python -m pip install maia_toolkit*.whl
