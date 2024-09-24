@@ -7,15 +7,15 @@ applications in MAIA (including pods, services and ingresses).
 
 # Installation
 
-The requirements for the package are `Helm` and `kubectl`. To install
+The requirements for the package are ``Helm`` and ``kubectl``. To install
 the package, clone the repository and run:
 
 ```shell
 pip install -e .
 ```
 
-To install ´Helm´ follow the instructions in the [Helm documentation](https://helm.sh/docs/intro/install/).
-To install ´kubectl´ follow the instructions in
+To install ``Helm`` follow the instructions in the [Helm documentation](https://helm.sh/docs/intro/install/).
+To install ``kubectl`` follow the instructions in
 the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 
 # Deploying a MAIA Namespace
