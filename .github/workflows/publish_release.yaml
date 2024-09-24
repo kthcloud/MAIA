@@ -48,7 +48,7 @@ jobs:
           # clean up
           cd "$root_dir"
           rm -r "$tmp_dir"
-          rm -rf MAIA/
+          # rm -rf MAIA/
           ls -al .
       - name: Quick test installed
         run: |
