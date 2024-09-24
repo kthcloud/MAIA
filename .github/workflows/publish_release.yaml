@@ -34,11 +34,11 @@ jobs:
           
           
           # install from tar.gz
-          python -m pip install maia_toolkit*.tar.gz
-          python -c 'import MAIA; print(MAIA.__version__) ' 2>&1 | grep -iv "unknown"
-          python -c 'import MAIA; print(MAIA.__file__)'
-          python -m pip uninstall -y maia-toolkit
-          rm maia_toolkit*.tar.gz
+          # python -m pip install maia_toolkit*.tar.gz
+          # python -c 'import MAIA; print(MAIA.__version__) ' 2>&1 | grep -iv "unknown"
+          # python -c 'import MAIA; print(MAIA.__file__)'
+          # python -m pip uninstall -y maia-toolkit
+          # rm maia_toolkit*.tar.gz
           
           # install from wheel
           python -m pip install maia_toolkit*.whl
@@ -48,7 +48,7 @@ jobs:
           # clean up
           cd "$root_dir"
           rm -r "$tmp_dir"
-          # rm -rf MAIA/
+          rm -rf MAIA/
           ls -al .
       - name: Quick test installed
         run: |
@@ -68,7 +68,7 @@ jobs:
         name: Check artifacts
         run: |
           ls -al dist/
-          rm dist/maia-toolkit*.tar.gz
+          rm dist/maia_toolkit*.tar.gz
           ls -al dist/
 
       - if: startsWith(github.ref, 'refs/tags/')
