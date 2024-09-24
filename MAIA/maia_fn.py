@@ -438,12 +438,12 @@ def deploy_mysql(namespace, cluster_config, user_config, config_folder, create_s
 
     if create_script:
         return {"MYSQL_PASSWORD": mysql_pw, "MYSQL_USERNAME": namespace}, [
-            "MAIAKubeGate_deploy_helm_chart --config-file " + str(Path(config_folder).joinpath(user_config["group_ID"],
+            "MAIA_deploy_helm_chart --config-file " + str(Path(config_folder).joinpath(user_config["group_ID"],
                                                                                                "{}_mysql_values.json".format(
                                                                                                    user_config[
                                                                                                        "group_ID"])))]
     else:
-        subprocess.run(["MAIAKubeGate_deploy_helm_chart", "--config-file",
+        subprocess.run(["MAIA_deploy_helm_chart", "--config-file",
                         Path(config_folder).joinpath(user_config["group_ID"],
                                                      "{}_mysql_values.json".format(user_config["group_ID"]))])
 
@@ -517,12 +517,12 @@ def deploy_mlflow(namespace, cluster_config, user_config, config_folder, create_
         json.dump(mlflow_config, f)
 
     if create_script:
-        script.append(f"MAIAKubeGate_deploy_helm_chart --config-file " + str(
+        script.append(f"MAIA_deploy_helm_chart --config-file " + str(
             Path(config_folder).joinpath(user_config["group_ID"],
                                          "{}_mlflow_values.json".format(user_config["group_ID"]))))
         return {"mlflow_service": "mlflow-v1-mkg"}, script
     else:
-        subprocess.run(["MAIAKubeGate_deploy_helm_chart", "--config-file",
+        subprocess.run(["MAIA_deploy_helm_chart", "--config-file",
                         Path(config_folder).joinpath(user_config["group_ID"],
                                                      "{}_mlflow_values.json".format(user_config["group_ID"]))])
 
@@ -552,7 +552,7 @@ def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, c
         yaml.dump(orthanc_ohif_config, f)
 
     cmds = [
-        "helm repo add maiakubegate https://kthcloud.github.io/MAIAKubeGate/",
+        "helm repo add maiakubegate https://kthcloud.github.io/MAIA/",
         "helm repo update",
         "helm upgrade --install {} maiakubegate/monai-label-ohif-maia -f {} --namespace {}".format(namespace, Path(
             config_folder).joinpath(user_config["group_ID"],

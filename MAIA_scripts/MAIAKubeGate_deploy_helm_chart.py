@@ -11,10 +11,10 @@ from textwrap import dedent
 
 import yaml
 
-import MAIAKubeGate
-from MAIAKubeGate.helm_values import read_config_dict_and_generate_helm_values_dict
+import MAIA
+from MAIA.helm_values import read_config_dict_and_generate_helm_values_dict
 
-version = MAIAKubeGate.__version__
+version = MAIA.__version__
 
 TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
 

@@ -4,11 +4,11 @@ from pathlib import Path
 import click
 import yaml
 
-from MAIAKubeGate.maia_fn import configure_minio, create_share_pvc, create_namespace, create_docker_registry_secret, \
+from MAIA.maia_fn import configure_minio, create_share_pvc, create_namespace, create_docker_registry_secret, \
     deploy_kubeflow, deploy_orthanc_ohif, deploy_mysql, deploy_mlflow, deploy_label_studio, get_ssh_ports, \
     create_ssh_service, deploy_minio_tenant, deploy_oauth2_proxy
-from MAIAKubeGate_scripts.MAIAKubeGate_create_JupyterHub_config import create_jupyterhub_config_api
-from MAIAKubeGate_scripts.MAIAKubeGate_create_MAIA_Addons_config import create_maia_addons_config_api
+from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
+from MAIA_scripts.MAIA_create_MAIA_Addons_config import create_maia_addons_config_api
 
 
 @click.command()

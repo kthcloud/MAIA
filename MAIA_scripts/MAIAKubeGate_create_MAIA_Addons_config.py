@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 import yaml
 
-from MAIAKubeGate.maia_fn import get_ssh_ports
+from MAIA.maia_fn import get_ssh_ports
 
 
 @click.command()
@@ -104,7 +104,7 @@ def create_maia_addons_config_api( form,
             "helm_release": {
                 "maia-addons": {
                     "name": "maia-addons-{}".format(namespace.lower()),
-                    "repository": "https://kthcloud.github.io/MAIAKubeGate/",
+                    "repository": "https://kthcloud.github.io/MAIA/",
                     "chart": "maia-addons",
                     "version": "0.1.2",
                     "namespace": namespace.lower(),

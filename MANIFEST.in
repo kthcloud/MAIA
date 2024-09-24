@@ -1,5 +1,5 @@
 include versioneer.py
-include MAIAKubeGate/_version.py
+include MAIA/_version.py
 include configs/*.json
 include README.md
 include LICENSE

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Any
 
-from MAIAKubeGate.maia_fn import create_config_map_from_data
+from MAIA.maia_fn import create_config_map_from_data
 
 
 def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], kubeconfig_dict: Dict[str, Any]) -> \
