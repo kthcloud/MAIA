@@ -28,7 +28,7 @@ jobs:
           # build tar.gz and wheel
           python setup.py sdist bdist_wheel --build-number $(date +'%Y%m%d%H%M')
           tmp_dir=$(mktemp -d)
-          cp dist/maia-toolkit* "$tmp_dir"
+          cp dist/maia_toolkit* "$tmp_dir"
           cd "$tmp_dir"
           ls -al
           
