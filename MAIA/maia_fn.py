@@ -162,7 +162,7 @@ def create_namespace(namespace, create_script=False):
 def create_docker_registry_secret(namespace, secret_name, docker_server, docker_username, docker_password,
                                   create_script=False):
     if create_script:
-        return f"kubectl create secret docker-registry {secret_name} --docker-server={docker_server} --docker-username={docker_username} --docker-password={docker_password} --namespace {namespace}"
+        return f"kubectl create secret docker-registry {secret_name} --docker-server={docker_server} --docker-username='{docker_username}' --docker-password={docker_password} --namespace {namespace}"
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
     with kubernetes.client.ApiClient() as api_client:
@@ -238,7 +238,26 @@ def deploy_oauth2_proxy(cluster_config, user_config, config_folder, create_scrip
         "scope": "openid email profile",
         "redirect_url": "https://{}.{}/oauth2/callback".format(user_config["group_subdomain"],cluster_config["domain"]),
         "email_domains": ["*"],
+        "proxy_prefix": "/oauth2",
+        "ssl_insecure_skip_verify": True,
+        "insecure_oidc_skip_issuer_verification": True,
+        "cookie_secure": True,
+        "reverse_proxy": True,
+        "pass_access_token": True,
+        "pass_authorization_header": True,
+        "set_authorization_header": True,
+        "set_xauthrequest": True,
+        "pass_user_headers": True,
+        "whitelist_domains": ["*"]
     }
+    #proxy_prefix = "/oauth2-demo"
+    #upstreams = [ "file:///dev/null" ]
+
+
+    if cluster_config["url_type"] == "subpath":
+        config_file["redirect_url"] = "https://{}/oauth2-{}/callback".format(cluster_config["domain"],user_config["group_subdomain"])
+        config_file["proxy_prefix"] = "/oauth2-{}".format(user_config["group_subdomain"])
+
     oauth2_proxy_config = {
         "config": {
             "clientID": cluster_config["keycloack"]["client_id"],
@@ -288,7 +307,10 @@ def deploy_oauth2_proxy(cluster_config, user_config, config_folder, create_scrip
             }
         }
     }
-
+    if cluster_config["url_type"] == "subpath":
+        oauth2_proxy_config["ingress"]["hosts"] = [cluster_config["domain"]]
+        oauth2_proxy_config["ingress"]["tls"][0]["hosts"] = [cluster_config["domain"]]
+        oauth2_proxy_config["ingress"]["path"] = "oauth2-{}".format(user_config["group_subdomain"])
     if "nginx_cluster_issuer" in cluster_config:
         oauth2_proxy_config["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
     if "traefik_resolver" in cluster_config:
@@ -483,8 +505,8 @@ def deploy_mlflow(namespace, cluster_config, user_config, config_folder, create_
     mlflow_config = {
   "namespace": namespace,
   "chart_name": "mlflow-v1",
-
-      "docker_image": "registry.cloud.cbh.kth.se/maia/mlflow",
+        "docker_image": "kthcloud/mlflow",
+      #"docker_image": "registry.cloud.cbh.kth.se/maia/mlflow",  #TODO
       "tag": "1.1",
   "memory_request": "2Gi",
   "cpu_request": "500m",
@@ -540,7 +562,8 @@ def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, c
         "imagePullSecret": cluster_config["imagePullSecrets"],
         "namespace": namespace,
         "image":{
-            "repository": "registry.cloud.cbh.kth.se/maia/monai-label-ohif",
+            #"repository": "registry.cloud.cbh.kth.se/maia/monai-label-ohif", #TODO
+            "repository": "kthcloud/monai-label-ohif",
             "tag": "1.14"
         },
 
@@ -552,9 +575,9 @@ def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, c
         yaml.dump(orthanc_ohif_config, f)
 
     cmds = [
-        "helm repo add maiakubegate https://kthcloud.github.io/MAIA/",
+        "helm repo add maia https://kthcloud.github.io/MAIA/",
         "helm repo update",
-        "helm upgrade --install {} maiakubegate/monai-label-ohif-maia -f {} --namespace {}".format(namespace, Path(
+        "helm upgrade --install {} maia/monai-label-ohif-maia -f {} --namespace {}".format(namespace, Path(
             config_folder).joinpath(user_config["group_ID"],
                                     "{}_orthanc_ohif_values.yaml".format(user_config["group_ID"])), namespace)
     ]
@@ -644,7 +667,7 @@ def deploy_kubeflow(namespace, user_config, cluster_config, config_folder, manif
 
     script.append("export namespace={}".format(namespace))
     script.append("export storageClassName={}".format(cluster_config["storage_class"]))
-    script.append("kustomize build {} | envsusbst | kubectl apply -f -".format(
+    script.append("kustomize build {} | envsubst | kubectl apply -f -".format(
         Path(manifest_folder).joinpath("kustomize/cluster-scoped-resources")))
 
     if not create_script:
@@ -664,7 +687,7 @@ def deploy_kubeflow(namespace, user_config, cluster_config, config_folder, manif
                                                                                "{}_kf_custom_resources.yaml".format(
                                                                                    user_config["group_ID"]))])
 
-    script.append("kustomize build {}| envsusbst | kubectl apply -f -".format(
+    script.append("kustomize build {}| envsubst | kubectl apply -f -".format(
         Path(manifest_folder).joinpath("kustomize/env/dev")))
     if not create_script:
         ps = subprocess.Popen(("kustomize", "build", Path(manifest_folder).joinpath("kustomize/env/dev")),

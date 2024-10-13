@@ -96,8 +96,19 @@ def create_maia_addons_config_api( form,
             "image": cluster_config["nginx_proxy_image"],
             "console_service": user_form["minio_console_service"],
             #"cluster_issuer": cluster_config["nginx_cluster_issuer"],
-            "mlflow": user_form["mlflow_service"]
+            "mlflow": user_form["mlflow_service"],
+            "console_service_path": "minio-console",
+            "mlflow_path": "mlflow",
+            "label_studio_path": "label-studio",
+            "kubeflow_path": "kubeflow",
+            "minio_path": "minio"
         }
+        if cluster_config["url_type"] == "subpath":
+            maia_addons_values_template["proxy_nginx"]["console_service_path"] = f"{namespace}-minio-console"
+            maia_addons_values_template["proxy_nginx"]["mlflow_path"] = f"{namespace}-mlflow"
+            maia_addons_values_template["proxy_nginx"]["label_studio_path"] = f"{namespace}-label-studio"
+            maia_addons_values_template["proxy_nginx"]["kubeflow_path"] = f"{namespace}-kubeflow"
+            maia_addons_values_template["proxy_nginx"]["minio_path"] = f"{namespace}-minio"
 
     maia_addons_template = {
         "resource": {
@@ -106,7 +117,7 @@ def create_maia_addons_config_api( form,
                     "name": "maia-addons-{}".format(namespace.lower()),
                     "repository": "https://kthcloud.github.io/MAIA/",
                     "chart": "maia-addons",
-                    "version": "0.1.2",
+                    "version": "0.1.4",
                     "namespace": namespace.lower(),
                     "create_namespace": False,
                     "values": [
@@ -137,9 +148,9 @@ def create_maia_addons_config_api( form,
     config_path = Path(config_folder).joinpath(namespace,f"{namespace}_maia_addons_values.yaml")
     cmds =[
         # "Run the following command to deploy JupyterHub: ",
-        f"helm repo add maiakubegate {helm_repo}",
+        f"helm repo add maia {helm_repo}",
         f"helm repo update",
-        f"helm upgrade --install -n {helm_namespace} {helm_name} maiakubegate/{helm_chart} --values {config_path} --version={helm_repo_version}"
+        f"helm upgrade --install -n {helm_namespace} {helm_name} maia/{helm_chart} --values {config_path} --version={helm_repo_version}"
 
     ]
     print("\n".join(cmds))

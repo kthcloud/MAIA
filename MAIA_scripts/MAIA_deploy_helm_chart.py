@@ -100,7 +100,7 @@ def main():
         yaml.dump(helm_dict, f)
 
     sshProcess.stdin.write(
-        "helm upgrade --install {} --namespace={} maiakubegate/mkg --values ./{}_values.yaml\n".format(
+        "helm upgrade --install {} --namespace={} maia/mkg --values ./{}_values.yaml\n".format(
             config_dict["chart_name"], config_dict["namespace"],config_dict["chart_name"]))
 
     sshProcess.stdin.close()

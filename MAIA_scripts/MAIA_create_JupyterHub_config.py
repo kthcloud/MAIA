@@ -245,7 +245,7 @@ def create_jupyterhub_config_api( form,
 
         jh_template["hub"]["image"] = {
 
-                    "name": "registry.maia.cloud.cbh.kth.se/jupyterhub",
+                    "name": "registry.maia.cloud.cbh.kth.se/jupyterhub", #TODO
                     "tag": "1.1"
 
         }
@@ -352,7 +352,8 @@ def create_jupyterhub_config_api( form,
         {"display_name": f"MAIA Workspace v{maia_workspace_version}",
          "description": "MAIA Workspace with Python 3.10, Anaconda, MatLab, RStudio, VSCode and SSH Connection",
          "default": True,
-        "kubespawner_override":{"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",
+        "kubespawner_override":{"image": f"kthcloud/maia-workspace-ssh-addons:{maia_workspace_version}",
+                                #"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",  #TODO
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
                                 #mem_limit
