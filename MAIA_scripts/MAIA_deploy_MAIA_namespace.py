@@ -99,7 +99,7 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
                                create_script=create_script)
         script.extend(cmds)
 
-    user_form_dict["maia_workspace_version"] = "1.3"
+    user_form_dict["maia_workspace_version"] = "1.4"
 
     if minimal:
         user_form_dict["ssh_users"] = []
