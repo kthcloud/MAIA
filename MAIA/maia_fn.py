@@ -310,7 +310,7 @@ def deploy_oauth2_proxy(cluster_config, user_config, config_folder, create_scrip
     if cluster_config["url_type"] == "subpath":
         oauth2_proxy_config["ingress"]["hosts"] = [cluster_config["domain"]]
         oauth2_proxy_config["ingress"]["tls"][0]["hosts"] = [cluster_config["domain"]]
-        oauth2_proxy_config["ingress"]["path"] = "oauth2-{}".format(user_config["group_subdomain"])
+        oauth2_proxy_config["ingress"]["path"] = "/oauth2-{}".format(user_config["group_subdomain"])
     if "nginx_cluster_issuer" in cluster_config:
         oauth2_proxy_config["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
     if "traefik_resolver" in cluster_config:
@@ -355,7 +355,9 @@ def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, c
     tenant["spec"]["requestAutoCert"] = False
     tenant["spec"]["features"]["domains"]["console"] = "https://{}.{}/minio-console".format(user_config["group_subdomain"],cluster_config["domain"])
 
-
+    if cluster_config["url_type"] == "subpath":
+        tenant["spec"]["features"]["domains"]["console"] = "https://{}/{}-minio-console".format(
+            cluster_config["domain"], namespace)
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(tenant, f)
 
@@ -367,11 +369,17 @@ def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, c
     root_user = "admin"
     root_password = token_urlsafe(16)
     root_password = root_password.replace("-","_")
-    minio_conf["stringData"][
-        "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET={}\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME=groups\nexport MINIO_IDENTITY_OPENID_SCOPES=email,openid,profile\nexport MINIO_ROOT_USER={}\nexport MINIO_ROOT_PASSWORD={}\nexport MINIO_IDENTITY_OPENID_CONFIG_URL={}\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME=MAIA".format(
-        cluster_config["keycloack"]["client_secret"], root_user, root_password,
-        cluster_config["keycloack"]["issuer_url"] + "/.well-known/openid-configuration",
-        cluster_config["keycloack"]["client_id"])
+
+    if "insecure_openid" in cluster_config:
+        minio_conf["stringData"][
+            "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_ROOT_USER={}\nexport MINIO_ROOT_PASSWORD={}".format(
+            root_user, root_password)
+    else:
+        minio_conf["stringData"][
+            "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET={}\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME=groups\nexport MINIO_IDENTITY_OPENID_SCOPES=email,openid,profile\nexport MINIO_ROOT_USER={}\nexport MINIO_ROOT_PASSWORD={}\nexport MINIO_IDENTITY_OPENID_CONFIG_URL={}\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME=MAIA".format(
+            cluster_config["keycloack"]["client_secret"], root_user, root_password,
+            cluster_config["keycloack"]["issuer_url"] + "/.well-known/openid-configuration",
+            cluster_config["keycloack"]["client_id"])
 
 
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_minio_tenant_secret_configuration.yaml".format(user_config["group_ID"])), "w") as f:
@@ -570,6 +578,9 @@ def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, c
         "hostname": "{}.{}".format(user_config["group_subdomain"],cluster_config["domain"]),
         "oauth_url": "{}.{}".format(user_config["group_subdomain"],cluster_config["domain"]),
     }
+    if cluster_config["url_type"] == "subpath":
+        orthanc_ohif_config["hostname"] = "{}".format(cluster_config["domain"])
+        orthanc_ohif_config["oauth_url"] = "N/A" # TODO
 
     with open(Path(config_folder).joinpath(user_config["group_ID"],"{}_orthanc_ohif_values.yaml".format(user_config["group_ID"])), "w") as f:
         yaml.dump(orthanc_ohif_config, f)
