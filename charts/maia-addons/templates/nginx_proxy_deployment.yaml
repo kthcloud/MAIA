@@ -23,8 +23,18 @@ spec:
             env:
               - name: MINIO_CONSOLE
                 value: {{ .Values.proxy_nginx.console_service }}
+              - name: MINIO_CONSOLE_PATH
+                value: {{ .Values.proxy_nginx.console_service_path }}
               - name: MLFLOW
                 value: {{ .Values.proxy_nginx.mlflow }}
+              - name: MLFLOW_PATH
+                value: {{ .Values.proxy_nginx.mlflow_path }}
+              - name: LABEL_STUDIO_PATH
+                value: {{ .Values.proxy_nginx.label_studio_path }}
+              - name: KUBEFLOW_PATH
+                value: {{ .Values.proxy_nginx.kubeflow_path }}
+              - name: MINIO_PATH
+                value: {{ .Values.proxy_nginx.minio_path }}
             ports:
               - name: http
                 containerPort: 80

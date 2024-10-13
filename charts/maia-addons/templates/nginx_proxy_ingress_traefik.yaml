@@ -1,5 +1,5 @@
-{{ - if .Values.traefik.enabled }}
-{{ - if .Values.proxy_nginx.enabled }}
+{{- if .Values.traefik.enabled }}
+{{- if .Values.proxy_nginx.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -16,7 +16,7 @@ spec:
     - host: {{ $.Values.ingress_host }}
       http:
         paths:
-          - path: /minio-console
+          - path: /{{ .Values.proxy_nginx.console_service_path }}
             pathType: Prefix
             backend:
               service:
@@ -40,7 +40,7 @@ spec:
     - host: {{ $.Values.ingress_host }}
       http:
         paths:
-          - path: /minio
+          - path: /{{ .Values.proxy_nginx.minio_path }}
             pathType: Prefix
             backend:
               service:
@@ -64,7 +64,7 @@ spec:
     - host: {{ $.Values.ingress_host }}
       http:
         paths:
-          - path: /mlflow
+          - path: /{{ .Values.proxy_nginx.mlflow_path }}
             pathType: Prefix
             backend:
               service:
@@ -88,7 +88,7 @@ spec:
     - host: {{ $.Values.ingress_host }}
       http:
         paths:
-          - path: /label-studio
+          - path: /{{ .Values.proxy_nginx.label_studio_path }}
             pathType: Prefix
             backend:
               service:
@@ -112,12 +112,12 @@ spec:
     - host: {{ $.Values.ingress_host }}
       http:
         paths:
-          - path: /kubeflow
+          - path: /{{ .Values.proxy_nginx.kubeflow_path }}
             pathType: Prefix
             backend:
               service:
                 name: nginx
                 port:
                   number: 80
-  {{ - end }}
-  {{ - end }}
+{{- end }}
+{{- end }}
