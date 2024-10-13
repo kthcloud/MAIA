@@ -51,7 +51,6 @@ traefik_resolver: ""              # Traefik resolver to be used for k8s Ingress 
 hub_storage_class": ""             # k8s Storage class to be used for JupyterHub storage
 url_type: "subdomain"               # URL type to be used for the MAIA Applications (subdomain or path)
 domain: ""                          # k8s cluster domain
-nginx_proxy_image: ""               # NGINX proxy image to be used
 imagePullSecrets: ""                # Image pull secrets to be used
 admins: # List of admin emails
   - ""
