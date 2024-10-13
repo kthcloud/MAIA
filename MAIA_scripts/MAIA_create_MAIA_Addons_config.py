@@ -90,6 +90,8 @@ def create_maia_addons_config_api( form,
         }
 
     if "minio_console_service" in user_form:
+        #cluster_config["nginx_proxy_image"] = "registry.cloud.cbh.kth.se/maia/nginx-proxy:1.4" #TODO
+        cluster_config["nginx_proxy_image"] = "kthcloud/nginx-proxy:1.4"
         maia_addons_values_template["proxy_nginx"] = {
             "enabled": True,
             "imagePullSecrets": cluster_config["imagePullSecrets"],

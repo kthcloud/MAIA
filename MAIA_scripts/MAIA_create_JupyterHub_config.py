@@ -241,14 +241,14 @@ def create_jupyterhub_config_api( form,
                 #print(f"https://{hub_address}/{group_subdomain}-hub/oauth_callback")
 
 
-    if "custom_hub" in user_form:
+    #if "custom_hub" in user_form:
 
-        jh_template["hub"]["image"] = {
+    jh_template["hub"]["image"] = {
 
-                    "name": "registry.maia.cloud.cbh.kth.se/jupyterhub", #TODO
-                    "tag": "1.1"
+                "name": "registry.maia.cloud.cbh.kth.se/jupyterhub", #TODO
+                "tag": "1.1"
 
-        }
+    }
 
     if not gpu_request:
         jh_template["singleuser"]["extraEnv"]["NVIDIA_VISIBLE_DEVICES"] = ""

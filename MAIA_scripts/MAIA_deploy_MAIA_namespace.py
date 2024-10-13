@@ -77,8 +77,6 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
                                create_script=create_script)
         script.extend(cmds)
 
-        #cluster_config["nginx_proxy_image"] = "registry.cloud.cbh.kth.se/maia/nginx-proxy:1.4" #TODO
-        cluster_config["nginx_proxy_image"] = "kthcloud/nginx-proxy:1.4"
         with open(Path(config_folder).joinpath(user_form_dict["group_ID"],
                                                "{}_user_config.yaml".format(user_form_dict["group_ID"])), "w") as f:
             yaml.dump(user_form_dict, f)

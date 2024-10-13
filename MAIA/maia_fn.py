@@ -421,7 +421,7 @@ def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, c
         "minio_secret_key": secret_key,
         "minio_root_user": "admin",
         "minio_root_password": root_password
-    }
+    }, [""]
 
 
 def deploy_mysql(namespace, cluster_config, user_config, config_folder, create_script=False):
@@ -469,7 +469,7 @@ def deploy_mysql(namespace, cluster_config, user_config, config_folder, create_s
                         Path(config_folder).joinpath(user_config["group_ID"],
                                                      "{}_mysql_values.json".format(user_config["group_ID"]))])
 
-    return {"MYSQL_PASSWORD": mysql_pw, "MYSQL_USERNAME": namespace}
+    return {"MYSQL_PASSWORD": mysql_pw, "MYSQL_USERNAME": namespace}, [""]
 
 
 def deploy_mlflow(namespace, cluster_config, user_config, config_folder, create_script=False):
@@ -548,7 +548,7 @@ def deploy_mlflow(namespace, cluster_config, user_config, config_folder, create_
                         Path(config_folder).joinpath(user_config["group_ID"],
                                                      "{}_mlflow_values.json".format(user_config["group_ID"]))])
 
-    return {"mlflow_service": "mlflow-v1-mkg"}
+    return {"mlflow_service": "mlflow-v1-mkg"}, [""]
 
 
 def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, create_script=False):
