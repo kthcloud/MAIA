@@ -75,10 +75,12 @@ spec:
         - name: {{ .name | quote }}
           configMap:
             name: {{ .configMapName | quote }}
+            {{- if .configMapFile }}
             items:
               - key: {{ .configMapFile | quote }}
                 path: {{ .configMapPath | quote }}
                  {{- end }}
+            {{- end }}
       securityContext:
       {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

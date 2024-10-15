@@ -39,12 +39,20 @@ def create_config_map_from_data(data: str, config_map_name: str, namespace: str,
         namespace=namespace,
     )
 
-    configmap = kubernetes.client.V1ConfigMap(
-        api_version="v1",
-        kind="ConfigMap",
-        data={data_key: data},
-        metadata=metadata
-    )
+    if type(data_key)==list and type(data)==list:
+        configmap = kubernetes.client.V1ConfigMap(
+            api_version="v1",
+            kind="ConfigMap",
+            data={data_key[i]: data[i] for i in range(len(data))},
+            metadata=metadata
+        )
+    else:
+        configmap = kubernetes.client.V1ConfigMap(
+            api_version="v1",
+            kind="ConfigMap",
+            data={data_key: data},
+            metadata=metadata
+        )
 
     with kubernetes.client.ApiClient() as api_client:
         api_instance = kubernetes.client.CoreV1Api(api_client)

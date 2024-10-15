@@ -133,41 +133,90 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
                 #    "readOnly": "true"
                 # })
 
+    single_config_file = True
     if 'mount_files' in config_dict:
-        for idx, mount_file in enumerate(config_dict["mount_files"]):
+        if single_config_file:
+            for idx, mount_file in enumerate(config_dict["mount_files"]):
 
-            if len(config_dict['mount_files'][mount_file]) > 2 and config_dict['mount_files'][mount_file][
-                2] == "readOnly":
-                value_dict["extraVolumeMounts"].append({
-                    "name": mount_file,
-                    "mountPath": config_dict['mount_files'][mount_file][1],
-                    "readOnly": True
+                if idx == 0:
+                    if len(config_dict['mount_files'][mount_file]) > 2 and config_dict['mount_files'][mount_file][
+                        2] == "readOnly":
+                        value_dict["extraVolumeMounts"].append({
+                            "name": mount_file.lower().replace("_", "-"),
+                            "mountPath": config_dict['mount_files'][mount_file][1],
+                            "readOnly": True
+                        })
+                    else:
+                        value_dict["extraVolumeMounts"].append({
+                            "name": mount_file.lower().replace("_", "-"),
+                            "mountPath": config_dict['mount_files'][mount_file][1],
+                            "readOnly": False
+                        })
+
+                    value_dict["extraConfigMapVolumes"] = []
+
+                    value_dict["extraConfigMapVolumes"].append({
+                        "name": mount_file.lower().replace("_", "-"),
+                        "configMapName": mount_file.lower().replace("_", "-"),
+                        "configMapFile": Path(config_dict['mount_files'][mount_file][0]).name,
+                        "configMapPath": Path(config_dict['mount_files'][mount_file][0]).name
+                    })
+
+            files = []
+            file_names = []
+            mount_file_config = ""
+            for idx, mount_file in enumerate(config_dict["mount_files"]):
+                if idx == 0:
+                    mount_file_config = mount_file
+                with open(config_dict['mount_files'][mount_file][0], "r") as f:
+                    files.append(f.read())
+                    file_names.append(Path(config_dict['mount_files'][mount_file][0]).name)
+                    # d = json.load(f)
+            create_config_map_from_data(  # json.dumps(d),
+                files,
+                mount_file_config.lower().replace("_", "-"),
+                config_dict["namespace"],
+                kubeconfig_dict,
+                file_names)
+
+
+
+
+        else:
+            for idx, mount_file in enumerate(config_dict["mount_files"]):
+
+                if len(config_dict['mount_files'][mount_file]) > 2 and config_dict['mount_files'][mount_file][
+                    2] == "readOnly":
+                    value_dict["extraVolumeMounts"].append({
+                        "name": mount_file.lower().replace("_", "-"),
+                        "mountPath": config_dict['mount_files'][mount_file][1],
+                        "readOnly": True
+                    })
+                else:
+                    value_dict["extraVolumeMounts"].append({
+                        "name": mount_file.lower().replace("_", "-"),
+                        "mountPath": config_dict['mount_files'][mount_file][1],
+                        "readOnly": False
+                    })
+
+                with open(config_dict['mount_files'][mount_file][0], "r") as f:
+                    #d = json.load(f)
+                    create_config_map_from_data(#json.dumps(d),
+                                                f.read(),
+                                                mount_file.lower().replace("_", "-"),
+                                                config_dict["namespace"],
+                                                kubeconfig_dict,
+                                                Path(config_dict['mount_files'][mount_file][0]).name)
+
+                if idx == 0:
+                    value_dict["extraConfigMapVolumes"] = []
+
+                value_dict["extraConfigMapVolumes"].append({
+                    "name": mount_file.lower().replace("_", "-"),
+                    "configMapName": mount_file.lower().replace("_", "-"),
+                    "configMapFile": Path(config_dict['mount_files'][mount_file][0]).name,
+                    "configMapPath": Path(config_dict['mount_files'][mount_file][0]).name
                 })
-            else:
-                value_dict["extraVolumeMounts"].append({
-                    "name": mount_file,
-                    "mountPath": config_dict['mount_files'][mount_file][1],
-                    "readOnly": False
-                })
-
-            with open(config_dict['mount_files'][mount_file][0], "r") as f:
-                #d = json.load(f)
-                create_config_map_from_data(#json.dumps(d),
-                                            f.read(),
-                                            mount_file,
-                                            config_dict["namespace"],
-                                            kubeconfig_dict,
-                                            Path(config_dict['mount_files'][mount_file][0]).name)
-
-            if idx == 0:
-                value_dict["extraConfigMapVolumes"] = []
-
-            value_dict["extraConfigMapVolumes"].append({
-                "name": mount_file,
-                "configMapName": mount_file,
-                "configMapFile": Path(config_dict['mount_files'][mount_file][0]).name,
-                "configMapPath": Path(config_dict['mount_files'][mount_file][0]).name
-            })
 
     if 'env_variables' in config_dict:
         if "extraEnv" not in value_dict:
