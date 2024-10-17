@@ -2,6 +2,8 @@
 
 [![Build](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml)
 
+![](MAIA.png)
+
 MAIA Toolkit is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
 applications in MAIA (including pods, services and ingresses).
 
