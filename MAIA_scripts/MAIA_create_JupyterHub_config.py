@@ -6,6 +6,56 @@ from pathlib import Path
 import click
 import yaml
 from minio import Minio
+import datetime
+import argparse
+import json
+import os
+import subprocess
+from argparse import ArgumentParser, RawTextHelpFormatter
+from pathlib import Path
+from textwrap import dedent
+
+import MAIA
+version = MAIA.__version__
+
+TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
+
+DESC = dedent(
+    """
+    Script to deploy the JupyterHub helm chart to a Kubernetes cluster. The target cluster is specified by setting the corresponding ``--cluster--config-file``,
+    while the namespace-related configuration is specified with ``--form``.
+    """  # noqa: E501
+)
+EPILOG = dedent(
+    """
+    Example call:
+    ::
+        {filename}  --form /PATH/TO/form.yaml --cluster-config-file /PATH/TO/cluster.yaml
+    """.format(  # noqa: E501
+        filename=Path(__file__).stem
+    )
+)
+
+def get_arg_parser():
+    pars = ArgumentParser(description=DESC, epilog=EPILOG, formatter_class=RawTextHelpFormatter)
+
+    pars.add_argument(
+        "--form",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the namespace configuration.",
+    )
+
+    pars.add_argument(
+        "--cluster-config-file",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the cluster configuration.",
+    )
+
+    pars.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
+
+    return pars
 
 
 @click.command()

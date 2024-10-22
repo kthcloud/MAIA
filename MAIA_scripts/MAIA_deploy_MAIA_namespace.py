@@ -10,6 +10,79 @@ from MAIA.maia_fn import configure_minio, create_share_pvc, create_namespace, cr
 from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
 from MAIA_scripts.MAIA_create_MAIA_Addons_config import create_maia_addons_config_api
 
+import datetime
+import argparse
+import json
+import os
+import subprocess
+from argparse import ArgumentParser, RawTextHelpFormatter
+from pathlib import Path
+from textwrap import dedent
+
+import MAIA
+version = MAIA.__version__
+
+
+TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
+
+DESC = dedent(
+    """
+    Script to deploy a MAIA Namespace to a Kubernetes cluster. The target cluster is specified by setting the corresponding ``--cluster--config``,
+    while the namespace-related configuration is specified with ``--namespace-config-file``.
+    The necessary MAIA Configuration files should be found in ``--config-folder``.
+    """  # noqa: E501
+)
+EPILOG = dedent(
+    """
+    Example call:
+    ::
+        {filename} --namespace-config-file /PATH/TO/form.yaml --cluster-config /PATH/TO/cluster.yaml
+    """.format(  # noqa: E501
+        filename=Path(__file__).stem
+    )
+)
+
+def get_arg_parser():
+    pars = ArgumentParser(description=DESC, epilog=EPILOG, formatter_class=RawTextHelpFormatter)
+
+    pars.add_argument(
+        "--namespace-config-file",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the namespace configuration.",
+    )
+
+    pars.add_argument(
+        "--cluster-config",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the cluster configuration.",
+    )
+
+    pars.add_argument(
+        "--config-folder",
+        type=str,
+        required=True,
+        help="Configuration Folder where to locate (and temporarily store) the MAIA configuration files.",
+    )
+
+    pars.add_argument(
+        "--create-script",
+        type=str,
+        required=False,
+        help="Optional flag to only generate the deployment script, without deploying the namespace on the cluster.",
+    )
+
+    pars.add_argument(
+        "--minimal",
+        type=str,
+        required=False,
+        help="Optional flag to only deploy JupyterHub in the MAIA namespace.",
+    )
+
+    pars.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
+
+    return pars
 
 @click.command()
 @click.option("--namespace-config-file", type=str)

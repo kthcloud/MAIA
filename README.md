@@ -2,6 +2,27 @@
 
 [![Build](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml)
 
+[![Documentation Status](https://readthedocs.org/projects/maia/badge/?version=latest)](https://maia.readthedocs.io/en/latest/?badge=latest)
+![Version](https://img.shields.io/badge/MAIA-v1.0.5-blue)
+[![License](https://img.shields.io/badge/license-GPL%203.0-green.svg)](https://opensource.org/licenses/GPL-3.0)
+![Python](https://img.shields.io/badge/python-3.8+-orange)
+
+
+![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/kthcloud/MAIA?logo=github)
+![GitHub contributors](https://img.shields.io/github/contributors/kthcloud/MAIA?logo=github)
+![GitHub top language](https://img.shields.io/github/languages/top/kthcloud/MAIA?logo=github)
+![GitHub language count](https://img.shields.io/github/languages/count/kthcloud/MAIA?logo=github)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/kthcloud/MAIA/publish_release.yaml?logo=github)
+![GitHub all releases](https://img.shields.io/github/downloads/kthcloud/MAIA/total?logo=github)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/maia-toolkit?logo=pypi)
+![GitHub](https://img.shields.io/github/license/kthcloud/MAIA?logo=github)
+![PyPI - License](https://img.shields.io/pypi/l/maia-toolkit?logo=pypi)
+
+
+![GitHub repo size](https://img.shields.io/github/repo-size/kthcloud/MAIA?logo=github)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/kthcloud/MAIA?logo=github)
+![PyPI](https://img.shields.io/pypi/v/maia-toolkit?logo=pypi)
+
 ![](MAIA.png)
 
 MAIA Toolkit is a python package to interact with a Kubernetes cluster, to create custom environments and deploy
@@ -163,19 +184,6 @@ To specify the Docker image to deploy
 ```json
 {
   "docker_image": "DOCKER_IMAGE"
-}
-```
-
-#### Clusters [Required]
-
-List of Kubernetes clusters in the federation where to deploy the resources
-
-```json
-{
-  "clusters": [
-    "CLUSTER_1",
-    "CLUSTER_2"
-  ]
 }
 ```
 
@@ -342,7 +350,7 @@ Two types of Ingress are currently supported: **NGINX** and **TRAEFIK**.
 
 IMPORTANT! The specified DNS needs to be active and connected to the cluster DNS (**".maia.cloud.cbh.kth.se"**)
 
-IMPORTANT! When working with the **TRAEFIK** Ingress, the *traefik_middleware* and *traefik_resolver* should be
+IMPORTANT! When working with the **TRAEFIK** Ingress, the *traefik_middleware* and *traefik_resolver* 
 should be explicitly specified, since only oauth-based authenticated users can be authorized
 through the ingress.
 Contact the MAIA admin to retrieve this information.
