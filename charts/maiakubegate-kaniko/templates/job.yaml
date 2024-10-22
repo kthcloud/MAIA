@@ -32,16 +32,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          - '--dockerfile=Dockerfile'
-          #- "--context=s3://docker-contexts/{{.Values.context_file}}"
-          - '--context=git://'{{.Values.git_path }}
-          - '--context-sub-path='{{.Values.git_subpath }}
-          -  "--destination={{.Values.docker_image}}"
-          {{- range $key, $value := .Values.buildArgs }}
-          - "--build-arg="{{ $key }}={{ $value }}{{ if not (last $key $value) }} {{ end }}
-          {{- end }}
-          - "--cache=true"
-          - "--cache-dir=/cache"
+            {{- toYaml .Values.args | nindent 12 }}
           env:
             - name: GIT_USERNAME
               value: {{.Values.git_username }}
