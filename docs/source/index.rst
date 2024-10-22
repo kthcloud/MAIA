@@ -1,6 +1,6 @@
 .. k8s_DP documentation master file, created by
 
-Welcome to MAIAKubeGate documentation!
+Welcome to MAIA documentation!
 ======================================
 
 .. include:: README.md

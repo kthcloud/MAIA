@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml)
 
-[![Documentation Status](https://readthedocs.org/projects/maia/badge/?version=latest)](https://maia.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/maia-toolkit/badge/?version=latest)](https://maia-toolkit.readthedocs.io/en/latest/?badge=latest)
 ![Version](https://img.shields.io/badge/MAIA-v1.0.5-blue)
 [![License](https://img.shields.io/badge/license-GPL%203.0-green.svg)](https://opensource.org/licenses/GPL-3.0)
 ![Python](https://img.shields.io/badge/python-3.8+-orange)
