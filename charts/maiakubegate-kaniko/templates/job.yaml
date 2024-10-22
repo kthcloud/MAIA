@@ -32,17 +32,36 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            {{- toYaml .Values.kaniko_args | nindent 12 }}
+          - '--dockerfile=Dockerfile'
+          #- "--context=s3://docker-contexts/{{.Values.context_file}}"
+          - '--context=git://{}'.format(config_dict["git_path"]),
+          - '--context-sub-path={}'.format(config_dict["git_subpath"]),
+          -  "--destination={{.Values.docker_image}}"
+          #- "--build-arg={}={}"
+          - "--cache=true"
+          - "--cache-dir=/cache"
           env:
             - name: GIT_USERNAME
               value: {{.Values.git_username }}
             - name: GIT_PASSWORD
               value: {{.Values.git_token }}
+            #- name: AWS_ACCESS_KEY_ID
+            #  value: {{.Values.MINIO_ACCESS_KEY}}
+            #- name: AWS_SECRET_ACCESS_KEY
+            #  value: {{.Values.MINIO_SECRET_KEY}}
+            #- name: AWS_REGION
+            #  value: us-east-1
+            #- name: S3_ENDPOINT
+            #  value: {{.Values.MINIO_URL}}
+            #- name: S3_FORCE_PATH_STYLE
+            #  value: "true"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: docker-config
               mountPath: /kaniko/.docker
+            - name: cache
+              mountPath: /cache
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -56,6 +75,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: kaniko-cache-pvc-{{ include "maiakubegate-kaniko.fullname" . }}
         - name: docker-config
           projected:
             sources:
@@ -64,3 +86,17 @@ spec:
                   items:
                     - key: .dockerconfigjson
                       path: config.json
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kaniko-cache-pvc-{{ include "maiakubegate-kaniko.fullname" . }}
+  labels:
+   {{- include "maiakubegate-kaniko.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ .Values.pvc.pvc_type }}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.pvc.size }}

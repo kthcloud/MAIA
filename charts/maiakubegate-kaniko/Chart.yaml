@@ -1,5 +1,5 @@
 apiVersion: v2
-name: mkg-kan
+name: mkg-kaniko
 description: A Helm chart to deploy Kaniko Pod in MAIA cluster, used to build Docker Images and deploy to the private Docker Registry
 
 # A chart can be either an 'application' or a 'library' chart.

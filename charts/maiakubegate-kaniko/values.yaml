@@ -60,5 +60,7 @@ nodeSelector: { }
 tolerations: [ ]
 
 affinity: { }
-kaniko_args:
-  [ ]
+
+
+
+
