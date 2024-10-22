@@ -34,10 +34,12 @@ spec:
           args:
           - '--dockerfile=Dockerfile'
           #- "--context=s3://docker-contexts/{{.Values.context_file}}"
-          - '--context=git://{}'.format(config_dict["git_path"]),
-          - '--context-sub-path={}'.format(config_dict["git_subpath"]),
+          - '--context=git://'{{.Values.git_path }}
+          - '--context-sub-path='{{.Values.git_subpath }}
           -  "--destination={{.Values.docker_image}}"
-          #- "--build-arg={}={}"
+          {{- range $key, $value := .Values.buildArgs }}
+          - "--build-arg="{{ $key }}={{ $value }}{{ if not (last $key $value) }} {{ end }}
+          {{- end }}
           - "--cache=true"
           - "--cache-dir=/cache"
           env:
