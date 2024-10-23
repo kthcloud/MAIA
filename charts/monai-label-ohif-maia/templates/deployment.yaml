@@ -19,13 +19,17 @@ spec:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         resources:
           requests:
-            cpu: 8000m
-            memory: 64Gi
+            cpu: {{ .Values.cpu }}
+            memory: {{ .Values.memory }}
+            {{- if .Values.gpu }}
             nvidia.com/gpu: "1"
+            {{- end}}
           limits:
-            cpu: 8000m
-            memory: 64Gi
+            cpu: {{ .Values.cpu }}
+            memory: {{ .Values.memory }}
+            {{- if .Values.gpu }}
             nvidia.com/gpu: "1"
+            {{- end}}
         env:
           - name: INGRESS_PATH
             value: /{{ .Release.Name }}
@@ -33,16 +37,24 @@ spec:
             value: /{{ .Release.Name }}-monai-label
           - name: ORTHANC_DICOMWEB_ADDRESS
             value: "http://localhost:8042/dicom-web"
+          {{- if .Values.bundle_model_name }}
           - name: BUNDLE_MODEL_NAME
-            value: Task09_Spleen_Bundle
+            value: {{.Values.bundle_model_name}}
+          {{- end}}
           - name: MLFLOW_MODEL_PATH
             value: "/workspace/mlflow"
+          {{- if .Values.mlflow_tracking_uri }}
           - name: MLFLOW_TRACKING_URI
-            value: "https://admin.app.cloud.cbh.kth.se/mlflow"
+            value: {{.Values.mlflow_tracking_uri}}
+          {{- end}}
+          {{- if .Values.mlflow_model }}
           - name: MLFLOW_MODEL
-            value: "Task09_Spleen"
+            value: {{.Values.mlflow_model}}
+            {{- end}}
+            {{- if .Values.mlflow_tracking_token }}
           - name: MLFLOW_TRACKING_TOKEN
-            value: "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ2T3FLaTZ2MGNHYXhxVzFOaFZiOFh5ekZqbDJERFRkUEhHTWgtTXVEbXNNIn0.eyJleHAiOjE3MjU5MzIxMjcsImlhdCI6MTcyMzM0MDEyNywiYXV0aF90aW1lIjoxNzIzMzQwMDM5LCJqdGkiOiJmOGRkMTEyNC0xNmFjLTQ4MTgtYTUxZS1mMDdiYTU1NmUwNzQiLCJpc3MiOiJodHRwczovL2lhbS5jbG91ZC5jYmgua3RoLnNlL3JlYWxtcy9jbG91ZCIsImF1ZCI6Im1haWEiLCJzdWIiOiI3Y2E4MDAwOC1iNWVmLTRhYjMtYjI1Zi1iZWQ4ZDRmZTRjZmMiLCJ0eXAiOiJJRCIsImF6cCI6Im1haWEiLCJzaWQiOiJjZjU4YWQ1Ny03OGZjLTRhNDItYWNhZS0yNjE5MzY5NmYwMmIiLCJhdF9oYXNoIjoiVjZGWFBqOWdoUFg5R3M2bnNBNUVaZyIsImFjciI6IjAiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IlNpbW9uZSBCZW5kYXp6b2xpIiwiZ3JvdXBzIjpbIk1BSUE6RGVtbyIsIk1BSUE6THVuZ0xvYmVTZWciLCJNQUlBOlRyYW5zTHltcGhvbWEiLCJNQUlBOmFkbWluIiwiTUFJQTp1c2VycyIsImFkbWluIiwicGxhdGludW0iXSwicHJlZmVycmVkX3VzZXJuYW1lIjoic2ltYmVuQGt0aC5zZSIsImdpdmVuX25hbWUiOiJTaW1vbmUiLCJmYW1pbHlfbmFtZSI6IkJlbmRhenpvbGkiLCJlbWFpbCI6InNpbWJlbkBrdGguc2UifQ.OfWqagHLZ5PKJYxqcHosK0CvApOy863X_rJ2ja1H4AlgkatIvjefr1HTQQDDozChfnw0Ejw8dqPouV2mvzLkAG8_oFykmOK-6gpyz4R7Hb7eT1ljEK3xfByHKb5laH8Jpa3PaRcQGocui_-jyfI0_87GR8skAGHR8Yg0-QhI2IgRnOfzUNShGZLs-jJzTijp8WE4DUlSs8EKqLG_MqnWVJolVey8R4ctXYOFV9RsWj90DD2GAqLxfwuVcxA9EQ0yA2p9FQa6d9WDKCNO1bZdrOVxw7n3ZOHCOLeW9P71SOMtUs2d_WnbseFTvmGSB1MdY1VlJAZwUzfDQIQTOhg4_4QiEPkHlXz4XeZG-YL6SuVIp_HNVjm7X7twVhHd27fMKZ9LW1gB1HCLeZ0-2peHbYf-LePIjNdLRZer3wWiK2wtyo_8ggpCgYB91IQLEjrZqb9smZwRPnQtA6laaj80naJo0FDxUgY9qSGiL2u566ME1dAP0_PYJM7yQN8xP8qBxFJyyks-eE8IRdKquJCqiuChlTB897U6q4urxCOeFbEQeoKKQl0nhGb2YZWqaeQG-wBOwudg1r7N7Y8S6O7Qbo9MmxgOSLHmWSAl0KQ4O80T8uGB9WNG6qAvP7dI2iCZ3BzYgdnMVcy9NQdHTnF8ZHrbz8OdOOC83R54ovapwHM"
+            value: {{.Values.mlflow_tracking_token}}
+            {{- end}}
           - name: MONAI_BUNDLE_PATH
             value: "/workspace/MONAILabel/monaibundle/model"
         volumeMounts:

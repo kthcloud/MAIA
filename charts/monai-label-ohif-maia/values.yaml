@@ -6,9 +6,18 @@ pvc:
 imagePullSecret: <IMAGE_PULL_SECRET>
 
 image:
-  repository: registry.maia.cloud.cbh.kth.se/monai-label-ohif
-  tag: 1.13
+  repository: kthcloud/monai-label-ohif
+  tag: 1.14
+
+cpu: 4000m
+memory: 16Gi
+#gpu: false
+
+#bundle_model_name: <BUNDLE_MODEL_NAME> # e.g. "Task09_Spleen"
+#mlflow_tracking_uri: <MLFLOW_TRACKING_URI>
+#mlflow_model: <MLFLOW_MODEL> # e.g. "Task09_Spleen"
+#mlflow_tracking_token: <MLFLOW_TRACKING_TOKEN>
 
 hostname: "<SUBDOMAIN>.<DOMAIN>"
-oauth_url: "<SUBDOMAIN>.<DOMAIN>"
+#oauth_url: "<SUBDOMAIN>.<DOMAIN>"
 namespace: ""
