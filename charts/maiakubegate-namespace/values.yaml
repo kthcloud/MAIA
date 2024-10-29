@@ -1,5 +1,0 @@
-# Default values for hive.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-chart_version: "1.0.11"

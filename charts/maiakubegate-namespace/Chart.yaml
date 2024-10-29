@@ -1,9 +1,0 @@
-apiVersion: v2
-name: mkg-ns
-description: A Helm chart to create a complete Namespace in MAIA cluster, deploying all the default MAIA components, including namespaced Network Policies, namespaced Role and Role Bindings, and the selected Secrets.
-
-type: application
-
-version: 1.0.1
-
-appVersion: "1.0.1"

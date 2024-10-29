@@ -170,7 +170,7 @@ def create_maia_addons_config_api( form,
                     "name": "maia-addons-{}".format(namespace.lower()),
                     "repository": "https://kthcloud.github.io/MAIA/",
                     "chart": "maia-addons",
-                    "version": "0.1.4",
+                    "version": "0.1.5",
                     "namespace": namespace.lower(),
                     "create_namespace": False,
                     "values": [
