@@ -48,7 +48,12 @@ def get_arg_parser():
         required=True,
         help="YAML configuration file used to extract the namespace configuration.",
     )
-
+    pars.add_argument(
+        "--maia-config-file",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the MAIA configuration.",
+    )
     pars.add_argument(
         "--cluster-config-file",
         type=str,
@@ -62,14 +67,19 @@ def get_arg_parser():
 
 @click.command()
 @click.option("--form", type=str)
+@click.option("--maia-config-file", type=str)
 @click.option("--cluster-config-file", type=str)
-def create_maia_addons_config(form,cluster_config_file):
-    create_maia_addons_config_api(form,cluster_config_file)
+def create_maia_addons_config(form,maia_config_file,cluster_config_file):
+    create_maia_addons_config_api(form,maia_config_file,cluster_config_file)
 
 def create_maia_addons_config_api( form,
+                                  maia_config_file,
                               cluster_config_file,
                                    config_folder = None
                              ):
+
+    with open(maia_config_file, "r") as f:
+        maia_form = yaml.safe_load(f)
 
     with open(cluster_config_file,"r") as f:
         cluster_config = yaml.safe_load(f)
@@ -79,7 +89,7 @@ def create_maia_addons_config_api( form,
         user_form = yaml.safe_load(f)
 
     group_subdomain = user_form["group_subdomain"]
-    namespace = user_form["group_ID"]
+    namespace = user_form["group_ID"].lower().replace("_", "-")
 
 
     users = user_form["users"]
@@ -141,8 +151,8 @@ def create_maia_addons_config_api( form,
         }
 
     if "minio_console_service" in user_form:
-        #cluster_config["nginx_proxy_image"] = "registry.cloud.cbh.kth.se/maia/nginx-proxy:1.4" #TODO
-        cluster_config["nginx_proxy_image"] = "kthcloud/nginx-proxy:1.4"
+       
+        cluster_config["nginx_proxy_image"] = maia_form["nginx_proxy_image"]
         maia_addons_values_template["proxy_nginx"] = {
             "enabled": True,
             "imagePullSecrets": cluster_config["imagePullSecrets"],
@@ -170,7 +180,7 @@ def create_maia_addons_config_api( form,
                     "name": "maia-addons-{}".format(namespace.lower()),
                     "repository": "https://kthcloud.github.io/MAIA/",
                     "chart": "maia-addons",
-                    "version": "0.1.5",
+                    "version": maia_config_file["maia_addons_version"],
                     "namespace": namespace.lower(),
                     "create_namespace": False,
                     "values": [

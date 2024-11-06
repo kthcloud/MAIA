@@ -45,6 +45,12 @@ def get_arg_parser():
         required=True,
         help="YAML configuration file used to extract the namespace configuration.",
     )
+    pars.add_argument(
+        "--maia-config-file",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the MAIA configuration.",
+    )
 
     pars.add_argument(
         "--cluster-config-file",
@@ -60,15 +66,21 @@ def get_arg_parser():
 
 @click.command()
 @click.option("--form", type=str)
+@click.option("--maia-config-file", type=str)
 @click.option("--cluster-config-file", type=str)
-def create_jupyterhub_config(form,cluster_config_file):
-    create_jupyterhub_config_api(form,cluster_config_file)
+def create_jupyterhub_config(form,maia_config_file,cluster_config_file):
+    create_jupyterhub_config_api(form,maia_config_file,cluster_config_file)
 
 def create_jupyterhub_config_api( form,
+                                 maia_config_file,
                               cluster_config_file,
+                                
                                   config_folder = None
+                                  
                              ):
 
+    with open(maia_config_file, "r") as f:
+        maia_form = yaml.safe_load(f)
 
     with open(cluster_config_file, "r") as f:
         cluster_config = yaml.safe_load(f)
@@ -104,7 +116,7 @@ def create_jupyterhub_config_api( form,
     if "keycloack" in cluster_config:
         keycloack = cluster_config["keycloack"]
 
-    namespace = user_form["group_ID"]
+    namespace = user_form["group_ID"].lower().replace("_", "-")
     group_subdomain = user_form["group_subdomain"]
     team_id = user_form["group_ID"]
     resources_limits = user_form["resources_limits"]
@@ -253,6 +265,9 @@ def create_jupyterhub_config_api( form,
             }
     }
 
+    if cluster_config["url_type"] == "subpath":
+        jh_template["singleuser"]["extraEnv"]["MLFLOW_TRACKING_URI"] = f"https://{hub_address}/{namespace}-mlflow",
+
     if "minio_env_name" in user_form:
         minio_env_name = user_form["minio_env_name"]
         client = Minio(cluster_config["minio_url"],
@@ -291,14 +306,14 @@ def create_jupyterhub_config_api( form,
                 #print(f"https://{hub_address}/{group_subdomain}-hub/oauth_callback")
 
 
-    #if "custom_hub" in user_form:
+    if "private_hub" in user_form:
 
-    jh_template["hub"]["image"] = {
+        jh_template["hub"]["image"] = {
 
-                "name": "registry.maia.cloud.cbh.kth.se/jupyterhub", #TODO
-                "tag": "1.1"
+                    "name": "registry.maia.cloud.cbh.kth.se/jupyterhub",
+                    "tag": "1.1"
 
-    }
+        }
 
     if not gpu_request:
         jh_template["singleuser"]["extraEnv"]["NVIDIA_VISIBLE_DEVICES"] = ""
@@ -333,6 +348,8 @@ def create_jupyterhub_config_api( form,
     if base_url is not None:
         jh_template["hub"]["base_url"] = base_url
 
+
+    #jh_template["singleuser"]["nodeSelector"] = {"kubernetes.io/hostname": "node-1"}
 
     jh_template["singleuser"]["storage"] = {
         "homeMountPath": "/home/maia-user",
@@ -397,12 +414,13 @@ def create_jupyterhub_config_api( form,
             cluster_config["imagePullSecrets"]
         ]
     }
-    maia_workspace_version = user_form["maia_workspace_version"]
+    maia_workspace_version = maia_form["maia_workspace_version"]
+    maia_workspace_image = maia_form["maia_workspace_image"]
     jh_template["singleuser"]["profileList"] = [
         {"display_name": f"MAIA Workspace v{maia_workspace_version}",
          "description": "MAIA Workspace with Python 3.10, Anaconda, MatLab, RStudio, VSCode and SSH Connection",
          "default": True,
-        "kubespawner_override":{"image": f"kthcloud/maia-workspace-ssh-addons:{maia_workspace_version}",
+         "kubespawner_override":{"image": f"{maia_workspace_image}:{maia_workspace_version}",
                                 #"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",  #TODO
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
@@ -410,6 +428,7 @@ def create_jupyterhub_config_api( form,
                                 #cpu_limit
                                 #mem_guarantee
                                 #cpu_guarantee
+                                #nodeSelector: {"kubernetes.io/hostname": "node-1"}
                                "extra_resource_limits": {
                                },
 

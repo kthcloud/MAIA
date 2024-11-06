@@ -53,6 +53,13 @@ def get_arg_parser():
     )
 
     pars.add_argument(
+        "--maia-config-file",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract MAIA configuration.",
+    )
+
+    pars.add_argument(
         "--cluster-config",
         type=str,
         required=True,
@@ -86,18 +93,21 @@ def get_arg_parser():
 
 @click.command()
 @click.option("--namespace-config-file", type=str)
+@click.option("--maia-config-file", type=str)
 @click.option("--cluster-config", type=str)
 @click.option('--create-script', is_flag=True)
 @click.option('--minimal', is_flag=True)
 @click.option("--config-folder", type=str)
-def main(namespace_config_file, cluster_config, config_folder, create_script, minimal):
+def main(namespace_config_file,maia_config_file, cluster_config, config_folder, create_script, minimal):
     user_form_dict = yaml.safe_load(Path(namespace_config_file).read_text())
+
+    maia_config_dict = yaml.safe_load(Path(maia_config_file).read_text())
 
     Path(config_folder).joinpath(user_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
 
     cluster_config_dict = yaml.safe_load(Path(cluster_config).read_text())
 
-    namespace = user_form_dict["group_ID"].lower()
+    namespace = user_form_dict["group_ID"].lower().replace("_", "-")
 
     script = ["#!/bin/bash"]
 
@@ -136,7 +146,7 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
         user_form_dict.update(mlflow_conf)
         script.extend(cmds)
 
-        cmds = deploy_orthanc_ohif(namespace, cluster_config_dict, user_form_dict, config_folder,
+        cmds = deploy_orthanc_ohif(namespace, cluster_config_dict, maia_config_dict, user_form_dict, config_folder,
                                    create_script=create_script)
         script.extend(cmds)
 
@@ -157,6 +167,7 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
         cmds = create_maia_addons_config_api(Path(config_folder).joinpath(user_form_dict["group_ID"],
                                                                           "{}_user_config.yaml".format(
                                                                               user_form_dict["group_ID"])),
+                                                                              maia_config_file,
                                              cluster_config, config_folder)
 
         for cmd in cmds:
@@ -211,7 +222,7 @@ def main(namespace_config_file, cluster_config, config_folder, create_script, mi
 
     cmds = create_jupyterhub_config_api(Path(config_folder).joinpath(user_form_dict["group_ID"],
                                                                      "{}_user_jupyterhub_config.yaml".format(
-                                                                         user_form_dict["group_ID"])), cluster_config,
+                                                                         user_form_dict["group_ID"])),maia_config_file, cluster_config,
                                         config_folder)
 
     for cmd in cmds:

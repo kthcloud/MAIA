@@ -235,7 +235,7 @@ def create_share_pvc(namespace, pvc_name, storage_class, storage_size, create_sc
 def deploy_oauth2_proxy(cluster_config, user_config, config_folder, create_script=False):
 
     config_file = {
-        "oidc_issuer_url": cluster_config["keycloack"]["issuer_url"],
+        "oidc_issuer_url": cluster_config["keycloack"]["issuer_url"], # Internal IP : http://keycloak-external-service.admin:80/auth/realms/kaapana"
         "provider": "oidc",
         "upstreams": ["static://202"],
         "http_address": "0.0.0.0:4180",
@@ -334,7 +334,7 @@ def deploy_oauth2_proxy(cluster_config, user_config, config_folder, create_scrip
         "helm upgrade --install oauth2-proxy oauth2-proxy/oauth2-proxy -f {} --namespace {}".format(
             Path(config_folder).joinpath(user_config["group_ID"],
                                          "{}_oauth2_proxy_values.yaml".format(user_config["group_ID"])),
-            user_config["group_ID"].lower())
+            user_config["group_ID"].lower().replace("_", "-"))
     ]
 
     if create_script:
@@ -377,13 +377,8 @@ def deploy_minio_tenant(namespace, config_folder, user_config, cluster_config, c
     root_user = "admin"
     root_password = token_urlsafe(16)
     root_password = root_password.replace("-","_")
-
-    if "insecure_openid" in cluster_config:
-        minio_conf["stringData"][
-            "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_ROOT_USER={}\nexport MINIO_ROOT_PASSWORD={}".format(
-            root_user, root_password)
-    else:
-        minio_conf["stringData"][
+    
+    minio_conf["stringData"][
             "config.env"] = "export MINIO_BROWSER=on\nexport MINIO_IDENTITY_OPENID_CLIENT_SECRET={}\nexport MINIO_IDENTITY_OPENID_CLAIM_NAME=groups\nexport MINIO_IDENTITY_OPENID_SCOPES=email,openid,profile\nexport MINIO_ROOT_USER={}\nexport MINIO_ROOT_PASSWORD={}\nexport MINIO_IDENTITY_OPENID_CONFIG_URL={}\nexport MINIO_IDENTITY_OPENID_CLIENT_ID={}\nexport MINIO_IDENTITY_OPENID_DISPLAY_NAME=MAIA".format(
             cluster_config["keycloack"]["client_secret"], root_user, root_password,
             cluster_config["keycloack"]["issuer_url"] + "/.well-known/openid-configuration",
@@ -567,7 +562,7 @@ def deploy_mlflow(namespace, cluster_config, user_config, config_folder, create_
     return {"mlflow_service": "mlflow-v1-mkg"}, [""]
 
 
-def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, create_script=False):
+def deploy_orthanc_ohif(namespace, cluster_config, maia_config, user_config, config_folder, create_script=False):
     orthanc_ohif_config = {
         "pvc" : {
             "pvc_type": cluster_config["storage_class"],
@@ -578,9 +573,9 @@ def deploy_orthanc_ohif(namespace, cluster_config, user_config, config_folder, c
         "imagePullSecret": cluster_config["imagePullSecrets"],
         "namespace": namespace,
         "image":{
-            #"repository": "registry.cloud.cbh.kth.se/maia/monai-label-ohif", #TODO
-            "repository": "kthcloud/monai-label-ohif",
-            "tag": "1.14"
+            
+            "repository": maia_config["orthanc_ohif"]["image"],
+            "tag": maia_config["orthanc_ohif"]["tag"],
         },
 
         "hostname": "{}.{}".format(user_config["group_subdomain"],cluster_config["domain"]),
@@ -726,9 +721,11 @@ def deploy_kubeflow(namespace, user_config, cluster_config, config_folder, manif
 
 
 def configure_minio(namespace, user_config, cluster_config, config_folder, create_script=False):
-    alias_cmd = "mc alias set {} https://minio.{}.{} {} {}".format(namespace,
-                                                                                               user_config["group_subdomain"],
-                                                                                               cluster_config["domain"],
+
+    alias_cmd = "mc alias set {} http://minio.{}:80 {} {}".format(namespace,
+                                                                                               #user_config["group_subdomain"],
+                                                                                               namespace,
+                                                                                               #cluster_config["domain"],
                                                                                                user_config["minio_root_user"],
                                                                                                user_config["minio_root_password"])
     cmds = [alias_cmd]
