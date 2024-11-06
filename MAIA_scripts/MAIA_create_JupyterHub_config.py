@@ -458,12 +458,13 @@ def create_jupyterhub_config_api( form,
 
     if config_folder is None:
         config_folder = "."
-
-    Path(config_folder).joinpath(namespace).mkdir(parents=True, exist_ok=True)
-    with open(Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub.tf.json"), "w") as f:
+    
+    group_id = user_form["group_ID"]
+    Path(config_folder).joinpath(group_id).mkdir(parents=True, exist_ok=True)
+    with open(Path(config_folder).joinpath(group_id,f"{group_id}_jupyterhub.tf.json"), "w") as f:
         json.dump(jh_helm_template, f, indent=2)
 
-    with open(Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub_values.yaml"), "w") as f:
+    with open(Path(config_folder).joinpath(group_id,f"{group_id}_jupyterhub_values.yaml"), "w") as f:
         print(jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"][0],file=f)
 
 
@@ -473,7 +474,7 @@ def create_jupyterhub_config_api( form,
     helm_repo = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
     helm_repo_version = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
 
-    config_path = Path(config_folder).joinpath(namespace,f"{namespace}_jupyterhub_values.yaml")
+    config_path = Path(config_folder).joinpath(group_id,f"{group_id}_jupyterhub_values.yaml")
     cmds = [
         #"Run the following command to deploy JupyterHub: ",
             f"helm repo add jupyterhub {helm_repo}",
