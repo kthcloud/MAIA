@@ -432,13 +432,13 @@ def create_jupyterhub_config_api( form,
                                "extra_resource_limits": {
                                },
 
-                                "container_security_context": {
-                                    "privileged": True,
-                                    "procMount": "unmasked",
-                                    "seccompProfile": {
-                                        "type": "Unconfined"
-                                    }
-                                }
+                                #"container_security_context": {
+                                    #"privileged": True,
+                                    #"procMount": "unmasked",
+                                    #"seccompProfile": {
+                                    #    "type": "Unconfined"
+                                    #}
+                                #}
                                 }
          }
 
