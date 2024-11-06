@@ -194,12 +194,13 @@ def create_maia_addons_config_api( form,
 
     if config_folder is None:
         config_folder = "."
-
+    
+    group_id = user_form["group_ID"]
     Path(config_folder).joinpath(user_form["group_ID"]).mkdir(parents=True, exist_ok=True)
-    with open(Path(config_folder).joinpath(user_form["group_ID"],f"{user_form["group_ID"]}_maia_addons.tf.json"), "w") as f:
+    with open(Path(config_folder).joinpath(user_form["group_ID"],f"{group_id}_maia_addons.tf.json"), "w") as f:
         json.dump(maia_addons_template, f, indent=2)
 
-    with open(Path(config_folder).joinpath(user_form["group_ID"],f"{user_form["group_ID"]}_maia_addons_values.yaml"), "w") as f:
+    with open(Path(config_folder).joinpath(user_form["group_ID"],f"{group_id}_maia_addons_values.yaml"), "w") as f:
         print(maia_addons_template["resource"]["helm_release"]["maia-addons"]["values"][0], file=f)
 
     helm_namespace = maia_addons_template["resource"]["helm_release"]["maia-addons"]["namespace"]
@@ -208,7 +209,7 @@ def create_maia_addons_config_api( form,
     helm_repo = maia_addons_template["resource"]["helm_release"]["maia-addons"]["repository"]
     helm_repo_version = maia_addons_template["resource"]["helm_release"]["maia-addons"]["version"]
 
-    config_path = Path(config_folder).joinpath(user_form["group_ID"],f"{user_form["group_ID"]}_maia_addons_values.yaml")
+    config_path = Path(config_folder).joinpath(user_form["group_ID"],f"{group_id}_maia_addons_values.yaml")
     cmds =[
         # "Run the following command to deploy JupyterHub: ",
         f"helm repo add maia {helm_repo}",
