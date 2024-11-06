@@ -157,7 +157,7 @@ application to the external traffic using the HTTPS protocol.
 To add the chart to Helm, run:
 
 ```
-helm repo add maiakubegate https://kthcloud.github.io/MAIA/
+helm repo add maia https://kthcloud.github.io/MAIA/
 helm repo update
 ```
 ## Custom Helm values
