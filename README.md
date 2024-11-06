@@ -92,6 +92,18 @@ keycloack: # Keycloak configuration for Authentication
   userdata_url: ""                  # Keycloak user data URL
 ```
 
+Finally, a MAIA configuration file with the following parameters:
+
+```yaml
+orthanc_ohif:
+  image: ""                         # Orthanc-OHIF-MONAI Label image
+  tag: ""                           # Orthanc-OHIF-MONAI Label tag
+nginx_proxy_image: ""               # MAIA Nginx proxy image
+maia_addons_version: ""             # MAIA Addons chart version
+maia_workspace_version: ""          # MAIA Workspace tag
+maia_workspace_image: ""            # MAIA Workspace image
+```
+
 In order to deploy the MAIA namespace, the `minio` and `kustomize` CLI should be installed locally, to be able to
 interact with the cluster.
 
@@ -113,7 +125,7 @@ To deploy the MAIA namespace, run:
 ```shell
 export KUBECONFIG=<PATH/TO/KUBECONFIG>
 
-MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER>
+MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --maia-config-file <PATH/TO/MAIA/CONFIG/FILE>
 ```
 
 ## Offline Deployment
@@ -121,7 +133,7 @@ MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --clust
 If you only want to create a deployment script, to review and run it later, you can use the `--create-script` flag:
 
 ```shell
-MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --create-script
+MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --maia-config-file <PATH/TO/MAIA/CONFIG/FILE> --create-script
 ```
 
 ## Minimal Installation
@@ -130,7 +142,7 @@ A minimal installation can be done, only deploying the JupyterHub interface and 
 To install the MAIA namespace with the minimal configuration, you can use the `--minimal` flag:
 
 ```shell
-MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --minimal
+MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --maia-config-file <PATH/TO/MAIA/CONFIG/FILE> --minimal
 ```
 
 # Deploy an Application in MAIA Namespace
