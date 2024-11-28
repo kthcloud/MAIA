@@ -5,3 +5,5 @@ pvc:
   pvc_type: "standard"
   access_mode: "ReadWriteOnce"
   size: "1Gi"
+
+namespace: "maia"
