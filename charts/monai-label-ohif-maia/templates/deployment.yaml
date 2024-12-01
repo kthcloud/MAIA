@@ -42,19 +42,19 @@ spec:
             value: {{.Values.bundle_model_name}}
           {{- end}}
           - name: MLFLOW_MODEL_PATH
-            value: "/workspace/mlflow"
-          {{- if .Values.mlflow_tracking_uri }}
-          - name: MLFLOW_TRACKING_URI
-            value: {{.Values.mlflow_tracking_uri}}
-          {{- end}}
-          {{- if .Values.mlflow_model }}
-          - name: MLFLOW_MODEL
-            value: {{.Values.mlflow_model}}
-            {{- end}}
-            {{- if .Values.mlflow_tracking_token }}
-          - name: MLFLOW_TRACKING_TOKEN
-            value: {{.Values.mlflow_tracking_token}}
-            {{- end}}
+            value: {{.Values.mlflow_model_path }}
+          #{{- if .Values.mlflow_tracking_uri }}
+          #- name: MLFLOW_TRACKING_URI
+          #  value: {{.Values.mlflow_tracking_uri}}
+          #{{- end}}
+          #{{- if .Values.mlflow_model }}
+          #- name: MLFLOW_MODEL
+          #  value: {{.Values.mlflow_model}}
+          #  {{- end}}
+          #  {{- if .Values.mlflow_tracking_token }}
+          #- name: MLFLOW_TRACKING_TOKEN
+          #  value: {{.Values.mlflow_tracking_token}}
+          #  {{- end}}
           - name: MONAI_BUNDLE_PATH
             value: "/workspace/MONAILabel/monaibundle/model"
         volumeMounts:
@@ -62,6 +62,8 @@ spec:
           name: cache-volume
         - mountPath: /var/lib/orthanc/db
           name: orthanc
+        - mountPath: /workspace/mlflow
+          name: mlflow-model
       volumes:
         - emptyDir:
             medium: Memory
@@ -69,6 +71,9 @@ spec:
         - name: orthanc
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-pvc
+        - name: mlflow-model
+          persistentVolumeClaim:
+            claimName: {{ .Values.mlflow_pvc_name }}
       imagePullSecrets:
       - name: {{ .Values.imagePullSecret }}
       {{- if .Values.nodeSelector }}

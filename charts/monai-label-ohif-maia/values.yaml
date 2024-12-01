@@ -7,17 +7,13 @@ imagePullSecret: <IMAGE_PULL_SECRET>
 
 image:
   repository: kthcloud/monai-label-ohif
-  tag: 1.14
+  tag: 1.15
 
 cpu: 4000m
 memory: 16Gi
 #gpu: false
 
-#bundle_model_name: <BUNDLE_MODEL_NAME> # e.g. "Task09_Spleen"
-#mlflow_tracking_uri: <MLFLOW_TRACKING_URI>
-#mlflow_model: <MLFLOW_MODEL> # e.g. "Task09_Spleen"
-#mlflow_tracking_token: <MLFLOW_TRACKING_TOKEN>
-
+mlflow_pvc_name: "mlflow"
 hostname: "<SUBDOMAIN>.<DOMAIN>"
-#oauth_url: "<SUBDOMAIN>.<DOMAIN>"
-namespace: ""
+bundle_model_name: "BUNDLE_NAME"
+mlflow_model_path: "/workspace/mlflow/MLFLOW_MODEL_NAME"
