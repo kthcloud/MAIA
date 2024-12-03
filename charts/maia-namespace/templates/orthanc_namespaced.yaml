@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.namespace }}
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+      name: pt-monai-label
+    - protocol: TCP
+      port: 81
+      targetPort: 80
+      name: pt-orthanc
+      #  NodePort: XXXXX
+  type: ClusterIP
+  selector:
+    app-name: {{ .Values.namespace }}
