@@ -3,7 +3,7 @@ entries:
   maia-addons:
   - apiVersion: v2
     appVersion: 0.1.5
-    created: "2024-12-01T20:01:20.515788878+01:00"
+    created: "2024-12-03T09:08:24.846828383+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: 6ab5131dbd3f8edd4a1e981bb612f234cd33a9ac06a5ae0c6123f1b3db57f8ae
@@ -14,7 +14,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: 0.1.4
-    created: "2024-12-01T20:01:20.515191723+01:00"
+    created: "2024-12-03T09:08:24.829713246+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: be8db1882cba02a3ad85feb009b9ede7c09f899452d64266ebe6e9e2b065bfba
@@ -25,7 +25,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 0.1.3
-    created: "2024-12-01T20:01:20.514459953+01:00"
+    created: "2024-12-03T09:08:24.814510606+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: aec4994e47a361d29d2390c5c20598fddb450925e26e09a990ebe36b5e275259
@@ -36,7 +36,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 0.1.2
-    created: "2024-12-01T20:01:20.513724652+01:00"
+    created: "2024-12-03T09:08:24.793789447+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: 69b1962ba5c132d48798fa4352abb0cfeee033bac2577eccefb2a6cabb33dd8f
@@ -47,7 +47,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.1.1
-    created: "2024-12-01T20:01:20.512751339+01:00"
+    created: "2024-12-03T09:08:24.782129527+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: 9e9f62b0a6c9e9ae19b276af58054d7210c8d45477213d0147791379a76b2aa1
@@ -58,7 +58,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-12-01T20:01:20.489908965+01:00"
+    created: "2024-12-03T09:08:24.769961413+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: bbac6b64138c85b6cd2469fe287747c5d5abfec563a8d8baa95c4ffb0e65fc15
@@ -70,7 +70,7 @@ entries:
   maia-chart:
   - apiVersion: v1
     appVersion: 1.0.1
-    created: "2024-12-01T20:01:20.523620449+01:00"
+    created: "2024-12-03T09:08:25.087118938+01:00"
     dependencies:
     - name: kaapana-library-chart
       repository: ""
@@ -87,7 +87,17 @@ entries:
   maia-namespace:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2024-12-01T20:01:20.517053575+01:00"
+    created: "2024-12-03T09:08:24.888675555+01:00"
+    description: A Helm chart to create and configure a MAIA Namespace
+    digest: b9e0d96bf949e82b0fed2a14150c782db7969f985ffa78b40797e0d905fd098e
+    name: maia-namespace
+    type: application
+    urls:
+    - maia-namespace-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2024-12-03T09:08:24.887869242+01:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: 12dbbfa9ec99b930bf257d15ad4d21511fa00f5f3e6dc292b8d6266975586cd2
     name: maia-namespace
@@ -97,7 +107,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.1.1
-    created: "2024-12-01T20:01:20.516604383+01:00"
+    created: "2024-12-03T09:08:24.876142334+01:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: ed55c6b640f294e1fe7d40c9f59ae6fc52169ac711cc58644163fae1929cf110
     name: maia-namespace
@@ -107,7 +117,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2024-12-01T20:01:20.516154176+01:00"
+    created: "2024-12-03T09:08:24.859650198+01:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: d19bdca50b8f3008b2866fbb8ab15a5fa471d6f05c1ede52452114444f70b24c
     name: maia-namespace
@@ -118,7 +128,7 @@ entries:
   mkg:
   - apiVersion: v2
     appVersion: 1.0.2
-    created: "2024-12-01T20:01:20.518577097+01:00"
+    created: "2024-12-03T09:08:24.949148355+01:00"
     description: A Helm chart to deploy environments (pods, services, ingresses) and
       run experiments and applications in MAIA cluster
     digest: a68950f3b91fadd60ca91561dfe7d8f0c7acca1dc611b2b3e5ea11231ce96570
@@ -129,7 +139,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 1.0.1
-    created: "2024-12-01T20:01:20.517756576+01:00"
+    created: "2024-12-03T09:08:24.928735881+01:00"
     description: A Helm chart to deploy environments (pods, services, ingresses) and
       run experiments and applications in MAIA cluster
     digest: b718ddaeca25a8270a17dafa51a686c57c3049dcb2da03969d5170294472eb95
@@ -141,7 +151,7 @@ entries:
   mkg-kaniko:
   - apiVersion: v2
     appVersion: 1.0.3
-    created: "2024-12-01T20:01:20.52075977+01:00"
+    created: "2024-12-03T09:08:24.991225735+01:00"
     description: A Helm chart to deploy Kaniko Pod in MAIA cluster, used to build
       Docker Images and deploy to the private Docker Registry
     digest: aa4a54c1d1cfbf047b89074b8968ead380aab1bb35c15f5ed4eaaeb680c49e83
@@ -152,7 +162,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: 1.0.2
-    created: "2024-12-01T20:01:20.520058172+01:00"
+    created: "2024-12-03T09:08:24.977887577+01:00"
     description: A Helm chart to deploy Kaniko Pod in MAIA cluster, used to build
       Docker Images and deploy to the private Docker Registry
     digest: 68009f995fe043dfa7e39afe7ef4c7371b09dedd4ae5437a2a56b8686c9c7446
@@ -163,7 +173,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 1.0.1
-    created: "2024-12-01T20:01:20.519387265+01:00"
+    created: "2024-12-03T09:08:24.966017188+01:00"
     description: A Helm chart to deploy Kaniko Pod in MAIA cluster, used to build
       Docker Images and deploy to the private Docker Registry
     digest: 2660b4e0275afa6d2b67185944961d02a94819de4da93ea5630ae5e27367e52b
@@ -175,7 +185,7 @@ entries:
   monai-label-ohif-maia:
   - apiVersion: v1
     appVersion: 5.6.2
-    created: "2024-12-01T20:01:20.522729515+01:00"
+    created: "2024-12-03T09:08:25.060466287+01:00"
     description: Chart for MONAI Label OHIF App
     digest: bf6e3f6c7f4cdf83c34f6d29075ce994b93903d3266fd9ce46632a29e347661f
     name: monai-label-ohif-maia
@@ -184,7 +194,7 @@ entries:
     version: 0.0.4
   - apiVersion: v1
     appVersion: 5.6.2
-    created: "2024-12-01T20:01:20.522200144+01:00"
+    created: "2024-12-03T09:08:25.042304417+01:00"
     description: Chart for MONAI Label OHIF App
     digest: 49d721edd21b0729dd86db5997d6bfaec565c118835254efa950263d22bc452b
     name: monai-label-ohif-maia
@@ -193,7 +203,7 @@ entries:
     version: 0.0.3
   - apiVersion: v1
     appVersion: 5.6.2
-    created: "2024-12-01T20:01:20.52172401+01:00"
+    created: "2024-12-03T09:08:25.023948945+01:00"
     description: Chart for MONAI Label OHIF App
     digest: 10fdb656a0dadd6387451ead622e876bf23105a8c45d3a976cabe54310880e23
     name: monai-label-ohif-maia
@@ -202,11 +212,11 @@ entries:
     version: 0.0.2
   - apiVersion: v1
     appVersion: 5.6.1
-    created: "2024-12-01T20:01:20.521224924+01:00"
+    created: "2024-12-03T09:08:25.005611417+01:00"
     description: Chart for MONAI Label OHIF App
     digest: 6cc93003b034afc56e25e46df7bea0935bf5a62a687a025d0b08f59a0555518c
     name: monai-label-ohif-maia
     urls:
     - monai-label-ohif-maia-0.0.1.tgz
     version: 0.0.1
-generated: "2024-12-01T20:01:20.489285329+01:00"
+generated: "2024-12-03T09:08:24.752801971+01:00"

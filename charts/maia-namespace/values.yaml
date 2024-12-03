@@ -7,3 +7,18 @@ pvc:
   size: "1Gi"
 
 namespace: "maia"
+
+users:
+- jupyterhub_username: "jovyan"
+  sshPort: 3022
+- jupyterhub_username: "jovyan2"
+  sshPort: 3023
+
+serviceType: "NodePort"
+
+metallbSharedIp: True
+metallbIpPool: False
+loadBalancerIp: False
+
+dockerRegistrySecretName: "docker-registry-secret"
+dockerRegistrySecret: "encrypted-data"
