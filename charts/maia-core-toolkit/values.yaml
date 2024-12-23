@@ -1,0 +1,14 @@
+metrics_server:
+  enabled: True
+
+cert_manager:
+  enabled: True
+
+dashboard:
+  enabled: True
+
+metallb:
+  enabled: True
+  pool_enabled: False
+  allow_escalation: False
+  addresses: "192.168.0.1-192.168.0.2"
