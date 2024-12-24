@@ -1,4 +1,4 @@
-{{- if .Values.cert_manager.enabled}}
+{{- if .Values.cert_manager.enabled }}
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -6,11 +6,11 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: {{.Values.cert_manager.email}}
+    email: {{ .Values.cert_manager.email }}
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
       - http01:
           ingress:
-            class: {{.Values.default_ingress_class}}
-{{-end}}
+            class: {{ .Values.default_ingress_class }}
+{{- end }}
