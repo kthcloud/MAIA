@@ -1,22 +1,12 @@
 import os
-from lib2to3.pgen2.tokenize import group
 from django.http import FileResponse
-import yaml
-from django.shortcuts import render
-from django import template
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.template import loader
-from django.urls import reverse
 from django.conf import settings
-from django.shortcuts import redirect
-from django.template.defaultfilters import register
+
 from pathlib import Path
 
-from sqlalchemy.testing.suite.test_reflection import users
-from sqlparse.engine.grouping import group_as, group_if
-
-from core.settings import cluster
 from .forms import UserTableForm
 from .utils import get_user_table, create_deployment_package, update_user_table
 import urllib3
@@ -44,7 +34,7 @@ def index(request):
         context = {
             "user_table": user_list,
             "clusters": settings.CLUSTER_NAMES.values(),
-            "minio_console_url": os.environ["MINIO_CONSOLE_URL"],
+            "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
             "maia_groups_dict": maia_groups_dict,
             "form": UserTableForm(request.POST)
         }
@@ -78,7 +68,7 @@ def index(request):
         "user_table": user_list,
         "maia_groups_dict": maia_groups_dict,
         "clusters": settings.CLUSTER_NAMES.values(),
-        "minio_console_url": os.environ["MINIO_CONSOLE_URL"],
+        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
         "form": form,
         "user": ["admin"],
         "username": request.user.username + " [ADMIN]"

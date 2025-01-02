@@ -113,7 +113,16 @@
                       </div>
                       <span class="text-danger">{{ form.date.errors }}</span>
 
+                      <label>Project Admin</label>
+                      <div class="mb-3">
+                        {{ form.project_admin }}
+                        <h7>Register as the Project Admin</h7>
+                        
+                      </div>
 
+                      <span class="text-danger">{{ form.project_admin.errors }}</span>
+
+                      {% if minio_available %}
                       <label>Conda/Python Environment File [OPTIONAL]</label>
                       <div class="mb-3">
                         <h7>{{ form.conda.label }}</h7>
@@ -122,6 +131,7 @@
 
                       </div>
                       <span class="text-danger">{{ form.conda.errors }}</span>
+                      {% endif %}
 
                     <!--
                       <label>Request MAIA Workspace Applications</label>

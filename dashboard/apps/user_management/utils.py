@@ -2,10 +2,10 @@ import os
 import tempfile
 import shutil
 import sqlite3
-from sys import exec_prefix
+
 
 from sqlalchemy import create_engine
-from sqlalchemy.sql import text
+
 import pandas as pd
 from keycloak import KeycloakAdmin
 from keycloak import KeycloakOpenIDConnection
@@ -17,15 +17,19 @@ from kubernetes import config
 from minio import Minio
 
 def update_user_table(form):
-    db_host = os.environ["DB_HOST"]
-    db_user = os.environ["DB_USERNAME"]
-    dp_password = os.environ["DB_PASS"]
 
-    #try:
-    engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-    cnx = engine.raw_connection()
-    #except:
-    #    cnx = sqlite3.connect("db.sqlite3")
+
+
+    if settings.DEBUG:
+         cnx = sqlite3.connect("db.sqlite3")
+    else:
+        db_host = os.environ["DB_HOST"]
+        db_user = os.environ["DB_USERNAME"]
+        dp_password = os.environ["DB_PASS"]
+
+        #try:
+        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
+        cnx = engine.raw_connection()
 
     auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
 
@@ -96,17 +100,36 @@ def update_user_table(form):
 
                 authentication_maiauser = authentication_maiauser.append({"user_ptr_id": id, "cpu_limit": form[k]},
                                                                          ignore_index=True)
-    try:
-        cnx.close()
-        engine.dispose()
+        elif k.startswith("project_admin"):
+            project_admin = 0
+            if form[k] == "on":
+                project_admin = 1
+            
+            id = auth_user[auth_user["username"] == k[len("project_admin_"):]]["id"].values[0]
 
+            if len(authentication_maiauser[authentication_maiauser["user_ptr_id"] == id]) > 0:
+                authentication_maiauser.loc[authentication_maiauser["user_ptr_id"] == id, "project_admin"] = project_admin
+            else:
+
+                authentication_maiauser = authentication_maiauser.append({"user_ptr_id": id, "project_admin": project_admin},
+                                                                         ignore_index=True)
+    #try:
+    cnx.close()
+    
+
+    if settings.DEBUG:
+        cnx = sqlite3.connect("db.sqlite3")
+        authentication_maiauser.to_sql("authentication_maiauser", con=cnx, if_exists="replace", index=False)
+
+    else:
+        engine.dispose()
         engine_2 = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
         authentication_maiauser.to_sql("authentication_maiauser", con=engine_2, if_exists="replace", index=False)
         #stmt = text("ALTER TABLE authentication_maiauser-copy RENAME TO authentication_maiauser;")
         #engine.execute(stmt)
 
-    except:
-        ...
+    #except:
+    #    ...
 #auth_user[auth_user["username"] == k[len("date_"):]]["date"] = form[k]
 
 
@@ -240,19 +263,18 @@ def create_deployment_package(cluster_config_path,config_path,group_id,user_list
     return str(Path(output_folder).joinpath(group_id+".zip"))
 
 def get_user_table():
-    db_host = os.environ["DB_HOST"]
-    db_user = os.environ["DB_USERNAME"]
-    dp_password = os.environ["DB_PASS"]
 
-    #try:
-    engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-    cnx = engine.raw_connection()
-    #except:
-    #    cnx = sqlite3.connect("db.sqlite3")
+    if settings.DEBUG:
+         cnx = sqlite3.connect("db.sqlite3")
+    else:
+        db_host = os.environ["DB_HOST"]
+        db_user = os.environ["DB_USERNAME"]
+        dp_password = os.environ["DB_PASS"]
+        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
+        cnx = engine.raw_connection()
+
 
     auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
-    auth_group = pd.read_sql_query("SELECT * FROM auth_group", con=cnx)
-    auth_user_groups = pd.read_sql_query("SELECT * FROM auth_user_groups", con=cnx)
     authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
 
     authentication_maiauser_copy = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
@@ -280,25 +302,32 @@ def get_user_table():
 
 
     maia_group_dict = {}
-    authenticated_users = [user[1]['username'] for user in table.iterrows() if str(user[1]['project_admin'])=="1" or str(user[1]['project_admin'])=="1.0"]
-
-    client = Minio(settings.MINIO_URL,
-                   access_key=settings.MINIO_ACCESS_KEY,
-                   secret_key=settings.MINIO_SECRET_KEY,
-                   secure=settings.MINIO_SECURE)
+    project_admin_users = [user[1]['username'] for user in table.iterrows() if str(user[1]['project_admin'])=="1" or str(user[1]['project_admin'])=="1.0"]
 
 
-    minio_envs = [env.object_name[:-len("_env")] for env in list(client.list_objects(settings.BUCKET_NAME))]
+    try:
+        client = Minio(settings.MINIO_URL,
+                    access_key=settings.MINIO_ACCESS_KEY,
+                    secret_key=settings.MINIO_SECRET_KEY,
+                    secure=settings.MINIO_SECURE)
+
+
+        minio_envs = [env.object_name[:-len("_env")] for env in list(client.list_objects(settings.BUCKET_NAME))]
+    except:
+        minio_envs = []
 
     for maia_group in maia_groups:
         if maia_groups[maia_group] == "users":
             continue
         users = keycloak_admin.get_group_members(group_id=maia_group)
 
-        admin_users = [user['username'] for user in users if user['username'] in authenticated_users]
+        admin_users = [user['username'] for user in users if user['username'] in project_admin_users]
         
         if len(admin_users) == 0:
-            admin_users = [users[0]['username']]
+            if len(users) > 0:
+                admin_users = [users[0]['username']]
+            else:
+                admin_users = []
 
         conda_envs = []
         if maia_groups[maia_group] in minio_envs:
@@ -334,28 +363,16 @@ def get_user_table():
 
         if uid in authentication_maiauser['user_ptr_id'].values:
             requested_namespaces = authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid][
-                'namespace'].values
-            #print(
-            #    f"User {username} requested to be registered in MAIA in {authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid]['namespace'].values[0]} namespace")
-            #print(authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid])
+                'namespace'].values[0].split(",")
             for requested_namespace in requested_namespaces:
                 if requested_namespace not in user_groups:
-                    #print(f"User {username} is not in the group {requested_namespace}")
-                    #print(user_groups)
                     if email not in users_to_register:
                         users_to_register[email] = [requested_namespace]
                     else:
                         users_to_register[email].append(requested_namespace)
 
-    #users = keycloak_admin.get_users()
-    #keycloak_admin.get_realms()
-    #usernames = [user['username'] for user in users]
 
     table.fillna("N/A", inplace=True)
 
 
     return table, users_to_register, maia_group_dict
-
-
-
-#get_user_table()

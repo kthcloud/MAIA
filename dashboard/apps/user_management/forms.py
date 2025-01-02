@@ -44,6 +44,11 @@ class UserTableForm(forms.Form):
                                                                                     initial=i["memory_limit"])
                 self.fields[f"cpu_limit_{username}"] = forms.ChoiceField(label='cpu_limit', choices=cpu_limit,
                                                                             initial=i["cpu_limit"])
+                
+                project_admin = False
+                if str(i["project_admin"]) == "1" or str(i["project_admin"]) == "1.0":
+                    project_admin = True
+                self.fields[f"project_admin_{username}"] = forms.BooleanField(label='project_admin', required=False, initial=project_admin)
         else:
             for k in args[0]:
                 if k.startswith("namespace"):
@@ -69,4 +74,6 @@ class UserTableForm(forms.Form):
                     self.fields[k] = forms.ChoiceField(label='cpu_limit',
                                                        choices=cpu_limit,
                                                        )
+                elif k.startswith("project_admin"):
+                    self.fields[k] = forms.BooleanField(label='project_admin', required=False)
 

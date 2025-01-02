@@ -57,6 +57,6 @@ class MAIAUser(User):
 
     cluster = models.TextField('cluster', default='N/A', null=True)
     minimal_env = models.TextField('minimal_env', default="Minimal", null=True)
-    project_admin = models.BooleanField('project_admin', default=False, null=True)
+    project_admin = models.BooleanField('project_admin', default=False)
     memory_limit = models.TextField('memory_limit',default='2G',null=True)
     cpu_limit = models.TextField('memory_limit', default='2', null=True)

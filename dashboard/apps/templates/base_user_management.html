@@ -20,7 +20,7 @@
       </div>
                 <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-     <div class="col-lg-10 col-md-10 mb-md-0 mb-4">
+     <!-- <div class="col-lg-10 col-md-10 mb-md-0 mb-4"> -->
 
                 <br>
 
@@ -194,6 +194,7 @@
         </div>
     </div>
 
+    <br>
 
     <div class="card">
 
@@ -223,6 +224,7 @@
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Memory Limit</th>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">CPU Limit</th>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Environment</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Project Admin</th>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Custom Conda/PIP</th>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Assigned Cluster</th>
 
@@ -361,6 +363,20 @@
                             </div>
 
                         </td>
+
+
+                    </td>
+
+                    <td>
+                    <div class="d-flex flex-column justify-content-center">
+                               {% with form_key="project_admin_"|add:user.username %}
+
+                                 {{ form|index:form_key }} 
+
+                        {% endwith %}
+                    </div>
+
+                    </td>
                             <td>
                             <div class="d-flex flex-column justify-content-center">
                                 <h6 class="mb-0 text-sm ">
