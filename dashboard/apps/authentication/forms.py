@@ -81,7 +81,7 @@ class RegisterProjectForm(forms.ModelForm):
     email = forms.EmailField(
         widget=forms.EmailInput(
             attrs={
-                "placeholder": "Your Email",
+                "placeholder": "Your Email. You are registered as the Project Admin.",
                 "class": "form-control"
             }
         ))

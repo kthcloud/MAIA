@@ -92,15 +92,16 @@
                         {{ form.date }}
                         <span class="text-danger">{{ form.date.errors }}</span>
                       </div>
+                      
 
+                      <label>CPU Request </label>
                       <div class="mb-3">
-                        <label>CPU Limit</label>
                         {{ form.cpu_limit }}
                         <span class="text-danger">{{ form.cpu_limit.errors }}</span>
                       </div>
-
+                      
+                      <label>Memory Request </label>
                       <div class="mb-3">
-                        <label>Memory Limit</label>
                         {{ form.memory_limit }}
                         <span class="text-danger">{{ form.memory_limit.errors }}</span>
                       </div>
