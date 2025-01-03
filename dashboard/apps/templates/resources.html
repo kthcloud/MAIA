@@ -7,42 +7,33 @@
 
 {% block content %}
 
-  <main class="main-content  mt-0">
-
-
-
+<main class="main-content mt-0">
     <section class="min-vh-100 mb-8">
-      <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg" style="background-image: url('{{ ASSETS_ROOT }}/img/maia_background.jpg');">
-        <span class="mask bg-gradient-dark opacity-6"></span>
-        <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-5 text-center mx-auto">
-              <h1 class="text-white mb-2 mt-5">MAIA Resources</h1>
+        <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg" style="background-image: url('{{ ASSETS_ROOT }}/img/maia_background.jpg');">
+            <span class="mask bg-gradient-dark opacity-6"></span>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-5 text-center mx-auto">
+                        <h1 class="text-white mb-2 mt-5">MAIA Resources</h1>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
 
-       <!-- <div class="col-lg-8 col-md-8 mb-md-0 mb-4"> -->
         <div class="card">
             <div class="card-header pb-0">
                 <div class="row">
                     <div class="col-lg-6 col-15">
                         <h3>GPU Allocations</h3>
-
                     </div>
                     <div class="col-lg-6 col-5 my-auto text-end">
                         <div class="dropdown float-lg-end pe-4">
-                            <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown"
-                               aria-expanded="false">
+                            <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa fa-ellipsis-v text-secondary"></i>
                             </a>
-
                             <ul class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5" aria-labelledby="dropdownTable">
                                 <li><a class="dropdown-item border-radius-md" onclick="exportTableToExcel('allocations', 'MAIA_GPU_Allocations')">Download as Excel</a></li>
-
                             </ul>
-
                         </div>
                     </div>
                 </div>
@@ -51,21 +42,30 @@
                 <div class="table-responsive">
                     <table class="table align-items-center mb-0" id="allocations">
                         <thead>
-                        <tr class="align-middle text-center text-sm">
-                            <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Name</th>
-                            <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Cluster</th>
-                            <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Node</th>
-                            <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Namespace</th>
-                            <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">GPU</th>
-
-                        </tr>
+                            <tr class="align-middle text-center text-sm">
+                                <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Name</th>
+                                <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Cluster</th>
+                                <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Node</th>
+                                <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">Namespace</th>
+                                <th class="text-uppercase text-secondary text-m font-weight-bolder opacity-7">GPU</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {% for k in gpu_allocations.items %}
-                        <tr>
-
-                            <td class="align-middle text-center text-sm">
-                                <span class="text-m font-weight-bold"> {{k|dict_key}} </span>
+                            {% for k in gpu_allocations.items %}
+                            <tr>
+                                <td class="align-middle text-center text-sm">
+                                    <span class="text-m font-weight-bold"> {{k|dict_key}} </span>
+                                </td>
+                                <td class="align-middle text-center text-sm">
+                                    <span class="text-m font-weight-bold"> {{k|dict_val|get_item:'cluster'}} </span>
+                                </td>
+                                <td class="align-middle text-center text-sm">
+                                    <span class="text-m font-weight-bold"> {{k|dict_val|get_item:'node'}} </span>
+                                </td>
+                                <td class="align-middle text-center text-sm">
+                                    <span class="text-m font-weight-bold"> <a href="/maia/namespaces/{{k|dict_val|get_item:'namespace'}}" /> {{k|dict_val|get_item:'namespace'}} </span>
+                                </td>
+                                <td class="align-
                             </td>
 
                              <td class="align-middle text-center text-sm">

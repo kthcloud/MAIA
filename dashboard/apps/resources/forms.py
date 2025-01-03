@@ -4,8 +4,6 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-
 
 class ResourceRequestForm(forms.Form):
     gpu_request = forms.IntegerField(min_value=0, max_value=4)
