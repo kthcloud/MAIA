@@ -5,8 +5,9 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from apps.models import MAIAUser
+from apps.models import MAIAUser, MAIAProject
 from django.conf import settings
+from MAIA.dashboard_utils import get_groups_in_keycloak
 
 
 class LoginForm(forms.Form):
@@ -28,20 +29,25 @@ class LoginForm(forms.Form):
 
 class SignUpForm(UserCreationForm):
     username = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
+    widget=forms.TextInput(
+           attrs={
                 "placeholder": "Your Username",
                 "class": "form-control"
             }
         ))
-    namespace = forms.CharField(
 
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "A unique identifier for your project.",
-                "class": "form-control"
-            }
-        ))
+    
+    maia_groups = get_groups_in_keycloak(settings= settings)
+
+    namespace = forms.ChoiceField(
+        choices=[(maia_group,maia_group) for maia_group in maia_groups.values()],
+        widget=forms.Select(attrs={
+           'class': "form-select text-center fw-bold",
+            'style': 'max-width: auto;',
+        }
+    )
+    )
+
     email = forms.EmailField(
         widget=forms.EmailInput(
             attrs={
@@ -50,20 +56,36 @@ class SignUpForm(UserCreationForm):
             }
         ))
     password1 = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={
-                "placeholder": "Password",
-                "class": "form-control"
-            }
-        ))
+        initial="maiaPassword",
+        )
     password2 = forms.CharField(
-        widget=forms.PasswordInput(
+        initial="maiaPassword",
+
+        )
+    class Meta:
+        model = MAIAUser
+        fields = ('username','email', 'namespace', 'password1', 'password2')
+
+
+class RegisterProjectForm(forms.ModelForm):
+    
+    namespace = forms.CharField(
+    
+        widget=forms.TextInput(
             attrs={
-                "placeholder": "Password check",
+                "placeholder": "A unique identifier for your project.",
                 "class": "form-control"
             }
         ))
-
+   
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "Your Email",
+                "class": "form-control"
+            }
+        ))
+    
     gpu = forms.ChoiceField(
         choices=[(gpu,gpu) for gpu in settings.GPU_LIST],
         widget=forms.Select(attrs={
@@ -72,19 +94,22 @@ class SignUpForm(UserCreationForm):
         })
     )
 
-    #jupyterhub = forms.BooleanField()
-    #minio = forms.BooleanField()
-    #mlflow = forms.BooleanField()
-    #orthanc = forms.BooleanField()
-    #remote_desktop = forms.BooleanField()
-
-    conda = forms.FileField(required=False,label="Upload here your Conda environment/pip requirements file to automatically load it in your environment.")
+    conda = forms.FileField(required=False,label="Upload here your Conda Environment/PIP Requirements file to automatically load it in your environment.")
 
     date = forms.DateField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'}))
+    
+    memory_limit = ([(str(2**pow)+" Gi", str(2**pow)+" Gi") for pow in range(settings.MAX_MEMORY)])
+    cpu_limit = ([(str(2 ** pow), str(2 ** pow)) for pow in range(settings.MAX_CPU)])
+    
+    memory_limit = forms.ChoiceField(label='memory_limit',
+                                                                                choices=memory_limit,
+                                                                                )
+
+
+    cpu_limit = forms.ChoiceField(label='cpu_limit',
+                                                       choices=cpu_limit,
+                                                       )
+
     class Meta:
-        model = MAIAUser
-        fields = ('username', 'email', 'password1', 'password2', 'namespace','gpu','date', 'conda')#
-        #"conda_env_file","jupyterhub","mlflow","minio","remote_desktop","orthanc"
-
-
-
+        model = MAIAProject
+        fields = ('namespace','gpu', 'conda', 'date', 'email', 'memory_limit', 'cpu_limit')
