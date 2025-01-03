@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.shortcuts import redirect
 from django.template.defaultfilters import register
-from .utils import get_cluster_status, get_namespaces
+from MAIA.dashboard_utils import get_cluster_status, get_namespaces
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -20,7 +20,10 @@ def dict_val(d):
 
 @register.filter
 def index(indexable, i):
-    return indexable[i]
+    try:
+        return indexable[i]
+    except:
+        return None
 
 @register.filter
 def extract_from_form(form, key):
@@ -63,7 +66,7 @@ def index(request):
 
     try:
         id_token = request.session.get('oidc_id_token')
-        status,cluster_dict = get_cluster_status(id_token)
+        status,cluster_dict = get_cluster_status(id_token, api_urls=settings.API_URL,cluster_names=settings.CLUSTER_NAMES, private_clusters=settings.PRIVATE_CLUSTERS)
     except:
         return redirect("/login/")
 
@@ -77,7 +80,7 @@ def index(request):
     namespaces = []
     is_user = False
     if request.user.is_superuser:
-        namespaces = get_namespaces(id_token)
+        namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
     else:
         for group in groups:
@@ -110,7 +113,7 @@ def pages(request):
 
         load_template = request.path.split('/')[-1]
         id_token = request.session.get('oidc_id_token')
-        status,cluster_dict = get_cluster_status(id_token)
+        status,cluster_dict = get_cluster_status(id_token, api_urls=settings.API_URL,cluster_names=settings.CLUSTER_NAMES, private_clusters=settings.PRIVATE_CLUSTERS)
         context = {
                    "status": status,
                     "id_token":id_token,
@@ -122,7 +125,7 @@ def pages(request):
         namespaces = []
         is_user = False
         if request.user.is_superuser:
-            namespaces = get_namespaces(id_token)
+            namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
         else:
             for group in groups:
