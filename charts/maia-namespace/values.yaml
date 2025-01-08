@@ -18,7 +18,28 @@ serviceType: "NodePort"
 
 metallbSharedIp: True
 metallbIpPool: False
-loadBalancerIp: False
+loadBalancerIp: "192.168.0.1"
 
-dockerRegistrySecretName: "docker-registry-secret"
-dockerRegistrySecret: "encrypted-data"
+dockerRegistrySecret:
+  enabled: False
+  dockerRegistrySecretName: ""
+  dockerRegistrySecret: ""
+
+minio:
+  enabled: True
+  namespace: "minio"
+  consoleDomain: "https://maia.se/minio-console"
+  storageSize: "1Gi"
+  storageClassName: "standard"
+  accessKey: ""
+  secretKey: ""
+  clientId: ""
+  clientSecret: ""
+  openIdConfigUrl: "https://maia.se/realms/maia/.well-known/openid-configuration"
+  consoleAccessKey: ""
+  consoleSecretKey: ""
+
+mlflow:
+  enabled: True
+  user: "mlflow"
+  password: "mlflow"
