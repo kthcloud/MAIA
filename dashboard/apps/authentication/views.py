@@ -31,7 +31,7 @@ def login_view(request):
         else:
             msg = 'Error validating the form'
 
-    return render(request, "accounts/login.html", {"form": form, "msg": msg, "GITHUB_AUTH": GITHUB_AUTH})
+    return render(request, "accounts/login.html", {"dashboard_version": settings.DASHBOARD_VERSION,"form": form, "msg": msg, "GITHUB_AUTH": GITHUB_AUTH})
 
 
 def register_user(request):
@@ -43,7 +43,10 @@ def register_user(request):
         form = SignUpForm(request.POST, request.FILES)
         if form.is_valid():
 
-            
+            namespace = form.cleaned_data.get("namespace")
+            if namespace.endswith(" (Pending)"):
+                namespace = namespace[:-len(" (Pending)")]
+            form.instance.namespace = namespace
             form.save()
             username = form.cleaned_data.get("username")
             raw_password = form.cleaned_data.get("password1")
@@ -62,7 +65,7 @@ def register_user(request):
             msg = 'Request for Account Registration submitted successfully. Please wait for the admin to approve your request.'
             success = True
 
-            return redirect("/login/")
+            #return redirect("/login/")
 
         else:
             print(form.errors)
@@ -70,7 +73,7 @@ def register_user(request):
     else:
         form = SignUpForm()
 
-    return render(request, "accounts/register.html", {"form": form, "msg": msg, "success": success})
+    return render(request, "accounts/register.html", {"dashboard_version": settings.DASHBOARD_VERSION,"form": form, "msg": msg, "success": success})
 
 def register_project(request):
     msg = None
@@ -114,4 +117,4 @@ def register_project(request):
     else:
         form = RegisterProjectForm()
 
-    return render(request, "accounts/register_project.html", {"minio_available":minio_available,"form": form, "msg": msg, "success": success})
+    return render(request, "accounts/register_project.html", {"dashboard_version": settings.DASHBOARD_VERSION,"minio_available":minio_available,"form": form, "msg": msg, "success": success})

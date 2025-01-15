@@ -10,7 +10,7 @@ urlpatterns = [
 path('info',views.maia_docs, name='maia_docs'),
     # The home page
     path('', views.index, name='home'),
-
+    path('spotlight', views.maia_spotlight, name='spotlight'),
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),
 

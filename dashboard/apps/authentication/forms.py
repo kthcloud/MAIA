@@ -7,7 +7,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from apps.models import MAIAUser, MAIAProject
 from django.conf import settings
-from MAIA.dashboard_utils import get_groups_in_keycloak
+from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects
 
 
 class LoginForm(forms.Form):
@@ -38,6 +38,11 @@ class SignUpForm(UserCreationForm):
 
     
     maia_groups = get_groups_in_keycloak(settings= settings)
+
+    pending_projects = get_pending_projects(settings=settings)
+
+    for pending_project in pending_projects:
+        maia_groups[pending_project] = pending_project + " (Pending)"
 
     namespace = forms.ChoiceField(
         choices=[(maia_group,maia_group) for maia_group in maia_groups.values()],

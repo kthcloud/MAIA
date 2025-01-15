@@ -167,3 +167,9 @@ def maia_docs(request):
 
     html_template = loader.get_template('List.html')
     return HttpResponse(html_template.render(context, request))
+
+def maia_spotlight(request):
+    context = {}
+
+    html_template = loader.get_template('spotlight.html')
+    return HttpResponse(html_template.render(context, request))
