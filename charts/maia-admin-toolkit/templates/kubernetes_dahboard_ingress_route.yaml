@@ -29,8 +29,8 @@ spec:
       namespace: kube-system
       port: 443                      
       serversTransport: kubernetes-dashboard-transport
-    middlewares:
-    - name: kubernetes-dashboard-replace-path
+    #middlewares:
+    #- name: kubernetes-dashboard-replace-path
   tls:                              
     certResolver: {{ .Values.certResolver }}
 ---
