@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: demo-cluster
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+data:
+  config: ""
+  name: ""
+  server: "" 
+type: Opaque
+
+
