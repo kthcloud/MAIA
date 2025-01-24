@@ -1,0 +1,194 @@
+
+from pathlib import Path
+import click
+import yaml
+from omegaconf import OmegaConf
+from MAIA.maia_admin import install_maia_project, create_harbor_values, create_keycloak_values, create_loginapp_values, create_minio_operator_values, create_maia_admin_toolkit_values
+from hydra import initialize, initialize_config_dir
+from hydra import compose as hydra_compose
+import datetime
+
+import os
+import asyncio
+from pyhelm3 import Client
+
+from argparse import ArgumentParser, RawTextHelpFormatter
+from pathlib import Path
+from textwrap import dedent
+
+import MAIA
+version = MAIA.__version__
+
+
+TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
+
+DESC = dedent(
+    """
+    Script to Install MAIA Admin Toolkit to a Kubernetes cluster from ArgoCD. The specific MAIA configuration is specified by setting the corresponding ``--maia-config-file``,
+    and the cluster configuration is specified by setting the corresponding ``--cluster-config``.
+    """  # noqa: E501
+)
+EPILOG = dedent(
+    """
+    Example call:
+    ::
+        {filename} --maia-config-file /PATH/TO/maia_config.yaml --cluster-config /PATH/TO/clusyer_config.yaml --config-folder /PATH/TO/config_folder
+    """.format(  # noqa: E501
+        filename=Path(__file__).stem
+    )
+)
+
+def get_arg_parser():
+    pars = ArgumentParser(description=DESC, epilog=EPILOG, formatter_class=RawTextHelpFormatter)
+
+
+    pars.add_argument(
+        "--maia-config-file",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract MAIA configuration.",
+    )
+
+    pars.add_argument(
+        "--cluster-config",
+        type=str,
+        required=True,
+        help="YAML configuration file used to extract the cluster configuration.",
+    )
+
+    pars.add_argument(
+        "--config-folder",
+        type=str,
+        required=True,
+        help="Configuration Folder where to locate (and temporarily store) the MAIA configuration files.",
+    )
+
+    pars.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
+
+    return pars
+
+
+async def verify_installed_maia_admin_toolkit(project_id, namespace):
+
+    print(os.environ["KUBECONFIG"])
+    client = Client(kubeconfig = os.environ["KUBECONFIG"])
+
+
+    try:
+        revision = await client.get_current_revision(project_id, namespace = namespace)
+    except:
+        print("Project not found")
+        return -1
+    chart_metadata = await revision.chart_metadata()
+    print(
+        revision.release.name,
+        revision.release.namespace,
+        revision.revision,
+        str(revision.status),
+        chart_metadata.name,
+        chart_metadata.version
+    )
+    return revision.revision
+
+@click.command()
+@click.option("--maia-config-file", type=str)
+@click.option("--cluster-config", type=str)
+@click.option("--config-folder", type=str)
+def main(maia_config_file, cluster_config, config_folder):
+    install_maia_admin_toolkit(maia_config_file,cluster_config, config_folder)
+
+def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
+
+    maia_config_dict = yaml.safe_load(Path(maia_config_file).read_text())
+
+    cluster_config_dict = yaml.safe_load(Path(cluster_config).read_text())
+
+    admin_group_ID = maia_config_dict["admin_group_ID"]
+    project_id = "maia-admin"
+
+    cluster_address = "https://kubernetes.default.svc" #TODO: Change this to make it configurable
+
+    helm_commands = []
+
+    helm_commands.append(create_harbor_values(config_folder, project_id, cluster_config_dict))
+    helm_commands.append(create_keycloak_values(config_folder, project_id,cluster_config_dict))
+    helm_commands.append(create_loginapp_values(config_folder, project_id,cluster_config_dict))
+    helm_commands.append(create_minio_operator_values(config_folder, project_id,cluster_config_dict))
+    helm_commands.append(create_maia_admin_toolkit_values(config_folder, project_id,cluster_config_dict, maia_config_dict=maia_config_dict))
+    
+
+    for helm_command in helm_commands:
+        cmd = [
+            "helm",
+            "upgrade",
+            "--install",
+            "--wait",
+            "-n",
+            helm_command["namespace"],
+            helm_command["release"],
+            helm_command["chart"],
+            "--repo",
+            helm_command["repo"],
+            "--version",
+            helm_command["version"],
+            "--values",
+            helm_command["values"],
+        ]
+        print(" ".join(cmd))
+
+    values = {
+        "defaults": [
+              "_self_",
+              {"harbor_values": "harbor_values"},
+                {"keycloak_values": "keycloak_values"},
+                {"loginapp_values": "loginapp_values"},
+                {"minio_operator_values": "minio_operator_values"},
+                {"maia_admin_toolkit_values": "maia_admin_toolkit_values"},
+              
+         ],
+        "argo_namespace": maia_config_dict["argocd_namespace"],
+        "admin_group_ID": admin_group_ID,
+        "destination_server": f"{cluster_address}",
+        "sourceRepos": [
+            "https://kthcloud.github.io/MAIA/",
+            "https://helm.goharbor.io",
+            "https://charts.bitnami.com/bitnami",
+            "https://storage.googleapis.com/loginapp-releases/charts/",
+            "https://operator.min.io"
+            
+        ]
+    }
+    Path(config_folder).joinpath(project_id).mkdir(parents=True, exist_ok=True)
+
+    with open(Path(config_folder).joinpath(project_id,"values.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(values))
+
+
+
+
+    initialize_config_dir(config_dir=str(Path(config_folder).joinpath(project_id)), job_name=project_id)
+    cfg = hydra_compose("values.yaml")
+    OmegaConf.save(cfg, str(Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml")), resolve=True)
+
+    
+
+    revision = asyncio.run(verify_installed_maia_admin_toolkit(project_id, maia_config_dict["argocd_namespace"]))
+
+
+
+    if revision == -1:
+        print("Installing MAIA Admin Toolkit")
+    
+    
+        project_chart = maia_config_dict["admin_project_chart"]
+        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart))
+    else:
+        print("Upgrading MAIA Admin Toolkit")
+    
+    
+        project_chart = maia_config_dict["admin_project_chart"]
+        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart))
+
+
+if __name__ == "__main__":
+    main()

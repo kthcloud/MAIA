@@ -7,13 +7,11 @@ import click
 import yaml
 from minio import Minio
 import datetime
-import argparse
 import json
-import os
-import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
+from omegaconf import OmegaConf
 
 import MAIA
 version = MAIA.__version__
@@ -79,14 +77,23 @@ def create_jupyterhub_config_api( form,
                                   
                              ):
 
-    with open(maia_config_file, "r") as f:
-        maia_form = yaml.safe_load(f)
+    if type(maia_config_file) == dict:
+        maia_form = maia_config_file
+    else:
+        with open(maia_config_file, "r") as f:
+            maia_form = yaml.safe_load(f)
 
-    with open(cluster_config_file, "r") as f:
-        cluster_config = yaml.safe_load(f)
-
-    with open(form, "r") as f:
-        user_form = yaml.safe_load(f)
+    if type(cluster_config_file) == dict:
+        cluster_config = cluster_config_file
+    else:
+        with open(cluster_config_file, "r") as f:
+            cluster_config = yaml.safe_load(f)
+    
+    if type(form) == dict:
+        user_form = form
+    else:
+        with open(form, "r") as f:
+            user_form = yaml.safe_load(f)
 
     storage_class = cluster_config["storage_class"]
 
@@ -112,9 +119,9 @@ def create_jupyterhub_config_api( form,
     if "base_url" in cluster_config:
         base_url = cluster_config["base_url"]
 
-    keycloack = None
-    if "keycloack" in cluster_config:
-        keycloack = cluster_config["keycloack"]
+    keycloak = None
+    if "keycloak" in cluster_config:
+        keycloak = cluster_config["keycloak"]
 
     namespace = user_form["group_ID"].lower().replace("_", "-")
     group_subdomain = user_form["group_subdomain"]
@@ -134,7 +141,8 @@ def create_jupyterhub_config_api( form,
             hub_address = domain
         else:
             hub_address = None
-    admins = cluster_config["admins"]
+            
+    admins = cluster_config.get("admins", [])
 
 
     ## Used for CIFS mount
@@ -189,7 +197,7 @@ def create_jupyterhub_config_api( form,
             ]
         },
         "hub":{
-            # activeServerLimit
+            # activeServerLimit  ## TODO: Add User Limit
             # concurrentSpawnLimit
         #"loadRoles": {
        #
@@ -198,7 +206,7 @@ def create_jupyterhub_config_api( form,
         #    "scopes": ["self", "access:servers!user=<USER_EMAIL>"],
         #        "users": [""],
         #        "groups": [""]
-        #}
+        #}  ## TODO: Add Load Roles
         #                        },
             "config":{
                 "GenericOAuthenticator":{
@@ -266,7 +274,7 @@ def create_jupyterhub_config_api( form,
     }
 
     if cluster_config["url_type"] == "subpath":
-        jh_template["singleuser"]["extraEnv"]["MLFLOW_TRACKING_URI"] = f"https://{hub_address}/{namespace}-mlflow",
+        jh_template["singleuser"]["extraEnv"]["MLFLOW_TRACKING_URI"] = f"https://{hub_address}/{namespace}-mlflow"
 
     if "minio_env_name" in user_form:
         minio_env_name = user_form["minio_env_name"]
@@ -288,12 +296,12 @@ def create_jupyterhub_config_api( form,
             jh_template["hub"]["baseUrl"] = f"/{group_subdomain}-hub"
 
 
-    if keycloack is not None:
-        jh_template["hub"]["config"]["GenericOAuthenticator"]["client_id"] = keycloack["client_id"]
-        jh_template["hub"]["config"]["GenericOAuthenticator"]["client_secret"] = keycloack["client_secret"]
-        jh_template["hub"]["config"]["GenericOAuthenticator"]["authorize_url"] = keycloack["authorize_url"]
-        jh_template["hub"]["config"]["GenericOAuthenticator"]["token_url"] = keycloack["token_url"]
-        jh_template["hub"]["config"]["GenericOAuthenticator"]["userdata_url"] = keycloack["userdata_url"]
+    if keycloak is not None:
+        jh_template["hub"]["config"]["GenericOAuthenticator"]["client_id"] = keycloak["client_id"]
+        jh_template["hub"]["config"]["GenericOAuthenticator"]["client_secret"] = keycloak["client_secret"]
+        jh_template["hub"]["config"]["GenericOAuthenticator"]["authorize_url"] = keycloak["authorize_url"]
+        jh_template["hub"]["config"]["GenericOAuthenticator"]["token_url"] = keycloak["token_url"]
+        jh_template["hub"]["config"]["GenericOAuthenticator"]["userdata_url"] = keycloak["userdata_url"]
         if "url_type" in cluster_config:
             if cluster_config["url_type"]  == "subdomain" :
                 jh_template["hub"]["config"]["GenericOAuthenticator"]["oauth_callback_url"] = f"https://{hub_address}/hub/oauth_callback"
@@ -306,14 +314,14 @@ def create_jupyterhub_config_api( form,
                 #print(f"https://{hub_address}/{group_subdomain}-hub/oauth_callback")
 
 
-    if "private_hub" in user_form:
+    #if "private_hub" in user_form:
 
-        jh_template["hub"]["image"] = {
+    #    jh_template["hub"]["image"] = {
 
-                    "name": "registry.maia.cloud.cbh.kth.se/jupyterhub",
-                    "tag": "1.1"
+    #                "name": "registry.maia.cloud.cbh.kth.se/jupyterhub",
+    #                "tag": "1.1"
 
-        }
+    #    }
 
     if not gpu_request:
         jh_template["singleuser"]["extraEnv"]["NVIDIA_VISIBLE_DEVICES"] = ""
@@ -349,7 +357,7 @@ def create_jupyterhub_config_api( form,
         jh_template["hub"]["base_url"] = base_url
 
 
-    #jh_template["singleuser"]["nodeSelector"] = {"kubernetes.io/hostname": "node-1"}
+    #jh_template["singleuser"]["nodeSelector"] = {"kubernetes.io/hostname": "node-1"}  #TODO: Add nodeSelector
 
     jh_template["singleuser"]["storage"] = {
         "homeMountPath": "/home/maia-user",
@@ -373,14 +381,20 @@ def create_jupyterhub_config_api( form,
     }
 
 
+    if resources_limits["memory"][1].endswith(" Gi"):
+        resources_limits["memory"][1] = resources_limits["memory"][1].replace(" Gi", "G")
+    if resources_limits["memory"][0].endswith(" Gi"):
+        resources_limits["memory"][0] = resources_limits["memory"][0].replace(" Gi", "G")
+
     jh_template["singleuser"]["memory"] = {
         "limit": resources_limits["memory"][1],
         "guarantee": resources_limits["memory"][0]
     }
 
+
     jh_template["singleuser"]["cpu"] = {
-        "limit": resources_limits["cpu"][1],
-        "guarantee": resources_limits["cpu"][0]
+        "limit": int(resources_limits["cpu"][1]),
+        "guarantee": int(resources_limits["cpu"][0])
     }
 
     for extra_volume in extra_volumes:
@@ -410,10 +424,12 @@ def create_jupyterhub_config_api( form,
     jh_template["singleuser"]["image"] = {
         "name": "jupyter/datascience-notebook",
         "tag": "latest",
-        "pullSecrets": [
-            cluster_config["imagePullSecrets"]
-        ]
+        
     }
+    
+    if "imagePullSecrets" in cluster_config:
+        jh_template["singleuser"]["image"]["pullSecrets"] = cluster_config["imagePullSecrets"]
+
     maia_workspace_version = maia_form["maia_workspace_version"]
     maia_workspace_image = maia_form["maia_workspace_image"]
     jh_template["singleuser"]["profileList"] = [
@@ -421,7 +437,6 @@ def create_jupyterhub_config_api( form,
          "description": "MAIA Workspace with Python 3.10, Anaconda, MatLab, RStudio, VSCode and SSH Connection",
          "default": True,
          "kubespawner_override":{"image": f"{maia_workspace_image}:{maia_workspace_version}",
-                                #"image": f"registry.cloud.cbh.kth.se/maia/maia-workspace-ssh-addons:{maia_workspace_version}",  #TODO
                                 "start_timeout": 3600,
                                 "http_timeout": 3600,
                                 #mem_limit
@@ -444,6 +459,23 @@ def create_jupyterhub_config_api( form,
 
     ]
 
+    if "maia_monai_toolkit_image" in maia_form:
+        jh_template["singleuser"]["profileList"].append(
+            {"display_name": "MONAI Toolkit 3.0",
+            "description": "MONAI Toolkit 3.0, including MONAI Bundles from the MONAI Model ZOO and Tutorial Notebooks for MONAI Core, MONAI Label and MONAI FL",
+            "kubespawner_override": {
+                "image": maia_form["maia_monai_toolkit_image"],
+                "start_timeout": 3600,
+                "http_timeout": 3600,
+                "extra_resource_limits": {
+                    #"nvidia.com/gpu": "1"
+                },
+                "uid": 0,
+
+
+            }
+            })
+
     if gpu_request:
         jh_template["singleuser"]["profileList"][0]["kubespawner_override"]["extra_resource_limits"] = {
             "nvidia.com/gpu": "1"
@@ -456,34 +488,26 @@ def create_jupyterhub_config_api( form,
         yaml.dump(jh_template)
     ]
 
-    if config_folder is None:
-        config_folder = "."
     
-    group_id = user_form["group_ID"]
-    Path(config_folder).joinpath(group_id).mkdir(parents=True, exist_ok=True)
-    with open(Path(config_folder).joinpath(group_id,f"{group_id}_jupyterhub.tf.json"), "w") as f:
-        json.dump(jh_helm_template, f, indent=2)
+    jh_template["chart_name"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["chart"]
+    jh_template["chart_version"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
+    jh_template["repo_url"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
 
-    with open(Path(config_folder).joinpath(group_id,f"{group_id}_jupyterhub_values.yaml"), "w") as f:
-        print(jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"][0],file=f)
+    Path(config_folder).joinpath(team_id,"jupyterhub_values").mkdir(parents=True, exist_ok=True)
 
+    with open( Path(config_folder).joinpath(team_id,"jupyterhub_values","jupyterhub_values.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(jh_template))
+    
+    
+    return {  ##  TODO: Causing issues from ArgoCD
+        "namespace": namespace,
+        "chart": jh_template["chart_name"],
+        "release": f"{namespace}-jupyterhub",
+        "repo": jh_template["repo_url"],
+        "version": jh_template["chart_version"],
+        "values": str(Path(config_folder).joinpath(team_id,"jupyterhub_values","jupyterhub_values.yaml"))
 
-    helm_namespace = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["namespace"]
-    helm_chart = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["chart"]
-    helm_name = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["name"]
-    helm_repo = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
-    helm_repo_version = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
-
-    config_path = Path(config_folder).joinpath(group_id,f"{group_id}_jupyterhub_values.yaml")
-    cmds = [
-        #"Run the following command to deploy JupyterHub: ",
-            f"helm repo add jupyterhub {helm_repo}",
-            f"helm repo update",
-            f"helm upgrade --install -n {helm_namespace} {helm_name} jupyterhub/{helm_chart} --values {config_path} --version={helm_repo_version}"]
-
-    print("\n".join(cmds))
-
-    return cmds
+    }
 
 
 def main():

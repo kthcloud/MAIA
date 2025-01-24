@@ -7,16 +7,13 @@ import click
 import yaml
 
 import datetime
-import argparse
 import json
 
 import MAIA
-import os
-import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
-
+from MAIA.maia_fn import convert_username_to_jupyterhub_username
 version = MAIA.__version__
 
 TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
@@ -99,7 +96,7 @@ def create_maia_addons_config_api( form,
     oauth_url = user_form["oauth_url"]
 
     for user in users:
-        jupyterhub_users.append(user.replace("-", "-2d").replace("@", "-40").replace(".", "-2e"))
+        jupyterhub_users.append(convert_username_to_jupyterhub_username(user))
 
     domain = cluster_config["domain"]
 
