@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Any
 
-from MAIA.maia_fn import create_config_map_from_data
+
 
 
 def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], kubeconfig_dict: Dict[str, Any]) -> \
@@ -21,6 +21,7 @@ def read_config_dict_and_generate_helm_values_dict(config_dict: Dict[str, Any], 
     Helm values dict
 
     """
+    from MAIA.maia_fn import create_config_map_from_data
     value_dict = {}
     value_dict["image"] = {}
     value_dict["image"]["repository"] = config_dict['docker_image']
