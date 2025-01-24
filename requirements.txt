@@ -1,5 +1,5 @@
 ruamel_yaml
-argocd_client
+git+https://github.com/globocom/argocd-client.git
 keycloak
 kubernetes
 minio
