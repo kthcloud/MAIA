@@ -35,7 +35,10 @@ setup(
     entry_points={
         "console_scripts": [
             "MAIA_deploy_helm_chart = MAIA_scripts.MAIA_deploy_helm_chart:main",
-            "MAIA_deploy_MAIA_namespace = MAIA_scripts.MAIA_deploy_MAIA_namespace:main",
+            "MAIA_initialize_config = MAIA_scripts.MAIA_initialize_config:main",
+            "MAIA_install_admin_toolkit = MAIA_scripts.MAIA_install_admin_toolkit:main",
+            "MAIA_install_project_toolkit = MAIA_scripts.MAIA_install_project_toolkit:main",
+            "MAIA_install_core_toolkit = MAIA_scripts.MAIA_install_core_toolkit:main",
             "MAIA_create_JupyterHub_config = MAIA_scripts.MAIA_create_JupyterHub_config:main",
             "MAIA_create_MAIA_Addons_config =  MAIA_scripts.MAIA_create_MAIA_Addons_config:main",
         ],

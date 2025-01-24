@@ -1,5 +1,15 @@
 ruamel_yaml
+argocd_client
+keycloak
 kubernetes
 minio
-click
+numpy
+omegaconf
+pandas
+pyhelm3
+PyYAML
+Requests
+SQLAlchemy
 toml
+click
+hydra-core
