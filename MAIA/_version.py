@@ -51,8 +51,8 @@ def get_config() -> VersioneerConfig:
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = "v"
-    cfg.parentdir_prefix = "MAIA-"
-    cfg.versionfile_source = "_version.py"
+    cfg.parentdir_prefix = ""
+    cfg.versionfile_source = "MAIA/_version.py"
     cfg.verbose = False
     return cfg
 
