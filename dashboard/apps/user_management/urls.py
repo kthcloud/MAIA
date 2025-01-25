@@ -10,7 +10,10 @@ urlpatterns = [
 
     # The home page
     path('', views.index, name='user-management'),
-    path('download/<str:group_id>',views.download_view),
+    path('deploy/<str:group_id>',views.deploy_view),
+    path('register-user/<str:email>',views.register_user_view),
+    path('register-user-in-group/<str:email>',views.register_user_in_group_view),
+    path('register-group/<str:group_id>',views.register_group_view),
 
 
 ]

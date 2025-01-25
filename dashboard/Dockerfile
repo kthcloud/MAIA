@@ -1,4 +1,4 @@
-FROM kthcloud/maia-workspace-admin:1.5
+FROM kthcloud/maia-kube:1.0
 
 
 USER root
@@ -8,21 +8,23 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apt-get install -y default-libmysqlclient-dev build-essential pkg-config
 RUN mkdir /etc/MAIA-Dashboard
-
 WORKDIR /etc/MAIA-Dashboard
-COPY . .
-
-# install python dependencies
+COPY dashboard/requirements.txt /etc/MAIA-Dashboard
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY dashboard/manage.py /etc/MAIA-Dashboard
+COPY dashboard/apps /etc/MAIA-Dashboard/apps
+COPY dashboard/core /etc/MAIA-Dashboard/core
+
+COPY dashboard/start.sh /etc/MAIA-Dashboard
+
+
+#COPY MAIA /etc/MAIA-Dashboard/MAIA
+#COPY MAIA_scripts /etc/MAIA-Dashboard/MAIA_scripts
+
+#COPY db.sqlite3 /etc/MAIA-Dashboard
 #COPY env env
-
-
-# running migrations
-#RUN python manage.py makemigrations
-#RUN python manage.py migrate
-#RUN python manage.py generate-api
 
 ENTRYPOINT ["bash", "start.sh"]
 # gunicorn

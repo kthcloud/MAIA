@@ -47,16 +47,29 @@ class Book(models.Model):
     name = models.CharField(max_length=100)
 
 
-class MAIAUser(User):
+class MAIAProject(models.Model):
+
     class Meta:
         app_label = 'authentication'
-    namespace = models.CharField('namespace', max_length=150, blank=True)
+
+    id = models.AutoField(primary_key=True)
+    email = models.EmailField('email', max_length=150, null=True)
+    namespace = models.CharField('namespace', max_length=150, blank=True, unique=True)
     gpu = models.CharField('gpu', max_length=150, blank=True, null=True)
     date = models.DateField('date', default=datetime.date.today)
+        
+    memory_limit = models.TextField('memory_limit',default='2G',null=True)
+    cpu_limit = models.TextField('memory_limit', default='2', null=True)
+
+
     conda = models.TextField('conda',default='N/A',null=True)
 
     cluster = models.TextField('cluster', default='N/A', null=True)
     minimal_env = models.TextField('minimal_env', default="Minimal", null=True)
-    project_admin = models.BooleanField('project_admin', default=False)
-    memory_limit = models.TextField('memory_limit',default='2G',null=True)
-    cpu_limit = models.TextField('memory_limit', default='2', null=True)
+class MAIAUser(User):
+    class Meta:
+        app_label = 'authentication'
+
+    namespace = models.CharField('namespace', max_length=150, blank=True)
+   
+    

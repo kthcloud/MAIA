@@ -3,22 +3,22 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-import os, environ, json
-
+import os, environ, json, yaml
 env = environ.Env(
     # set casting, default value
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
     SERVER=(str,""),
     MINIO_URL=(str,""),
     BUCKET_NAME=(str,"")
 )
 
+DASHBOARD_VERSION = "1.0.0"
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = env('DEBUG')
 if DEBUG:
-    MOUNT_DIR = BASE_DIR
+    MOUNT_DIR = BASE_DIR+"/config"
 else:
     MOUNT_DIR = "/mnt/dashboard-config"
 # Take environment variables from .env file
@@ -31,6 +31,7 @@ SECRET_KEY = env('SECRET_KEY', default='S#perS3crEt_007')
 
 MAX_MEMORY = env('MAX_MEMORY',default=7)
 MAX_CPU = env('MAX_MEMORY',default=5)
+
 MINIO_URL = env('MINIO_URL')
 MINIO_ACCESS_KEY = env('MINIO_ACCESS_KEY',default='N/A')
 MINIO_SECRET_KEY = env('MINIO_SECRET_KEY',default='N/A')
@@ -38,11 +39,18 @@ MINIO_SECURE  = env('MINIO_SECURE',default=True)
 BUCKET_NAME = env('BUCKET_NAME')
 
 DISCORD_URL = env('DISCORD_URL', default=None)
+DISCORD_SIGNUP_URL = env('DISCORD_SIGNUP_URL', default=None)
+
+os.environ["DISCORD_SIGNUP_URL"] = DISCORD_SIGNUP_URL if DISCORD_SIGNUP_URL else "None"
 
 DEFAULT_INGRESS_HOST = env('DEFAULT_INGRESS_HOST', default='localhost')
+
+ARGOCD_SERVER = env('ARGOCD_SERVER')
+ARGOCD_CLUSTER = env('ARGOCD_CLUSTER')
 # Assets Management
 ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/maia/static/assets')
 
+HOSTNAME = env('SERVER', default='localhost')
 # load production server from .env
 ALLOWED_HOSTS        = ['localhost', 'localhost:85', '127.0.0.1',               env('SERVER', default='127.0.0.1'), 'dev.'+ env('SERVER', default='127.0.0.1') ]
 CSRF_TRUSTED_ORIGINS = ['http://localhost:85', 'http://127.0.0.1', 'https://' + env('SERVER', default='127.0.0.1'), 'dev.'+ env('SERVER', default='127.0.0.1')]
@@ -109,6 +117,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+LOCAL_DB_PATH = env('LOCAL_DB_PATH', default=BASE_DIR)
 if os.environ.get('DB_ENGINE') and os.environ.get('DB_ENGINE') == "mysql":
     DATABASES = { 
       'default': {
@@ -124,7 +133,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'db.sqlite3',
+            'NAME': str(os.path.join(LOCAL_DB_PATH,'db.sqlite3')),
         }
     }
 
@@ -248,14 +257,31 @@ CLUSTER_NAMES = {}
 PRIVATE_CLUSTERS = {}
 API_URL = []
 GPU_LIST = ["NO"]
+
+
+for root, dirs, files in os.walk(MOUNT_DIR):
+    for file in files:
+        if file.endswith(".yaml") or file.endswith(".yml"):
+            with open(os.path.join(root, file)) as v_file:
+                v_file = yaml.safe_load(v_file)
+                
+                if "maia_dashboard" in v_file and v_file["maia_dashboard"]['enabled']:
+                    if "services" in v_file:
+                        CLUSTER_LINKS[v_file["cluster_name"]] = v_file["services"]
+                    else:
+                        CLUSTER_LINKS[v_file["cluster_name"]] = {}
+
+                    if "api" in v_file:
+                        CLUSTER_NAMES[v_file["api"]] = v_file["cluster_name"]
+                        API_URL.append(v_file["api"])
+                    else:
+                        CLUSTER_NAMES[v_file["cluster_name"]+"-None"] = v_file["cluster_name"]
+                        API_URL.append(v_file["cluster_name"]+"-None")
+
+                    if v_file["maia_dashboard"]["token"] != "":
+                        PRIVATE_CLUSTERS[v_file["api"]] = v_file["maia_dashboard"]["token"]
+
+API_URL = list(set(API_URL))
 with open(os.path.join(MOUNT_DIR, 'cluster_config.json')) as v_file:
     CLUSTER_CONFIG = json.load(v_file)
-
-    for cluster in CLUSTER_CONFIG["CLUSTERS"]:
-        CLUSTER_LINKS[cluster["name"]] = cluster["links"]
-        API_URL.append(cluster["api"])
-        CLUSTER_NAMES[cluster["api"]] = cluster["name"]
-        if "private" in cluster:
-            PRIVATE_CLUSTERS[cluster["api"]] = cluster["token"]
-
     GPU_LIST.extend(CLUSTER_CONFIG["GPU_LIST"])
