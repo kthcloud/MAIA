@@ -1,4 +1,5 @@
-FROM kthcloud/maia-kube:1.0
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
 
 
 USER root
