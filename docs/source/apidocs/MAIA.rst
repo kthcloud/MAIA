@@ -9,6 +9,9 @@ Submodules
 
    MAIA.helm_values
    MAIA.maia_fn
+   MAIA.dashboard_utils
+   MAIA.maia_core
+   MAIA.maia_admin
 
 Module contents
 ---------------

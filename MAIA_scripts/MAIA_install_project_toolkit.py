@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import subprocess
 from pathlib import Path
 from hydra import initialize, initialize_config_dir

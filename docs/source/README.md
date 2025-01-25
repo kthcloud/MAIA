@@ -144,6 +144,13 @@ To install the MAIA namespace with the minimal configuration, you can use the `-
 ```shell
 MAIA_deploy_MAIA_namespace --namespace-config-file <PATH/TO/CONFIG/FILE> --cluster-config-file <PATH/TO/CLUSTER/CONFIG/FILE> --config-folder <PATH/TO/CONFIG/FOLDER> --maia-config-file <PATH/TO/MAIA/CONFIG/FILE> --minimal
 ```
+# Building the Documentation
+To build the documentation, run:
+
+```shell
+cd docs
+sphinx-autobuild source _build/html
+```
 
 # Deploy an Application in MAIA Namespace
 

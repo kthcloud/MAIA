@@ -5,13 +5,22 @@ from kubernetes import client, config
 def create_prometheus_values(config_folder, project_id, cluster_config_dict, maia_config_dict):
     """
     Generates Prometheus values configuration for a Kubernetes cluster and writes it to a YAML file.
-    Args:
-        config_folder (str): The folder where the configuration files will be stored.
-        project_id (str): The project identifier.
-        cluster_config_dict (dict): Dictionary containing cluster configuration details.
-        maia_config_dict (dict): Dictionary containing MAIA configuration details.
-    Returns:
-        dict: A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
+
+    Parameters
+    ----------
+    config_folder : str
+        The folder where the configuration files will be stored.
+    project_id : str
+        The project identifier.
+    cluster_config_dict : dict
+        Dictionary containing cluster configuration details.
+    maia_config_dict : dict
+        Dictionary containing MAIA configuration details.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
     """
 
     config.load_kube_config() 
@@ -157,12 +166,19 @@ def create_prometheus_values(config_folder, project_id, cluster_config_dict, mai
 def create_loki_values(config_folder, project_id):
     """
     Creates and writes Loki values configuration to a YAML file and returns deployment details.
-    Args:
-        config_folder (str): The path to the configuration folder.
-        project_id (str): The project identifier.
-    Returns:
-        dict: A dictionary containing deployment details including namespace, repo URL, chart version, 
-              values file path, release name, and chart name.
+
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The project identifier.
+
+    Returns
+    -------
+    dict
+        A dictionary containing deployment details including namespace, repo URL, chart version, 
+        values file path, release name, and chart name.
     """
 
 
@@ -199,17 +215,24 @@ def create_loki_values(config_folder, project_id):
 def create_tempo_values(config_folder, project_id):
     """
     Creates a set of tempo values and writes them to a YAML file in the specified configuration folder.
-    Args:
-        config_folder (str): The path to the configuration folder where the tempo values will be stored.
-        project_id (str): The project identifier used to create a subdirectory and name the YAML file.
-    Returns:
-        dict: A dictionary containing the following keys:
-            - namespace (str): The namespace for the tempo values.
-            - repo (str): The repository URL for the Helm chart.
-            - version (str): The version of the Helm chart.
-            - values (str): The path to the generated tempo values YAML file.
-            - release (str): The release name for the Helm chart.
-            - chart (str): The name of the Helm chart.
+
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder where the tempo values will be stored.
+    project_id : str
+        The project identifier used to create a subdirectory and name the YAML file.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the following keys:
+        - namespace (str): The namespace for the tempo values.
+        - repo (str): The repository URL for the Helm chart.
+        - version (str): The version of the Helm chart.
+        - values (str): The path to the generated tempo values YAML file.
+        - release (str): The release name for the Helm chart.
+        - chart (str): The name of the Helm chart.
     """
 
 
@@ -240,14 +263,21 @@ def create_core_toolkit_values(config_folder, project_id, cluster_config_dict):
     configuration folder, project ID, and cluster configuration dictionary. It retrieves
     the internal IP addresses of the nodes in the Kubernetes cluster and uses them to
     configure the MetalLB addresses. The generated values are saved to a YAML file.
-    Args:
-        config_folder (str): The path to the configuration folder.
-        project_id (str): The project identifier.
-        cluster_config_dict (dict): A dictionary containing cluster configuration details,
-                                    including 'ingress_class' and 'ingress_resolver_email'.
-    Returns:
-        dict: A dictionary containing the namespace, repository URL, chart version, path to the
-              values YAML file, release name, and chart name.
+
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The project identifier.
+    cluster_config_dict : dict
+        A dictionary containing cluster configuration details, including 'ingress_class' and 'ingress_resolver_email'.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the namespace, repository URL, chart version, path to the
+        values YAML file, release name, and chart name.
     """
 
 
@@ -315,26 +345,35 @@ def create_traefik_values(config_folder, project_id, cluster_config_dict):
     """
     Creates the Traefik values configuration file for a given project and cluster configuration.
 
-    Args:
-        config_folder (str): The path to the configuration folder.
-        project_id (str): The unique identifier for the project.
-        cluster_config_dict (dict): A dictionary containing the cluster configuration.
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The unique identifier for the project.
+    cluster_config_dict : dict
+        A dictionary containing the cluster configuration.
 
-    Returns:
-        dict: A dictionary containing the namespace, repository URL, chart version, values file path, release name, and chart name for the Traefik deployment.
+    Returns
+    -------
+    dict
+        A dictionary containing the namespace, repository URL, chart version, values file path, release name, and chart name for the Traefik deployment.
 
-    Raises:
-        OSError: If there is an error creating the directory or writing the file.
+    Raises
+    ------
+    OSError
+        If there is an error creating the directory or writing the file.
 
-    Example:
-        config_folder = "/path/to/config"
-        project_id = "my_project"
-        cluster_config_dict = {
-            "traefik_resolver": "myresolver",
-            "ingress_resolver_email": "email@example.com",
-            "domain": "example.com",
-            "traefik_dashboard_password": "password"
-        create_traefik_values(config_folder, project_id, cluster_config_dict)
+    Example
+    -------
+    config_folder = "/path/to/config"
+    project_id = "my_project"
+    cluster_config_dict = {
+        "traefik_resolver": "myresolver",
+        "ingress_resolver_email": "email@example.com",
+        "domain": "example.com",
+        "traefik_dashboard_password": "password"
+    create_traefik_values(config_folder, project_id, cluster_config_dict)
     """
     Path(config_folder).joinpath(project_id,"traefik_values").mkdir(parents=True, exist_ok=True)
 
@@ -482,18 +521,23 @@ def create_metallb_values(config_folder, project_id):
     """
     Creates and writes MetalLB Helm chart values to a YAML file and returns a dictionary with deployment details.
 
-    Args:
-        config_folder (str): The path to the configuration folder where the YAML file will be created.
-        project_id (str): The project identifier used to create a unique directory and release name.
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder where the YAML file will be created.
+    project_id : str
+        The project identifier used to create a unique directory and release name.
 
-    Returns:
-        dict: A dictionary containing the following keys:
-            - "namespace" (str): The Kubernetes namespace for MetalLB.
-            - "repo" (str): The URL of the MetalLB Helm chart repository.
-            - "version" (str): The version of the MetalLB Helm chart.
-            - "values" (str): The file path to the generated YAML values file.
-            - "release" (str): The release name for the MetalLB deployment.
-            - "chart" (str): The name of the MetalLB Helm chart.
+    Returns
+    -------
+    dict
+        A dictionary containing the following keys:
+        - namespace (str): The Kubernetes namespace for MetalLB.
+        - repo (str): The URL of the MetalLB Helm chart repository.
+        - version (str): The version of the MetalLB Helm chart.
+        - values (str): The file path to the generated YAML values file.
+        - release (str): The release name for the MetalLB deployment.
+        - chart (str): The name of the MetalLB Helm chart.
     """
 
     metallb_values = {
@@ -519,12 +563,17 @@ def create_cert_manager_values(config_folder, project_id):
     """
     Creates a dictionary of values for configuring cert-manager and writes it to a YAML file.
 
-    Args:
-        config_folder (str): The path to the configuration folder.
-        project_id (str): The project identifier.
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The project identifier.
 
-    Returns:
-        dict: A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
+    Returns
+    -------
+    dict
+        A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
     """
 
     cert_manager_values = { ## TODO: Causing issues from ArgoCD
@@ -555,19 +604,32 @@ def create_cert_manager_values(config_folder, project_id):
 def create_rancher_values(config_folder, project_id, cluster_config_dict):
     """
     Generates Rancher values configuration and writes it to a YAML file.
-    Args:
-        config_folder (str): The path to the configuration folder.
-        project_id (str): The project identifier.
-        cluster_config_dict (dict): A dictionary containing cluster configuration details.
-    Returns:
-        dict: A dictionary containing Rancher deployment details including namespace, repo URL, chart version, values file path, release name, and chart name.
-    The function performs the following steps:
-    1. Initializes a dictionary with default Rancher values.
-    2. Updates the dictionary with values from the cluster configuration dictionary.
-    3. Adds specific annotations based on the ingress class.
-    4. Creates the necessary directory structure for the configuration files.
-    5. Writes the Rancher values to a YAML file.
-    6. Returns a dictionary with details required for Rancher deployment.
+
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The project identifier.
+    cluster_config_dict : dict
+        A dictionary containing cluster configuration details.
+
+    Returns
+    -------
+    dict
+        A dictionary containing Rancher deployment details including namespace, repo URL, chart version, values file path, release name, and chart name.
+
+    Example
+    -------
+    config_folder = "/path/to/config"
+    project_id = "my_project"
+    cluster_config_dict = {
+        "traefik_resolver": "myresolver",
+        "ingress_resolver_email": "email@example.com",
+        "domain": "example.com",
+        "rancher_password": "password"
+    }
+    create_rancher_values(config_folder, project_id, cluster_config_dict)
     """
     
     rancher_values = {
@@ -621,12 +683,20 @@ def create_rancher_values(config_folder, project_id, cluster_config_dict):
 def create_gpu_operator_values(config_folder, project_id, cluster_config_dict):
     """
     Creates GPU operator values configuration for a Kubernetes cluster and writes it to a YAML file.
-    Args:
-        config_folder (str): The folder path where the configuration will be saved.
-        project_id (str): The project identifier used to create a unique directory for the configuration.
-        cluster_config_dict (dict): A dictionary containing cluster configuration details, including the Kubernetes distribution.
-    Returns:
-        dict: A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
+
+    Parameters
+    ----------
+    config_folder : str
+        The folder path where the configuration will be saved.
+    project_id : str
+        The project identifier used to create a unique directory for the configuration.
+    cluster_config_dict : dict
+        A dictionary containing cluster configuration details, including the Kubernetes distribution.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
     """
 
     gpu_operator_values = {
@@ -675,18 +745,23 @@ def create_ingress_nginx_values(config_folder, project_id):
     """
     Creates and writes the ingress-nginx Helm chart values to a YAML file.
 
-    Args:
-        config_folder (str): The path to the configuration folder.
-        project_id (str): The unique identifier for the project.
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The unique identifier for the project.
 
-    Returns:
-        dict: A dictionary containing the following keys:
-            - "namespace" (str): The namespace for the ingress-nginx.
-            - "repo" (str): The repository URL for the ingress-nginx chart.
-            - "version" (str): The version of the ingress-nginx chart.
-            - "values" (str): The file path to the generated ingress-nginx values YAML file.
-            - "release" (str): The release name for the ingress-nginx chart.
-            - "chart" (str): The name of the ingress-nginx chart.
+    Returns
+    -------
+    dict
+        A dictionary containing the following keys:
+        - namespace (str): The namespace for the ingress-nginx.
+        - repo (str): The repository URL for the ingress-nginx chart.
+        - version (str): The version of the ingress-nginx chart.
+        - values (str): The file path to the generated ingress-nginx values YAML file.
+        - release (str): The release name for the ingress-nginx chart.
+        - chart (str): The name of the ingress-nginx chart.
     """
 
     ingress_nginx_values = {

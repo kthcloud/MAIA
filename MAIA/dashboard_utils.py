@@ -28,18 +28,23 @@ def verify_minio_availability(settings):
     """
     Verifies the availability of a MinIO server.
 
-    This function attempts to connect to a MinIO server using the provided settings.
-    It checks if the specified bucket exists on the server.
+    Parameters
+    ----------
+    settings : object
+        An object containing the MinIO configuration settings.
+        - settings.MINIO_URL : str
+            The URL of the MinIO server.
+        - settings.MINIO_ACCESS_KEY : str
+            The access key for the MinIO server.
+        - settings.MINIO_SECRET_KEY : str
+            The secret key for the MinIO server.
+        - settings.BUCKET_NAME : str
+            The name of the bucket to check for existence.
 
-    Args:
-        settings (object): An object containing the MinIO configuration settings.
-            - settings.MINIO_URL (str): The URL of the MinIO server.
-            - settings.MINIO_ACCESS_KEY (str): The access key for the MinIO server.
-            - settings.MINIO_SECRET_KEY (str): The secret key for the MinIO server.
-            - settings.BUCKET_NAME (str): The name of the bucket to check for existence.
-
-    Returns:
-        bool: True if the MinIO server is available and the bucket exists, False otherwise.
+    Returns
+    -------
+    bool
+        True if the MinIO server is available and the bucket exists, False otherwise.
     """
     try:
         client = Minio(settings.MINIO_URL,
@@ -58,17 +63,22 @@ def verify_minio_availability(settings):
 def send_approved_registration_email(receiver_email, login_url, temp_password):
     """
     Sends an email to notify the user that their MAIA account registration has been approved.
-    Args:
-        receiver_email (str): The email address of the recipient.
-        login_url (str): The URL where the user can log in to MAIA.
-        temp_password (str): The temporary password assigned to the user.
-    Environment Variables:
-        email_account (str): The sender's email account.
-        email_password (str): The password for the sender's email account.
-        email_smtp_server (str): The SMTP server for the sender's email account.
-    Raises:
-        KeyError: If the environment variables 'email_account' or 'email_password' are not set.
-        smtplib.SMTPException: If there is an error sending the email.
+
+    Parameters
+    ----------
+    receiver_email : str
+        The email address of the recipient.
+    login_url : str
+        The URL where the user can log in to MAIA.
+    temp_password : str
+        The temporary password assigned to the user.
+
+    Raises
+    ------
+    KeyError
+        If the environment variables 'email_account' or 'email_password' are not set.
+    smtplib.SMTPException
+        If there is an error sending the email.
     """
     
     sender_email = os.environ["email_account"]
@@ -112,17 +122,26 @@ def send_discord_message(username, namespace, url):
     """
     Sends a message to a Discord webhook to request a MAIA account.
 
-    Args:
-        username (str): The username of the person requesting the account.
-        namespace (str): The project namespace for which the account is being requested.
-        url (str): The Discord webhook URL to which the message will be sent.
+    Parameters
+    ----------
+    username : str
+        The username of the person requesting the account.
+    namespace : str
+        The project namespace for which the account is being requested.
+    url : str
+        The Discord webhook URL to which the message will be sent.
 
-    Raises:
-        requests.exceptions.HTTPError: If the HTTP request returned an unsuccessful status code.
+    Raises
+    ------
+    requests.exceptions.HTTPError
+        If the HTTP request returned an unsuccessful status code.
 
-    Prints:
-        str: Success message with the HTTP status code if the payload is delivered successfully.
-        str: Error message if the HTTP request fails.
+    Prints
+    ------
+    str
+        Success message with the HTTP status code if the payload is delivered successfully.
+    str
+        Error message if the HTTP request fails.
     """
     data = {
         "content": f"{username} is requesting a MAIA account for the project {namespace}.",
@@ -151,53 +170,43 @@ def get_namespaces(id_token, api_urls, private_clusters = []):
     """
     Retrieves a list of unique namespaces from multiple API URLs.
 
-    Args:
-        id_token (str): The ID token used for authorization when accessing public clusters.
-        api_urls (list): A list of API URLs to query for namespaces.
-        private_clusters (dict, optional): A dictionary where keys are API URLs of private clusters and values are their respective tokens. Defaults to an empty list.
+    Parameters
+    ----------
+    id_token : str
+        The ID token used for authorization when accessing public clusters.
+    api_urls : list
+        A list of API URLs to query for namespaces.
+    private_clusters : dict, optional
+        A dictionary where keys are API URLs of private clusters and values are their respective tokens. Defaults to an empty list.
 
-    Returns:
-        list: A list of unique namespace names retrieved from the provided API URLs.
+    Returns
+    -------
+    list
+        A list of unique namespace names retrieved from the provided API URLs.
     """
     namespace_list = []
     for API_URL in api_urls:
         if API_URL in private_clusters:
             token = private_clusters[API_URL]
-            try:
-                response = requests.get(API_URL + "/api/v1/namespaces",
-                                    headers={"Authorization": "Bearer {}".format(token)}, verify=False)
-            except:
-                continue
-        else:
-            if API_URL.endswith("None"):
-                continue
-            else:
-                try:
-                    response = requests.get(API_URL+"/api/v1/namespaces",
-                                    headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
-                except:
-                    continue
-        namespaces = json.loads(response.text)
-
-        if 'items' not in namespaces:
-            continue
-        for namespace in namespaces['items']:
-            namespace_list.append(namespace["metadata"]["name"])
-
-    namespace_list = list(np.unique(namespace_list))
-
-    return namespace_list
-
 def get_cluster_status(id_token, api_urls, cluster_names, private_clusters = []):
     """
     Retrieve the status of clusters and their nodes.
-    Args:
-        id_token (str): The ID token for authentication.
-        api_urls (list): A list of API URLs for the clusters.
-        cluster_names (dict): A dictionary mapping API URLs to cluster names.
-        private_clusters (dict, optional): A dictionary mapping private cluster API URLs to their tokens. Defaults to [].
-    Returns:
-        tuple: A tuple containing:
+
+    Parameters
+    ----------
+    id_token : str
+        The ID token for authentication.
+    api_urls : list
+        A list of API URLs for the clusters.
+    cluster_names : dict
+        A dictionary mapping API URLs to cluster names.
+    private_clusters : dict, optional
+        A dictionary mapping private cluster API URLs to their tokens. Defaults to [].
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
             - node_status_dict (dict): A dictionary mapping node names to their status and schedulability.
             - cluster_dict (dict): A dictionary mapping cluster names to their node names.
     """
@@ -263,14 +272,21 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters 
     """
     Retrieves available GPU, CPU, and RAM resources from multiple Kubernetes clusters.
 
-    Args:
-        id_token (str): The ID token for authentication.
-        api_urls (list): List of API URLs for the Kubernetes clusters.
-        cluster_names (dict): Dictionary mapping API URLs to cluster names.
-        private_clusters (list, optional): List of private clusters with their tokens. Defaults to [].
+    Parameters
+    ----------
+    id_token : str
+        The ID token for authentication.
+    api_urls : list
+        List of API URLs for the Kubernetes clusters.
+    cluster_names : dict
+        Dictionary mapping API URLs to cluster names.
+    private_clusters : list, optional
+        List of private clusters with their tokens. Defaults to [].
 
-    Returns:
-        tuple: A tuple containing:
+    Returns
+    -------
+    tuple
+        A tuple containing:
             - gpu_dict (dict): Dictionary with GPU availability information for each node.
             - cpu_dict (dict): Dictionary with CPU availability information for each node.
             - ram_dict (dict): Dictionary with RAM availability information for each node.
@@ -457,16 +473,25 @@ def get_filtered_available_nodes(gpu_dict, cpu_dict, ram_dict, gpu_request, cpu_
     """
     Filters and returns nodes that meet the specified GPU, CPU, and memory requirements.
 
-    Args:
-        gpu_dict (dict): A dictionary where keys are node names and values are lists containing GPU information.
-        cpu_dict (dict): A dictionary where keys are node names and values are lists containing CPU information.
-        ram_dict (dict): A dictionary where keys are node names and values are lists containing RAM information.
-        gpu_request (int): The minimum number of GPUs required.
-        cpu_request (float): The minimum amount of CPU required.
-        memory_request (float): The minimum amount of memory required.
+    Parameters
+    ----------
+    gpu_dict : dict
+        A dictionary where keys are node names and values are lists containing GPU information.
+    cpu_dict : dict
+        A dictionary where keys are node names and values are lists containing CPU information.
+    ram_dict : dict
+        A dictionary where keys are node names and values are lists containing RAM information.
+    gpu_request : int
+        The minimum number of GPUs required.
+    cpu_request : float
+        The minimum amount of CPU required.
+    memory_request : float
+        The minimum amount of memory required.
 
-    Returns:
-        tuple: Three dictionaries containing the filtered nodes and their respective GPU, CPU, and RAM information.
+    Returns
+    -------
+    tuple
+        Three dictionaries containing the filtered nodes and their respective GPU, CPU, and RAM information.
     """
 
     filtered_nodes = []
@@ -480,18 +505,27 @@ def get_groups_in_keycloak(settings):
     """
     Retrieve groups from Keycloak that start with "MAIA:" and return them in a dictionary.
 
-    Args:
-        settings (object): An object containing the Keycloak connection settings. 
-                           It should have the following attributes:
-                           - OIDC_SERVER_URL (str): The URL of the Keycloak server.
-                           - OIDC_USERNAME (str): The username for Keycloak authentication.
-                           - OIDC_REALM_NAME (str): The name of the Keycloak realm.
-                           - OIDC_RP_CLIENT_ID (str): The client ID for Keycloak.
-                           - OIDC_RP_CLIENT_SECRET (str): The client secret for Keycloak.
+    Parameters
+    ----------
+    settings : object
+        An object containing the Keycloak connection settings. 
+        It should have the following attributes:
+        - OIDC_SERVER_URL : str
+            The URL of the Keycloak server.
+        - OIDC_USERNAME : str
+            The username for Keycloak authentication.
+        - OIDC_REALM_NAME : str
+            The name of the Keycloak realm.
+        - OIDC_RP_CLIENT_ID : str
+            The client ID for Keycloak.
+        - OIDC_RP_CLIENT_SECRET : str
+            The client secret for Keycloak.
 
-    Returns:
-        dict: A dictionary where the keys are group IDs and the values are group names 
-              (with the "MAIA:" prefix removed) for groups that start with "MAIA:".
+    Returns
+    -------
+    dict
+        A dictionary where the keys are group IDs and the values are group names 
+        (with the "MAIA:" prefix removed) for groups that start with "MAIA:".
     """
     keycloak_connection = KeycloakOpenIDConnection(
     server_url=settings.OIDC_SERVER_URL,
@@ -515,15 +549,16 @@ def get_groups_in_keycloak(settings):
 def get_pending_projects(settings):
     """
     Retrieve a list of pending projects that are not in active groups.
-    This function connects to a local SQLite database if the DEBUG setting is enabled,
-    otherwise it connects to a MySQL database using credentials from environment variables.
-    It then queries the `authentication_maiaproject` table to get all projects and compares
-    them with active groups retrieved from Keycloak. Projects that are not in active groups
-    are considered pending.
-    Args:
-        settings (object): A settings object that contains configuration parameters.
-    Returns:
-        list: A list of namespaces of pending projects.
+
+    Parameters
+    ----------
+    settings : object
+        A settings object that contains configuration parameters.
+
+    Returns
+    -------
+    list
+        A list of namespaces of pending projects.
     """
     if settings.DEBUG:
         cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
@@ -541,8 +576,6 @@ def get_pending_projects(settings):
 
         active_groups = get_groups_in_keycloak(settings)
 
-        
-
         for project in authentication_maiaproject.iterrows():
             if project[1]['namespace'] not in active_groups.values():
                 pending_projects.append(project[1]['namespace'])
@@ -559,15 +592,21 @@ def get_user_table(settings):
     """
     Retrieves and processes user data from various sources including a local SQLite database or a remote MySQL database,
     Keycloak, and Minio. Combines and returns user information along with group and project details.
-    Args:
-        settings (object): A settings object containing configuration parameters such as database paths, 
-                           Keycloak server details, and Minio credentials.
-    Returns:
-        tuple: A tuple containing:
-            - table (pd.DataFrame): A DataFrame containing merged user data from the auth_user and authentication_maiauser tables.
-            - users_to_register_in_group (dict): A dictionary mapping user emails to the groups they need to be registered in.
-            - users_to_register_in_keycloak (list): A list of user emails that need to be registered in Keycloak.
-            - maia_group_dict (dict): A dictionary containing detailed information about each MAIA group and pending projects.
+
+    Parameters
+    ----------
+    settings : object
+        A settings object containing configuration parameters such as database paths, 
+        Keycloak server details, and Minio credentials.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - table (pd.DataFrame): A DataFrame containing merged user data from the auth_user and authentication_maiauser tables.
+        - users_to_register_in_group (dict): A dictionary mapping user emails to the groups they need to be registered in.
+        - users_to_register_in_keycloak (list): A list of user emails that need to be registered in Keycloak.
+        - maia_group_dict (dict): A dictionary containing detailed information about each MAIA group and pending projects.
     """
 
     if settings.DEBUG:
@@ -743,11 +782,18 @@ def get_user_table(settings):
 def update_user_table(form, settings):
     """
     Updates the user and project tables based on the provided form data.
-    Parameters:
-    form (dict): A dictionary containing form data with keys indicating the type of data (e.g., "namespace", "memory_limit", etc.) and values being the corresponding data.
-    settings (object): An object containing configuration settings. It should have a DEBUG attribute to determine the environment and a LOCAL_DB_PATH attribute for the local database path.
-    Returns:
+
+    Parameters
+    ----------
+    form : dict
+        A dictionary containing form data with keys indicating the type of data (e.g., "namespace", "memory_limit", etc.) and values being the corresponding data.
+    settings : object
+        An object containing configuration settings. It should have a DEBUG attribute to determine the environment and a LOCAL_DB_PATH attribute for the local database path.
+
+    Returns
+    -------
     None
+
     The function performs the following steps:
     1. Connects to the appropriate database (SQLite for debug mode, MySQL for production).
     2. Reads the current data from the `auth_user`, `authentication_maiauser`, and `authentication_maiaproject` tables.
@@ -879,26 +925,35 @@ def update_user_table(form, settings):
 
 
 
-def generate_kubeconfig(id_token,user_id,namespace,cluster_id, settings):
+
+def generate_kubeconfig(id_token, user_id, namespace, cluster_id, settings):
     """
     Generates a Kubernetes configuration dictionary for a given user and cluster.
 
-    Args:
-        id_token (str): The ID token for the user.
-        user_id (str): The user ID.
-        namespace (str): The Kubernetes namespace.
-        cluster_id (str): The cluster ID.
-        settings (object): An object containing various settings, including:
-            - CLUSTER_NAMES (dict): A dictionary mapping cluster names to their IDs.
-            - PRIVATE_CLUSTERS (dict): A dictionary of private clusters with their tokens.
-            - OIDC_ISSUER_URL (str): The OIDC issuer URL.
-            - OIDC_RP_CLIENT_ID (str): The OIDC client ID.
-            - OIDC_RP_CLIENT_SECRET (str): The OIDC client secret.
+    Parameters
+    ----------
+    id_token : str
+        The ID token for the user.
+    user_id : str
+        The user ID.
+    namespace : str
+        The Kubernetes namespace.
+    cluster_id : str
+        The cluster ID.
+    settings : object
+        An object containing various settings, including:
+        - CLUSTER_NAMES (dict): A dictionary mapping cluster names to their IDs.
+        - PRIVATE_CLUSTERS (dict): A dictionary of private clusters with their tokens.
+        - OIDC_ISSUER_URL (str): The OIDC issuer URL.
+        - OIDC_RP_CLIENT_ID (str): The OIDC client ID.
+        - OIDC_RP_CLIENT_SECRET (str): The OIDC client secret.
 
-    Returns:
-        dict: A dictionary representing the Kubernetes configuration.
+    Returns
+    -------
+    dict
+        A dictionary representing the Kubernetes configuration.
     """
-    cluster_apis = {k:v for v,k in settings.CLUSTER_NAMES.items()}
+    cluster_apis = {k: v for v, k in settings.CLUSTER_NAMES.items()}
 
     if cluster_apis[cluster_id] in settings.PRIVATE_CLUSTERS:
         kube_config = {'apiVersion': 'v1', 'kind': 'Config', 'preferences': {},
@@ -932,20 +987,28 @@ def generate_kubeconfig(id_token,user_id,namespace,cluster_id, settings):
 def get_project(group_id, settings, is_namespace_style=False):
     """
     Retrieve project information based on the provided group ID.
-    This function connects to a database (either local SQLite or remote MySQL) and retrieves project information
-    from the `authentication_maiaproject` table. It then processes the data to create a namespace form and 
-    retrieves the cluster ID associated with the project.
-    Args:
-        group_id (str): The group ID or namespace to search for.
-        settings (module): A settings module containing configuration values.
-        is_namespace_style (bool, optional): Flag to determine if the group ID should be treated as a namespace. 
-                                             Defaults to False.
-    Returns:
-        tuple: A tuple containing the namespace form (dict) and the cluster ID (str or None). 
-               Returns None if no matching project is found.
-    Raises:
-        KeyError: If required environment variables are not set.
-        Exception: If there is an error connecting to the database or querying the data.
+
+    Parameters
+    ----------
+    group_id : str
+        The group ID or namespace to search for.
+    settings : module
+        A settings module containing configuration values.
+    is_namespace_style : bool, optional
+        Flag to determine if the group ID should be treated as a namespace. Defaults to False.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the namespace form (dict) and the cluster ID (str or None). 
+        Returns None if no matching project is found.
+
+    Raises
+    ------
+    KeyError
+        If required environment variables are not set.
+    Exception
+        If there is an error connecting to the database or querying the data.
     """
 
     if settings.DEBUG:
@@ -1066,20 +1129,31 @@ def register_user_in_keycloak(email, settings):
     """
     Registers a user in Keycloak and sends an approved registration email.
 
-    Args:
-        email (str): The email address of the user to be registered.
-        settings (object): An object containing the necessary settings for Keycloak connection and email sending.
+    Parameters
+    ----------
+    email : str
+        The email address of the user to be registered.
+    settings : object
+        An object containing the necessary settings for Keycloak connection and email sending.
 
-    Settings Attributes:
-        OIDC_SERVER_URL (str): The URL of the Keycloak server.
-        OIDC_USERNAME (str): The username for Keycloak authentication.
-        OIDC_REALM_NAME (str): The name of the Keycloak realm.
-        OIDC_RP_CLIENT_ID (str): The client ID for Keycloak.
-        OIDC_RP_CLIENT_SECRET (str): The client secret for Keycloak.
-        HOSTNAME (str): The hostname for generating the MAIA login URL.
+    Settings Attributes
+    -------------------
+    OIDC_SERVER_URL : str
+        The URL of the Keycloak server.
+    OIDC_USERNAME : str
+        The username for Keycloak authentication.
+    OIDC_REALM_NAME : str
+        The name of the Keycloak realm.
+    OIDC_RP_CLIENT_ID : str
+        The client ID for Keycloak.
+    OIDC_RP_CLIENT_SECRET : str
+        The client secret for Keycloak.
+    HOSTNAME : str
+        The hostname for generating the MAIA login URL.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
     keycloak_connection = KeycloakOpenIDConnection(
         server_url=settings.OIDC_SERVER_URL,
@@ -1111,16 +1185,27 @@ def register_user_in_keycloak(email, settings):
 def register_group_in_keycloak(group_id, settings):
     """
     Registers a group in Keycloak with the specified group ID and settings.
-    Args:
-        group_id (str): The ID of the group to be registered.
-        settings (object): An object containing the Keycloak server settings, including:
-            - OIDC_SERVER_URL (str): The URL of the Keycloak server.
-            - OIDC_USERNAME (str): The username for Keycloak authentication.
-            - OIDC_REALM_NAME (str): The name of the Keycloak realm.
-            - OIDC_RP_CLIENT_ID (str): The client ID for Keycloak.
-            - OIDC_RP_CLIENT_SECRET (str): The client secret for Keycloak.
-    Returns:
-        None
+
+    Parameters
+    ----------
+    group_id : str
+        The ID of the group to be registered.
+    settings : object
+        An object containing the Keycloak server settings, including:
+        - OIDC_SERVER_URL : str
+            The URL of the Keycloak server.
+        - OIDC_USERNAME : str
+            The username for Keycloak authentication.
+        - OIDC_REALM_NAME : str
+            The name of the Keycloak realm.
+        - OIDC_RP_CLIENT_ID : str
+            The client ID for Keycloak.
+        - OIDC_RP_CLIENT_SECRET : str
+            The client secret for Keycloak.
+
+    Returns
+    -------
+    None
     """
     keycloak_connection = KeycloakOpenIDConnection(
         server_url=settings.OIDC_SERVER_URL,
@@ -1134,24 +1219,15 @@ def register_group_in_keycloak(group_id, settings):
 
     keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
 
-
     payload = {
         "name": f"MAIA:{group_id}",
         "path": f"/MAIA:{group_id}",
-        "attributes":
-        
-        { }
-        ,
+        "attributes": {},
         "realmRoles": [],
-        "clientRoles":
-        
-        {}
-        ,
+        "clientRoles": {},
         "subGroups": [],
-        "access":
-        
-        { "view": True, "manage": True, "manageMembership": True }
-        }
+        "access": {"view": True, "manage": True, "manageMembership": True}
+    }
     keycloak_admin.create_group(payload)
 
 
@@ -1159,22 +1235,28 @@ def register_users_in_group_in_keycloak(emails, group_id, settings):
     """
     Registers users in a specified Keycloak group.
 
-    This function connects to a Keycloak server using the provided settings,
-    retrieves the list of users and groups, and adds users with specified
-    email addresses to the specified group and the "MAIA:users" group.
+    Parameters
+    ----------
+    emails : list
+        A list of email addresses of users to be added to the group.
+    group_id : str
+        The ID of the group to which users should be added.
+    settings : object
+        An object containing Keycloak server settings, including:
+        - OIDC_SERVER_URL : str
+            The URL of the Keycloak server.
+        - OIDC_USERNAME : str
+            The username for Keycloak authentication.
+        - OIDC_REALM_NAME : str
+            The realm name in Keycloak.
+        - OIDC_RP_CLIENT_ID : str
+            The client ID for Keycloak.
+        - OIDC_RP_CLIENT_SECRET : str
+            The client secret for Keycloak.
 
-    Args:
-        emails (list): A list of email addresses of users to be added to the group.
-        group_id (str): The ID of the group to which users should be added.
-        settings (object): An object containing Keycloak server settings, including:
-            - OIDC_SERVER_URL (str): The URL of the Keycloak server.
-            - OIDC_USERNAME (str): The username for Keycloak authentication.
-            - OIDC_REALM_NAME (str): The realm name in Keycloak.
-            - OIDC_RP_CLIENT_ID (str): The client ID for Keycloak.
-            - OIDC_RP_CLIENT_SECRET (str): The client secret for Keycloak.
-
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
     keycloak_connection = KeycloakOpenIDConnection(
         server_url=settings.OIDC_SERVER_URL,
@@ -1197,31 +1279,40 @@ def register_users_in_group_in_keycloak(emails, group_id, settings):
             for group in groups:
                 if group["name"] == "MAIA:"+group_id:
                     gid = group["id"]
-                    keycloak_admin.group_user_add(uid,gid)
+                    keycloak_admin.group_user_add(uid, gid)
                 elif group["name"] == "MAIA:users":
                     try:
                         gid = group["id"]
-                        keycloak_admin.group_user_add(uid,gid)
+                        keycloak_admin.group_user_add(uid, gid)
                     except:
                         ...
+
 
 def get_list_of_groups_requesting_a_user(email, settings):
     """
     Retrieves a list of groups (namespaces) that have requested a specific user based on their email.
 
-    Args:
-        email (str): The email address of the user to search for.
-        settings (module): The settings module containing configuration such as DEBUG and LOCAL_DB_PATH.
+    Parameters
+    ----------
+    email : str
+        The email address of the user to search for.
+    settings : module
+        The settings module containing configuration such as DEBUG and LOCAL_DB_PATH.
 
-    Returns:
-        list: A list of namespaces that have requested the user. Returns an empty list if no groups are found.
+    Returns
+    -------
+    list
+        A list of namespaces that have requested the user. Returns an empty list if no groups are found.
 
-    Raises:
-        KeyError: If environment variables 'DB_HOST', 'DB_USERNAME', or 'DB_PASS' are not set in non-debug mode.
-        Exception: If there is an issue connecting to the database or executing the SQL queries.
+    Raises
+    ------
+    KeyError
+        If environment variables 'DB_HOST', 'DB_USERNAME', or 'DB_PASS' are not set in non-debug mode.
+    Exception
+        If there is an issue connecting to the database or executing the SQL queries.
     """
     if settings.DEBUG:
-         cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH, "db.sqlite3"))
     else:
         db_host = os.environ["DB_HOST"]
         db_user = os.environ["DB_USERNAME"]
@@ -1229,10 +1320,8 @@ def get_list_of_groups_requesting_a_user(email, settings):
         engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
         cnx = engine.raw_connection()
 
-
     auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
     authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
-
 
     for user in auth_user.iterrows():
         uid = user[1]['id']
@@ -1245,27 +1334,37 @@ def get_list_of_groups_requesting_a_user(email, settings):
 
     return []
 
+
 def get_list_of_users_requesting_a_group(group_id, settings):
     """
     Retrieves a list of email addresses of users who have requested access to a specific group.
 
-    Args:
-        group_id (str): The ID of the group to check for user requests.
-        settings (object): A settings object that contains configuration parameters, including DEBUG and LOCAL_DB_PATH.
+    Parameters
+    ----------
+    group_id : str
+        The ID of the group to check for user requests.
+    settings : object
+        A settings object that contains configuration parameters, including DEBUG and LOCAL_DB_PATH.
 
-    Returns:
-        list: A list of email addresses of users who have requested access to the specified group.
+    Returns
+    -------
+    list
+        A list of email addresses of users who have requested access to the specified group.
 
-    Raises:
-        KeyError: If environment variables for database connection are not set when DEBUG is False.
-        Exception: If there is an issue with database connection or query execution.
+    Raises
+    ------
+    KeyError
+        If environment variables for database connection are not set when DEBUG is False.
+    Exception
+        If there is an issue with database connection or query execution.
 
-    Notes:
-        - When settings.DEBUG is True, a local SQLite database is used.
-        - When settings.DEBUG is False, a MySQL database is used with connection parameters from environment variables.
+    Notes
+    -----
+    When settings.DEBUG is True, a local SQLite database is used.
+    When settings.DEBUG is False, a MySQL database is used with connection parameters from environment variables.
     """
     if settings.DEBUG:
-         cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH, "db.sqlite3"))
     else:
         db_host = os.environ["DB_HOST"]
         db_user = os.environ["DB_USERNAME"]
@@ -1273,10 +1372,8 @@ def get_list_of_users_requesting_a_group(group_id, settings):
         engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
         cnx = engine.raw_connection()
 
-
     auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
     authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
-
 
     users = []
     for user in auth_user.iterrows():
@@ -1289,26 +1386,37 @@ def get_list_of_users_requesting_a_group(group_id, settings):
 
     return users
 
+
 def get_argocd_project_status(argocd_namespace, project_id):
-    return verify_installed_maia_toolkit(project_id=project_id, namespace=argocd_namespace,get_chart_metadata=False)
+    return verify_installed_maia_toolkit(project_id=project_id, namespace=argocd_namespace, get_chart_metadata=False)
 
 
-def get_namespace_details(settings,id_token, namespace, user_id, is_admin=False):
+def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False):
     """
     Retrieve details about the namespace including workspace applications, remote desktops, SSH ports, MONAI models, and Orthanc instances.
-    Args:
-        settings (object): Configuration settings containing API URLs and private cluster tokens.
-        id_token (str): Identity token for authentication.
-        namespace (str): The namespace to retrieve details for.
-        user_id (str): The user ID to filter resources.
-        is_admin (bool, optional): Flag indicating if the user has admin privileges. Defaults to False.
-    Returns:
-        tuple: A tuple containing:
-            - maia_workspace_apps (dict): Dictionary of workspace applications with their URLs.
-            - remote_desktop_dict (dict): Dictionary of remote desktop URLs for users.
-            - ssh_ports (dict): Dictionary of SSH ports for users.
-            - monai_models (dict): Dictionary of MONAI models.
-            - orthanc_list (dict): Dictionary of Orthanc instances.
+
+    Parameters
+    ----------
+    settings : object
+        Configuration settings containing API URLs and private cluster tokens.
+    id_token : str
+        Identity token for authentication.
+    namespace : str
+        The namespace to retrieve details for.
+    user_id : str
+        The user ID to filter resources.
+    is_admin : bool, optional
+        Flag indicating if the user has admin privileges. Defaults to False.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - maia_workspace_apps (dict): Dictionary of workspace applications with their URLs.
+        - remote_desktop_dict (dict): Dictionary of remote desktop URLs for users.
+        - ssh_ports (dict): Dictionary of SSH ports for users.
+        - monai_models (dict): Dictionary of MONAI models.
+        - orthanc_list (dict): Dictionary of Orthanc instances.
     """
     maia_workspace_apps = {}
     remote_desktop_dict = {}
@@ -1323,20 +1431,20 @@ def get_namespace_details(settings,id_token, namespace, user_id, is_admin=False)
                                     headers={"Authorization": "Bearer {}".format(token)}, verify=False)
         else:
             response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(namespace),
-                                headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
+                                    headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
         ingresses = json.loads(response.text)
 
         if API_URL in settings.PRIVATE_CLUSTERS:
-                token = settings.PRIVATE_CLUSTERS[API_URL]
-                try:
-                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
+            token = settings.PRIVATE_CLUSTERS[API_URL]
+            try:
+                response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
                                         headers={"Authorization": "Bearer {}".format(token)}, verify=False)
-                except:
-                    continue
+            except:
+                continue
         else:
             try:
                 response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
-                                headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
+                                        headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
             except:
                 continue
         services = json.loads(response.text)
@@ -1354,7 +1462,6 @@ def get_namespace_details(settings,id_token, namespace, user_id, is_admin=False)
                         ## JupyterHub
                         maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
 
-
         for service in services['items']:
             for port in service['spec']['ports']:
                 if 'name' in port and port['name'] == 'remote-desktop-port':
@@ -1363,12 +1470,11 @@ def get_namespace_details(settings,id_token, namespace, user_id, is_admin=False)
                     url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
                     if user_id == user or is_admin:
                         remote_desktop_dict[user] = url
-                        
+
                 if 'name' in port and port['name'] == 'ssh':
                     user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
                     if user_id == user or is_admin:
                         ssh_ports[user] = port['port']
-                    
 
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"
@@ -1387,28 +1493,34 @@ def get_namespace_details(settings,id_token, namespace, user_id, is_admin=False)
     if "xnat" not in maia_workspace_apps:
         maia_workspace_apps["xnat"] = "N/A"
 
-
     return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list
 
 
 def get_allocation_date_for_project(settings, group_id, is_namespace_style=False):
     """
     Retrieves the allocation date for a project based on the provided group ID.
-    Args:
-        settings (object): The settings object containing configuration details.
-        group_id (str): The group ID or namespace to search for.
-        is_namespace_style (bool, optional): Flag to indicate if the group ID should be treated as a namespace. Defaults to False.
-    Returns:
-        datetime or None: The allocation date of the project if found, otherwise None.
+
+    Parameters
+    ----------
+    settings : object
+        The settings object containing configuration details.
+    group_id : str
+        The group ID or namespace to search for.
+    is_namespace_style : bool, optional
+        Flag to indicate if the group ID should be treated as a namespace. Defaults to False.
+
+    Returns
+    -------
+    datetime or None
+        The allocation date of the project if found, otherwise None.
     """
     if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH, "db.sqlite3"))
     else:
         db_host = os.environ["DB_HOST"]
         db_user = os.environ["DB_USERNAME"]
         dp_password = os.environ["DB_PASS"]
 
-        #try:
         engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
         cnx = engine.raw_connection()
 
@@ -1416,34 +1528,38 @@ def get_allocation_date_for_project(settings, group_id, is_namespace_style=False
 
     for project in authentication_maiaproject.iterrows():
         if is_namespace_style:
-            if str(project[1]['namespace']).lower().replace("_","-") == group_id:
+            if str(project[1]['namespace']).lower().replace("_", "-") == group_id:
                 return project[1]['date']
         else:
             if project[1]['namespace'] == group_id:
                 return project[1]['date']
-    
+
     return None
+
 
 def get_project_argo_status_and_user_table(request, settings):
     """
     Retrieves the Argo CD project status and user table information.
-    This function generates a kubeconfig from the provided request and settings, 
-    loads the kubeconfig, and sets the KUBECONFIG environment variable. It then 
-    retrieves the user table and Argo CD project status for each project.
-    Args:
-        request (HttpRequest): The HTTP request object containing session and user information.
-        settings (Settings): The settings object containing configuration values.
-    Returns:
-        tuple: A tuple containing:
-            - user_table (dict): The user table information.
-            - to_register_in_groups (list): List of users to register in groups.
-            - to_register_in_keycloak (list): List of users to register in Keycloak.
-            - maia_groups_dict (dict): Dictionary of MAIA groups.
-            - project_argo_status (dict): Dictionary containing the Argo CD project status for each project.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        The HTTP request object containing session and user information.
+    settings : Settings
+        The settings object containing configuration values.
+
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - user_table (dict): The user table information.
+        - to_register_in_groups (list): List of users to register in groups.
+        - to_register_in_keycloak (list): List of users to register in Keycloak.
+        - maia_groups_dict (dict): Dictionary of MAIA groups.
+        - project_argo_status (dict): Dictionary containing the Argo CD project status for each project.
     """
     argocd_cluster_id = settings.ARGOCD_CLUSTER
-    
-    
+
     id_token = request.session.get('oidc_id_token')
     kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", argocd_cluster_id, settings=settings)
     config.load_kube_config_from_dict(kubeconfig_dict)
@@ -1457,25 +1573,32 @@ def get_project_argo_status_and_user_table(request, settings):
     for project_id in maia_groups_dict:
         project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
 
-
     return user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status
 
 
-def create_namespace(request,settings, namespace_id, cluster_id):
+def create_namespace(request, settings, namespace_id, cluster_id):
     """
     Creates a Kubernetes namespace using the provided request, settings, namespace ID, and cluster ID.
 
-    Args:
-        request (HttpRequest): The HTTP request object containing session and user information.
-        settings (Settings): The settings object containing configuration details.
-        namespace_id (str): The ID of the namespace to be created.
-        cluster_id (str): The ID of the Kubernetes cluster where the namespace will be created.
+    Parameters
+    ----------
+    request : HttpRequest
+        The HTTP request object containing session and user information.
+    settings : Settings
+        The settings object containing configuration details.
+    namespace_id : str
+        The ID of the namespace to be created.
+    cluster_id : str
+        The ID of the Kubernetes cluster where the namespace will be created.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
 
-    Raises:
-        ApiException: If an error occurs while creating the namespace using the Kubernetes API.
+    Raises
+    ------
+    ApiException
+        If an error occurs while creating the namespace using the Kubernetes API.
     """
     id_token = request.session.get('oidc_id_token')
     kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
@@ -1485,7 +1608,6 @@ def create_namespace(request,settings, namespace_id, cluster_id):
         os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
 
         with kubernetes.client.ApiClient() as api_client:
-
             api_instance = kubernetes.client.CoreV1Api(api_client)
             body = kubernetes.client.V1Namespace(metadata=kubernetes.client.V1ObjectMeta(name=namespace_id))
             try:
