@@ -377,8 +377,8 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters 
                     continue
                 if pod['spec']['nodeName'] != node_name.split("/")[1]:
                     continue
-                cointainers = pod['spec']['containers']
-                for container in cointainers:
+                containers = pod['spec']['containers']
+                for container in containers:
                     resources = container['resources']
 
                     cpu = 0
@@ -751,15 +751,15 @@ def get_user_table(settings):
         email = user[1]['email']
         user_groups = []
         user_in_keycloak = False
-        for keycloack_user in keycloak_admin.get_users():
+        for keycloak_user in keycloak_admin.get_users():
 
-            if 'email' in keycloack_user:
-                if keycloack_user['email'] == email:
+            if 'email' in keycloak_user:
+                if keycloak_user['email'] == email:
                     user_in_keycloak = True
-                    user_keycloack_groups = keycloak_admin.get_user_groups(user_id=keycloack_user['id'])
-                    for user_keycloack_group in user_keycloack_groups:
-                        if user_keycloack_group['name'].startswith("MAIA:"):
-                            user_groups.append(user_keycloack_group['name'][len("MAIA:"):])
+                    user_keycloak_groups = keycloak_admin.get_user_groups(user_id=keycloak_user['id'])
+                    for user_keycloak_group in user_keycloak_groups:
+                        if user_keycloak_group['name'].startswith("MAIA:"):
+                            user_groups.append(user_keycloak_group['name'][len("MAIA:"):])
         if not user_in_keycloak:
             users_to_register_in_keycloak.append(email)
         if uid in authentication_maiauser['user_ptr_id'].values:
