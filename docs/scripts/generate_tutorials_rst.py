@@ -1,0 +1,37 @@
+import os
+
+def find_notebooks(directory):
+    notebooks = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".ipynb"):
+                notebooks.append(os.path.relpath(os.path.join(root, file), directory))
+    return notebooks
+
+def generate_rst(notebooks, output_file):
+    grouped_notebooks = {}
+    for notebook in notebooks:
+        subfolder = os.path.dirname(notebook)
+        if subfolder not in grouped_notebooks:
+            grouped_notebooks[subfolder] = []
+        grouped_notebooks[subfolder].append(notebook)
+
+    with open(output_file, 'w') as f:
+        f.write("Tutorials\n")
+        f.write("=========\n\n")
+        for subfolder, notebooks in grouped_notebooks.items():
+            if subfolder:
+                f.write(f"{subfolder}\n")
+                f.write(f"{'-' * len(subfolder)}\n\n")
+            f.write(f".. toctree::\n")
+            f.write(f"   :maxdepth: 1\n\n")
+            for notebook in notebooks:
+                title = os.path.splitext(os.path.basename(notebook))[0]
+                f.write(f"   tutorials/{notebook}\n")
+            f.write("\n")
+
+if __name__ == "__main__":
+    tutorial_dir = os.path.join(os.path.dirname(__file__),'..','source', 'apidocs', 'tutorials')
+    output_file = os.path.join(os.path.dirname(__file__), '..','source','apidocs','tutorials.rst')
+    notebooks = find_notebooks(tutorial_dir)
+    generate_rst(notebooks, output_file)
