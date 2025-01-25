@@ -6,7 +6,6 @@ subjects:
   - kind: Group
     apiGroup: rbac.authorization.k8s.io
     name: {{ .Values.admin_group_ID }}
-    namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -20,7 +19,6 @@ subjects:
   - kind: Group
     apiGroup: rbac.authorization.k8s.io
     name: system:authenticated
-    namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
