@@ -26,3 +26,7 @@ django-mathfilters
 kubernetes
 numpy==1.26.4
 python-keycloak
+omegaconf
+hydra-core
+pyhelm3
+git+https://github.com/globocom/argocd-client.git

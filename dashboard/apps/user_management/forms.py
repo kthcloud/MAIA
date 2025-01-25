@@ -5,10 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django import forms
 from django.conf import settings
-from django.template.defaultfilters import default
-
-from apps.authentication.views import register_user
-
+import datetime
 
 class UserTableForm(forms.Form):
 
@@ -17,6 +14,11 @@ class UserTableForm(forms.Form):
             super(UserTableForm, self).__init__()
         else:
             super(UserTableForm, self).__init__(*args, **kwargs)
+
+
+        memory_limit = ([(str(2**pow)+" Gi", str(2**pow)+" Gi") for pow in range(settings.MAX_MEMORY)])
+        cpu_limit = ([(str(2 ** pow), str(2 ** pow)) for pow in range(settings.MAX_CPU)])
+
         clusters = ([(cluster, cluster) for cluster in settings.CLUSTER_NAMES.values()])
         clusters.append(("N/A","N/A"))
 
@@ -24,35 +26,25 @@ class UserTableForm(forms.Form):
         gpus.append(("N/A", "N/A"))
 
         minimal_envs = (("Minimal","Minimal"),("Full","Full"))
-        memory_limit = ([(str(2**pow)+" Gi", str(2**pow)+" Gi") for pow in range(settings.MAX_MEMORY)])
-        cpu_limit = ([(str(2 ** pow), str(2 ** pow)) for pow in range(settings.MAX_CPU)])
+        
         if "users" in kwargs:
             for i in kwargs["users"]:
                 username = i["username"]
                 self.fields[f"namespace_{username}"] = forms.CharField(max_length=100, label='namespace',initial=i["namespace"])
-                self.fields[f"date_{username}"] = forms.DateField(label='date',initial=i["date"],widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-                input_formats=["%d-%m-%Y"])
-
-                self.fields[f"conda_{username}"] = forms.FileField(label='conda',initial=i["conda"])
-                self.fields[f"cluster_{username}"] = forms.ChoiceField(choices=clusters, label='cluster',initial=i["cluster"])
-
-                self.fields[f"gpu_{username}"] = forms.ChoiceField(choices=gpus, label='gpu',
-                                                                       initial=i["gpu"])
-
-                self.fields[f"minimal_environment_{username}"] = forms.ChoiceField(label='minimal_environment',initial=i["minimal_env"],choices=minimal_envs)
-                self.fields[f"memory_limit_{username}"] = forms.ChoiceField(label='memory_limit', choices = memory_limit,
-                                                                                    initial=i["memory_limit"])
-                self.fields[f"cpu_limit_{username}"] = forms.ChoiceField(label='cpu_limit', choices=cpu_limit,
-                                                                            initial=i["cpu_limit"])
-                
-                project_admin = False
-                if str(i["project_admin"]) == "1" or str(i["project_admin"]) == "1.0":
-                    project_admin = True
-                self.fields[f"project_admin_{username}"] = forms.BooleanField(label='project_admin', required=False, initial=project_admin)
         else:
             for k in args[0]:
                 if k.startswith("namespace"):
                     self.fields[k] = forms.CharField(max_length=100, label='namespace')
+                elif k.startswith("memory_limit"):
+
+                    self.fields[k] = forms.ChoiceField(label='memory_limit',
+                                                                                choices=memory_limit,
+                                                                                )
+                elif k.startswith("cpu_limit"):
+
+                    self.fields[k] = forms.ChoiceField(label='cpu_limit',
+                                                       choices=cpu_limit,
+                                                       )
                 elif k.startswith("date"):
                     self.fields[k] = forms.DateField(label='date',widget=forms.DateInput(format="%d-%m-%Y", attrs={"type": "date"}),
         input_formats=["%d-%m-%Y"])
@@ -64,16 +56,38 @@ class UserTableForm(forms.Form):
                     self.fields[k] = forms.ChoiceField(choices=gpus, label='gpu')
                 elif k.startswith("minimal_environment"):
                     self.fields[k] = forms.ChoiceField(label='minimal_environment',choices=minimal_envs)
-                elif k.startswith("memory_limit"):
+        
+        if "projects" in kwargs:
+            for i in kwargs["projects"]:
+                
+                project_name = i
+                
+                self.fields[f"namespace_{project_name}"] = forms.CharField(max_length=100, label='namespace',initial=i)
+                if kwargs["projects"][i]["memory_limit"] is None:
+                    kwargs["projects"][i]["memory_limit"] = "2 Gi"
+                if kwargs["projects"][i]["cpu_limit"] is None:
+                    kwargs["projects"][i]["cpu_limit"] = "2"
+                if kwargs["projects"][i]["date"] is None:
+                    kwargs["projects"][i]["date"] = datetime.date.today
+                if kwargs["projects"][i]["cluster"] is None:
+                    kwargs["projects"][i]["cluster"] = "N/A"
+                if kwargs["projects"][i]["gpu"] is None:
+                    kwargs["projects"][i]["gpu"] = "N/A"
+                if kwargs["projects"][i]["environment"] is None:
+                    kwargs["projects"][i]["environment"] = "Minimal"
+                self.fields[f"memory_limit_{project_name}"] = forms.ChoiceField(label='memory_limit', choices = memory_limit,
+                                                                                    initial= kwargs["projects"][i]["memory_limit"])
+                self.fields[f"cpu_limit_{project_name}"] = forms.ChoiceField(label='cpu_limit', choices=cpu_limit,
+                                                                            initial=kwargs["projects"][i]["cpu_limit"])
+                self.fields[f"date_{project_name}"] = forms.DateField(label='date',initial=kwargs["projects"][i]["date"],widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+                input_formats=["%d-%m-%Y"])
 
-                    self.fields[k] = forms.ChoiceField(label='memory_limit',
-                                                                                choices=memory_limit,
-                                                                                )
-                elif k.startswith("cpu_limit"):
+                self.fields[f"conda_{project_name}"] = forms.FileField(label='conda',initial=kwargs["projects"][i]["conda"])
+                self.fields[f"cluster_{project_name}"] = forms.ChoiceField(choices=clusters, label='cluster',initial=kwargs["projects"][i]["cluster"])
 
-                    self.fields[k] = forms.ChoiceField(label='cpu_limit',
-                                                       choices=cpu_limit,
-                                                       )
-                elif k.startswith("project_admin"):
-                    self.fields[k] = forms.BooleanField(label='project_admin', required=False)
+                self.fields[f"gpu_{project_name}"] = forms.ChoiceField(choices=gpus, label='gpu',
+                                                                       initial=kwargs["projects"][i]["gpu"])
+
+                self.fields[f"minimal_environment_{project_name}"] = forms.ChoiceField(label='minimal_environment',initial=kwargs["projects"][i]["environment"],choices=minimal_envs)
+                
 

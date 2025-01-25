@@ -2,14 +2,17 @@
 from django.contrib.auth.decorators import login_required
 from django.template import loader
 import time
+import yaml
 from django.template.defaulttags import register
 from .utils import get_namespaces
+import os
+from pathlib import Path
 from django.http import HttpResponse, HttpResponseRedirect
-from .utils import get_pods_for_namespace, get_nodes, get_svc_for_namespace, get_jobs, get_pvclaims
+from .utils import get_svc_for_namespace
 # Create your views here.
-from .forms import ScaleDeployForm, DeleteJobForm, DeleteHelmChart, DeletePodForm
+from MAIA.dashboard_utils import get_allocation_date_for_project, get_namespace_details, get_project
 import datetime
-
+from django.conf import settings
 
 @register.filter
 def to_hyphen(value):
@@ -62,80 +65,6 @@ def get_job_life_info(job):
 @login_required(login_url="/maia/login/")
 def namespace_view(request,namespace_id):
 
-    if request.method == 'POST' and 'scale_deploy' in request.POST:
-        id_token = request.session.get('oidc_id_token')
-        #scale_deploy(id_token, request.POST['scale_deploy'], request.POST['scale'], namespace_id)
-        time.sleep(2)
-
-        form = ScaleDeployForm(request.POST)
-        if form.is_valid():
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-           # return HttpResponse(html_template.render(context, request))
-        else:
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-
-    if request.method == 'POST' and 'delete_job' in request.POST:
-        id_token = request.session.get('oidc_id_token')
-        #delete_job(id_token, namespace_id, request.POST['delete_job'])
-        time.sleep(2)
-
-
-        form = DeleteJobForm(request.POST)
-        if form.is_valid():
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-        # return HttpResponse(html_template.render(context, request))
-        else:
-
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-
-    if request.method == 'POST' and 'delete_pod' in request.POST:
-        id_token = request.session.get('oidc_id_token')
-        #delete_pod(id_token, namespace_id, request.POST['delete_pod'])
-        time.sleep(2)
-
-        form = DeletePodForm(request.POST)
-        if form.is_valid():
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-        # return HttpResponse(html_template.render(context, request))
-        else:
-
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-
-    if request.method == 'POST' and 'delete_configmap' in request.POST:
-        id_token = request.session.get('oidc_id_token')
-        #delete_config_map(id_token, namespace_id, request.POST['delete_configmap'])
-        time.sleep(2)
-
-        form = DeletePodForm(request.POST)
-        if form.is_valid():
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-        # return HttpResponse(html_template.render(context, request))
-        else:
-
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-
-    if request.method == 'POST' and 'delete_helm_chart' in request.POST:
-        id_token = request.session.get('oidc_id_token')
-        #delete_helm_chart(namespace_id,id_token,   request.POST['delete_helm_chart'])
-        time.sleep(2)
-
-        form = DeleteHelmChart(request.POST)
-        if form.is_valid():
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-        # return HttpResponse(html_template.render(context, request))
-        else:
-
-            html_template = loader.get_template('base_namespace.html')
-            return HttpResponseRedirect('/namespaces/{}'.format(namespace_id))
-
-
     groups = request.user.groups.all()
 
     namespaces = []
@@ -148,19 +77,12 @@ def namespace_view(request,namespace_id):
         return HttpResponse(html_template.render(context, request))
     else:
         id_token = request.session.get('oidc_id_token')
-        #pods = get_pods_for_namespace(id_token, namespace_id)
-        #deploy = get_deploy_for_namespace(id_token, namespace_id)
-        #nodes = get_nodes(id_token)
-        #jobs = get_jobs(id_token, namespace_id)
-        #pvc = get_pvclaims(id_token, namespace_id)
+       
         user_id = request.user.username
         is_admin = False
         if request.user.is_superuser:
             is_admin = True
-        service, ingress, maia_workspace_ingress, remote_desktop_dict, orthanc_list = get_svc_for_namespace(id_token, namespace_id, user_id, is_admin)
-        form = ScaleDeployForm(request.POST)
-        #charts = list_helm_charts(namespace_id, id_token)
-        #config_maps = get_config_maps(id_token=id_token,namespace=namespace_id)
+        maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list = get_namespace_details(settings,id_token, namespace_id, user_id, is_admin=is_admin)
 
         groups = request.user.groups.all()
 
@@ -172,13 +94,23 @@ def namespace_view(request,namespace_id):
             for group in groups:
                 if str(group) != "MAIA:users":
                     namespaces.append(str(group).split(":")[-1].lower().replace("_","-"))
-            # print(group.split(":")[-1])
-        # "config_maps":config_maps,"charts": charts, "deploy":deploy
-        context = { "maia_workspace_ingress":maia_workspace_ingress,"namespace":namespace_id,
+
+        allocation_date = get_allocation_date_for_project(settings=settings, group_id=namespace_id, is_namespace_style=True)
+
+        _, cluster_id = get_project(namespace_id, settings=settings, is_namespace_style=True)
+
+        cluster_config_path = os.environ["CLUSTER_CONFIG_PATH"]
+        cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(cluster_id+".yaml").read_text())
+
+        context = { "maia_workspace_ingress":maia_workspace_apps,"namespace":namespace_id,
                     #"pods":pods, "nodes": nodes,
                     "remote_desktop_dict": remote_desktop_dict,
+                    "allocation_date": allocation_date,
                     "orthanc_list": orthanc_list,
-                    "id_token": id_token, "service": service,"ingress":ingress,"form":form,
+                    "id_token": id_token,
+                    "ssh_ports": ssh_ports,
+                    "ssh_hostname": cluster_config_dict["ssh_hostname"],
+                    #"service": service,"ingress":ingress
                     #"job":jobs,"pvc":pvc
                     }
         context["namespaces"] = namespaces

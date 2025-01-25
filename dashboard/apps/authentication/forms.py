@@ -28,45 +28,49 @@ class LoginForm(forms.Form):
 
 
 class SignUpForm(UserCreationForm):
-    username = forms.CharField(
-    widget=forms.TextInput(
-           attrs={
-                "placeholder": "Your Username",
-                "class": "form-control"
-            }
-        ))
-
-    
-    maia_groups = get_groups_in_keycloak(settings= settings)
-
-    pending_projects = get_pending_projects(settings=settings)
-
-    for pending_project in pending_projects:
-        maia_groups[pending_project] = pending_project + " (Pending)"
-
-    namespace = forms.ChoiceField(
-        choices=[(maia_group,maia_group) for maia_group in maia_groups.values()],
-        widget=forms.Select(attrs={
-           'class': "form-select text-center fw-bold",
-            'style': 'max-width: auto;',
-        }
-    )
-    )
-
-    email = forms.EmailField(
-        widget=forms.EmailInput(
+    def __init__(self, *args, **kwargs):
+        super(SignUpForm, self).__init__(*args, **kwargs)
+        self.fields['username'] = forms.CharField(
+        widget=forms.TextInput(
             attrs={
-                "placeholder": "Your Email",
-                "class": "form-control"
-            }
-        ))
-    password1 = forms.CharField(
-        initial="maiaPassword",
-        )
-    password2 = forms.CharField(
-        initial="maiaPassword",
+                    "placeholder": "Your Username",
+                    "class": "form-control"
+                }
+            ))
 
+        
+        maia_groups = get_groups_in_keycloak(settings= settings)
+        pending_projects = get_pending_projects(settings=settings)
+
+        for pending_project in pending_projects:
+            maia_groups[pending_project] = pending_project + " (Pending)"
+
+        self.fields['namespace'] = forms.ChoiceField(
+            choices=[(maia_group,maia_group) for maia_group in maia_groups.values()],
+            widget=forms.Select(attrs={
+            'class': "form-select text-center fw-bold",
+                'style': 'max-width: auto;',
+            }
         )
+        )
+
+        self.fields['email'] = forms.EmailField(
+            widget=forms.EmailInput(
+                attrs={
+                    "placeholder": "Your Email",
+                    "class": "form-control"
+                }
+            ))
+        self.fields['password1'] = forms.CharField(
+            initial="maiaPassword",
+            )
+        self.fields['password2'] = forms.CharField(
+            initial="maiaPassword",
+
+            )
+
+        
+    
     class Meta:
         model = MAIAUser
         fields = ('username','email', 'namespace', 'password1', 'password2')

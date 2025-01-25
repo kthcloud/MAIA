@@ -8,6 +8,8 @@ from django.shortcuts import redirect
 from django.template.defaultfilters import register
 from MAIA.dashboard_utils import get_cluster_status, get_namespaces
 import urllib3
+import os
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 @register.filter(name='dict_key')
@@ -60,6 +62,11 @@ def maia(value):
         return value.replace("Kth","KTH")
     else:
         return value
+
+
+@register.filter
+def env(key):
+    return os.environ.get(key, None)
 
 @login_required(login_url="/maia/login/")
 def index(request):

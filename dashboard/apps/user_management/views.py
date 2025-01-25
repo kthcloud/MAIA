@@ -4,73 +4,92 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import loader
 from django.conf import settings
+from kubernetes import config
 
 from pathlib import Path
-
 from .forms import UserTableForm
-from .utils import get_user_table, create_deployment_package, update_user_table
+from MAIA.dashboard_utils import get_user_table, generate_kubeconfig, update_user_table, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_users_requesting_a_group, get_list_of_groups_requesting_a_user, get_project, get_project_argo_status_and_user_table, create_namespace
 import urllib3
+import yaml
+from django.shortcuts import redirect
+from MAIA_scripts.MAIA_install_project_toolkit import deploy_maia_toolkit_api
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+
 # Create your views here.
 @login_required(login_url="/maia/login/")
-
-
 def index(request):
     if not request.user.is_superuser:
         html_template = loader.get_template('home/page-500.html')
         return HttpResponse(html_template.render({}, request))
+    
+    argocd_url = settings.ARGOCD_SERVER
+
+    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
+    
     if request.method == "POST":
-        user_table, to_register, maia_groups_dict = get_user_table()
+        
 
         user_list = user_table.to_dict('records')
 
         for user in user_list:
-            if user['email'] in to_register:
-                user['is_registered'] = 0
+            if user['email'] in to_register_in_keycloak:
+                user['is_registered_in_keycloak'] = 0
             else:
-                user['is_registered'] = 1
+                user['is_registered_in_keycloak'] = 1
+            if user['email'] in to_register_in_groups:
+                user['is_registered_in_groups'] = 0
+            else:
+                user['is_registered_in_groups'] = 1
 
 
         context = {
             "user_table": user_list,
-            "clusters": settings.CLUSTER_NAMES.values(),
             "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
             "maia_groups_dict": maia_groups_dict,
-            "form": UserTableForm(request.POST)
+            "form": UserTableForm(request.POST),
+            "project_argo_status": project_argo_status,
+            "argocd_url": argocd_url,
+            "user": ["admin"],
+            "username": request.user.username + " [ADMIN]"
         }
         html_template = loader.get_template('base_user_management.html')
 
         form = UserTableForm(request.POST)
 
         if form.is_valid():
-            update_user_table(request.POST)
+            update_user_table(request.POST, settings=settings)
         else:
-            update_user_table(request.POST)
+            update_user_table(request.POST, settings=settings)
 
         return HttpResponse(html_template.render(context, request))
 
-
-    user_table, to_register, maia_groups_dict = get_user_table()
-
+    
     user_list = user_table.to_dict('records')
 
     for user in user_list:
-        if user['email'] in to_register:
-            user['is_registered'] = 0
+        for user in user_list:
+            if user['email'] in to_register_in_keycloak:
+                user['is_registered_in_keycloak'] = 0
+            else:
+                user['is_registered_in_keycloak'] = 1
+            if user['email'] in to_register_in_groups:
+                user['is_registered_in_groups'] = 0
+            else:
+                user['is_registered_in_groups'] = 1
 
-        else:
-            user['is_registered'] = 1
 
-
-    form = UserTableForm(users=user_list)
+    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
 
     context = {
         "user_table": user_list,
         "maia_groups_dict": maia_groups_dict,
-        "clusters": settings.CLUSTER_NAMES.values(),
         "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
-        "form": form,
+        "form": user_form,
         "user": ["admin"],
+        "project_argo_status": project_argo_status,
+        "argocd_url": argocd_url,
         "username": request.user.username + " [ADMIN]"
     }
 
@@ -82,71 +101,203 @@ def index(request):
 
     return HttpResponse(html_template.render(context, request))
 
-
-
 @login_required(login_url="/maia/login/")
-def download_view(request, group_id):
+def register_user_view(request, email):
     if not request.user.is_superuser:
         html_template = loader.get_template('home/page-500.html')
         return HttpResponse(html_template.render({}, request))
 
+    register_user_in_keycloak(email=email, settings=settings)
+
+    argocd_url = settings.ARGOCD_SERVER
+
+    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
+
+
+    user_list = user_table.to_dict('records')
+
+    for user in user_list:
+        for user in user_list:
+            if user['email'] in to_register_in_keycloak:
+                user['is_registered_in_keycloak'] = 0
+            else:
+                user['is_registered_in_keycloak'] = 1
+            if user['email'] in to_register_in_groups:
+                user['is_registered_in_groups'] = 0
+            else:
+                user['is_registered_in_groups'] = 1
+
+
+    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
+
+    context = {
+        "user_table": user_list,
+        "maia_groups_dict": maia_groups_dict,
+        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
+        "form": user_form,
+        "user": ["admin"],
+        "project_argo_status": project_argo_status,
+        "argocd_url": argocd_url,
+        "username": request.user.username + " [ADMIN]"
+    }
+
+    html_template = loader.get_template('base_user_management.html')
+
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/maia/login/")
+def register_user_in_group_view(request, email):
+    if not request.user.is_superuser:
+        html_template = loader.get_template('home/page-500.html')
+        return HttpResponse(html_template.render({}, request))
+    
+
+
+    groups = get_list_of_groups_requesting_a_user(email=email, settings=settings)
+    
+    for group_id in groups:
+        register_users_in_group_in_keycloak(group_id=group_id,emails=[email], settings=settings)
+
+    argocd_url = settings.ARGOCD_SERVER
+
+    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
+
+
+    user_list = user_table.to_dict('records')
+
+    for user in user_list:
+        for user in user_list:
+            if user['email'] in to_register_in_keycloak:
+                user['is_registered_in_keycloak'] = 0
+            else:
+                user['is_registered_in_keycloak'] = 1
+            if user['email'] in to_register_in_groups:
+                user['is_registered_in_groups'] = 0
+            else:
+                user['is_registered_in_groups'] = 1
+
+
+    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
+
+    context = {
+        "user_table": user_list,
+        "maia_groups_dict": maia_groups_dict,
+        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
+        "form": user_form,
+        "user": ["admin"],
+        "project_argo_status": project_argo_status,
+        "argocd_url": argocd_url,
+        "username": request.user.username + " [ADMIN]"
+    }
+
+    html_template = loader.get_template('base_user_management.html')
+
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/maia/login/")
+def register_group_view(request, group_id):
+    if not request.user.is_superuser:
+        html_template = loader.get_template('home/page-500.html')
+        return HttpResponse(html_template.render({}, request))
+    
+
+
+    register_group_in_keycloak(group_id=group_id, settings=settings)
+    emails = get_list_of_users_requesting_a_group(group_id=group_id, settings=settings)
+
+    register_users_in_group_in_keycloak(group_id=group_id,emails=emails, settings=settings)
+
+    argocd_url = settings.ARGOCD_SERVER
+
+    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
+
+    user_list = user_table.to_dict('records')
+
+    for user in user_list:
+        for user in user_list:
+            if user['email'] in to_register_in_keycloak:
+                user['is_registered_in_keycloak'] = 0
+            else:
+                user['is_registered_in_keycloak'] = 1
+            if user['email'] in to_register_in_groups:
+                user['is_registered_in_groups'] = 0
+            else:
+                user['is_registered_in_groups'] = 1
+
+
+    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
+
+    context = {
+        "user_table": user_list,
+        "maia_groups_dict": maia_groups_dict,
+        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
+        "form": user_form,
+        "user": ["admin"],
+        "project_argo_status": project_argo_status,
+        "argocd_url": argocd_url,
+        "username": request.user.username + " [ADMIN]"
+    }
+
+    html_template = loader.get_template('base_user_management.html')
+
+    return HttpResponse(html_template.render(context, request))
+
+
+@login_required(login_url="/maia/login/")
+def deploy_view(request, group_id):
+    if not request.user.is_superuser:
+        html_template = loader.get_template('home/page-500.html')
+        return HttpResponse(html_template.render({}, request))
+
+    id_token = request.session.get('oidc_id_token')
+
+
+    argocd_cluster_id = settings.ARGOCD_CLUSTER
+    argocd_url = settings.ARGOCD_SERVER
+
+
     cluster_config_path = os.environ["CLUSTER_CONFIG_PATH"]
+    maia_config_file = os.environ["MAIA_CONFIG_PATH"]
+    config_path=os.environ["CONFIG_PATH"]
 
-    maia_config_path = os.environ["MAIA_CONFIG_PATH"]
+    
+    project_form_dict, cluster_id = get_project(group_id, settings=settings)
+    
 
-    user_table, to_register, maia_groups_dict = get_user_table()
+    if cluster_id is None:
+        return redirect("/maia/user-management/")
 
-    admin = maia_groups_dict[group_id]['admin_users'][0]
+    kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", argocd_cluster_id, settings=settings)
+    config.load_kube_config_from_dict(kubeconfig_dict)
+    
+    with open(Path("/tmp").joinpath("kubeconfig"), "w") as f:
+        yaml.dump(kubeconfig_dict, f)
+        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
+    
+    
 
-    users = maia_groups_dict[group_id]['users']
-
-    for user in users:
-        if user.endswith("[Project Admin]"):
-            i = users.index(user)
-            users[i]=user[:-len(" [Project Admin]")]
-
-
-    for user in user_table.iterrows():
-        if user[1]['username'] == admin:
-            cluster = user[1]['cluster']
-            custom_env = user[1]['conda']
-            if custom_env == "N/A":
-                custom_env = None
-            else:
-                custom_env = custom_env[:-len("_env")]
-            gpu_request = user[1]['gpu']
-            if gpu_request == "NO" or gpu_request == "N/A":
-                gpu_request = None
-            memory_limit = int(user[1]['memory_limit'][:-len(" Gi")])
-            memory_limits = [str(int(memory_limit/2))+"G",str(memory_limit)+"G"]
-            cpu_limit = int(user[1]['cpu_limit'])
-            env_type = user[1]["minimal_env"]
-            if env_type == "Minimal":
-                is_minimal = True
-            else:
-                is_minimal = False
-            cpu_limits = [float(cpu_limit / 2), float(cpu_limit)]
+        cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(cluster_id+".yaml").read_text())
+        maia_config_dict = yaml.safe_load(Path(maia_config_file).read_text())
 
 
-    file = create_deployment_package(cluster_config_path=Path(cluster_config_path).joinpath(f"{cluster}.yaml"),
 
-                          config_path=os.environ["CONFIG_PATH"],
-                          group_id=group_id,
-                          user_list=users,
-                          id_token=request.session.get('oidc_id_token'),
-                          user_id=request.user.email,
-                          cluster_id=cluster,
-                          output_folder=os.environ["CONFIG_PATH"],
-                          gpu_request=gpu_request,
-                          memory_limits=memory_limits,
-                          cpu_limits=cpu_limits,
-                          namespace_for_custom_env=custom_env,
-                          minimal = is_minimal,
-                          maia_config_path=maia_config_path
-                          )
+        #Path(config_path).joinpath("forms").mkdir(parents=True, exist_ok=True)
+        #with open(Path(config_path).joinpath("forms",f"{group_id}_form.yaml"), "w") as f:
+        #    yaml.dump(project_form_dict, f)
+        
 
-    path_to_file = os.path.realpath(file)
-    response = FileResponse(open(path_to_file, 'rb'),as_attachment=True,)
-    file_name = Path(file).name
-    response['Content-Disposition'] = 'inline; filename=' + file_name
-    return response
+        deploy_maia_toolkit_api(project_form_dict=project_form_dict, 
+                                maia_config_dict=maia_config_dict,
+                                cluster_config_dict=cluster_config_dict,
+                                config_folder="/config", #config_path,
+                                redeploy_enabled=True)
+    
+
+        namespace = project_form_dict["group_ID"].lower().replace("_", "-")
+
+        create_namespace(request=request, cluster_id=cluster_id, namespace_id=namespace, settings=settings)
+        
+        return redirect(f"{argocd_url}/applications?proj={namespace}")
+
+
+    
