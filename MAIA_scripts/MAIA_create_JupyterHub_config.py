@@ -250,7 +250,7 @@ def create_jupyterhub_config_api( form,
                 "defaultUrl": "/lab/tree/Welcome.ipynb",
                 "extraEnv":{
                     "GRANT_SUDO": "yes",
-                    "SHELL": "/usr/bin/bash",
+                    "SHELL": "/usr/bin/zsh",
                     "TZ": "UTC",
                     "SIZEW": "1920",
                     "SIZEH": "1080",
@@ -267,7 +267,14 @@ def create_jupyterhub_config_api( form,
                     "MINIO_SECRET_KEY": user_form.get("minio_secret_key", "N/A"),
                     "MLFLOW_TRACKING_URI": f"https://{hub_address}/mlflow",
                     "HOSTNAME": cluster_config["ssh_hostname"],
-                    "NAMESPACE": namespace.lower()
+                    "NAMESPACE": namespace.lower(),
+                    #"INSTALL_QUPATH": "0",
+                    "INSTALL_SLICER": "1",
+                    "INSTALL_ZSH": "1",
+                    "INSTALL_ITKSNAP": "1",
+                    #"INSTALL_FREESURFER": "0",
+                    "CONDA_ENVS_PATH": "/home/maia-user/.conda/envs/"
+                    #"FREESURFER_HOME": "/home/maia-user/freesurfer/freesurfer",
 
                 }
             }
