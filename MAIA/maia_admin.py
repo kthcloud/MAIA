@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
 from pathlib import Path
-from MAIA.maia_fn import encode_docker_registry_secret, convert_username_to_jupyterhub_username, get_ssh_ports
+from MAIA.maia_fn import encode_docker_registry_secret, convert_username_to_jupyterhub_username, get_ssh_ports, get_ssh_port_dict
 import argocd_client
 from argocd_client.rest import ApiException
 from pyhelm3 import Client
@@ -33,7 +33,7 @@ def generate_minio_configs():
 
     return minio_configs
 
-def generate_mlfow_configs(namespace):
+def generate_mlflow_configs(namespace):
     """
     Generate MLflow configuration dictionary with encoded user and password.
 
@@ -47,12 +47,12 @@ def generate_mlfow_configs(namespace):
     dict
         A dictionary containing the encoded MLflow user and password.
     """
-    mlfow_configs = {
+    mlflow_configs = {
         "mlflow_user": base64.b64encode(namespace.encode("ascii")).decode("ascii"),
         "mlflow_password": base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
     }
 
-    return mlfow_configs
+    return mlflow_configs
 
 def generate_mysql_configs(namespace):
     """
@@ -98,21 +98,36 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         A dictionary containing the namespace, release name, chart name, repository URL, chart version, 
         and the path to the generated values file.
     """
-    ssh_ports = get_ssh_ports(cluster_config["ssh_port_type"], len(namespace_config["users"]))
+    
+    maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
+    ssh_ports = get_ssh_ports(cluster_config["ssh_port_type"],cluster_config["port_range"], len(namespace_config["users"]), maia_metallb_ip=maia_metallb_ip)
+    ssh_port_dict = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
     users = []
 
     if cluster_config["ssh_port_type"] == "LoadBalancer":
         for user in namespace_config["users"]:
-            users.append({
-                "jupyterhub_username": convert_username_to_jupyterhub_username(user),
-                "sshPort": ssh_ports.pop(0)
-            })
+            if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
+                users.append({
+                    "jupyterhub_username": convert_username_to_jupyterhub_username(user),
+                    "sshPort": ssh_port_dict["jupyter-"+convert_username_to_jupyterhub_username(user)]
+                })
+            else:
+                users.append({
+                    "jupyterhub_username": convert_username_to_jupyterhub_username(user),
+                    "sshPort": ssh_ports.pop(0)
+                })
     else:
         for ssh_port, user in zip(ssh_ports, namespace_config["users"]):
-            users.append({
-                "jupyterhub_username": convert_username_to_jupyterhub_username(user),
-                "sshPort": ssh_port
-            })
+            if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
+                users.append({
+                    "jupyterhub_username": convert_username_to_jupyterhub_username(user),
+                    "sshPort": ssh_port_dict["jupyter-"+convert_username_to_jupyterhub_username(user)]
+                })
+            else:
+                users.append({
+                    "jupyterhub_username": convert_username_to_jupyterhub_username(user),
+                    "sshPort": ssh_port
+                })
 
     maia_namespace_values = {
         "pvc": {

@@ -64,6 +64,51 @@ def create_config_map_from_data(data: str, config_map_name: str, namespace: str,
         except ApiException as e:
             print("Exception when calling CoreV1Api->delete_namespaced_config_map: %s\n" % e)
 
+def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
+    """
+    Retrieve a dictionary of used SSH ports for services in a Kubernetes cluster.
+
+    Parameters
+    ----------
+    port_type : str
+        The type of port to check ('LoadBalancer' or 'NodePort').
+    namespace : str
+        The namespace to filter services by.
+    port_range : tuple
+        A tuple specifying the range of ports to check (start, end).
+    maia_metallb_ip : str, optional
+        The IP address of the MetalLB load balancer (default is None).
+
+    Returns
+    -------
+    list of dict
+        A list of dictionaries with service names as keys and their corresponding used SSH ports as values.
+        Returns None if an exception occurs.
+    """
+
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
+
+    v1 = client.CoreV1Api()
+
+    try:
+        used_port = []
+        services = v1.list_service_for_all_namespaces(watch=False)
+        for svc in services.items:
+            if port_type == 'LoadBalancer':
+                if svc.status.load_balancer.ingress is not None:
+                    if svc.spec.type == 'LoadBalancer' and svc.status.load_balancer.ingress[0].ip == maia_metallb_ip:
+                        for port in svc.spec.ports:
+                            if port.name == 'ssh' and svc.metadata.namespace == namespace:  # TODO: or port.name == 'pt-orthanc'
+                                used_port.append({svc.metadata.name:int(port.port)})
+            elif port_type == "NodePort":
+                if svc.spec.type == 'NodePort' and svc.metadata.namespace == namespace:
+                    for port in svc.spec.ports:
+                        if port.port >= port_range[0] and port.port <= port_range[1]:
+                            used_port.append({svc.metadata.name:int(port.port)})
+        return used_port
+    except:
+        return None
 
 def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
     """

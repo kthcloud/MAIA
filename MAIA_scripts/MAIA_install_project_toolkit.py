@@ -8,7 +8,7 @@ import hydra
 import yaml
 from omegaconf import OmegaConf
 from MAIA.maia_fn import deploy_oauth2_proxy, deploy_mysql, deploy_mlflow
-from MAIA.maia_admin import create_maia_namespace_values, install_maia_project, get_maia_toolkit_apps, generate_minio_configs, generate_mlfow_configs, generate_mysql_configs
+from MAIA.maia_admin import create_maia_namespace_values, install_maia_project, get_maia_toolkit_apps, generate_minio_configs, generate_mlflow_configs, generate_mysql_configs
 from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
 import datetime
 import argparse
@@ -148,7 +148,7 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
 
 
     minio_configs = generate_minio_configs()
-    mlflow_configs = generate_mlfow_configs(namespace=group_id.lower().replace("_", "-"))
+    mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
     mysql_configs = generate_mysql_configs(namespace=group_id.lower().replace("_", "-"))
 
     project_form_dict["minio_access_key"] = minio_configs["console_access_key"]
