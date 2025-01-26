@@ -47,7 +47,11 @@ data:
         argocd_namespace: {{ .Values.argocd_namespace }}
         admin_group_ID: {{ .Values.admin_group_ID }}
         core_project_chart: {{ .Values.core_project_chart }}
+        core_project_repo: {{ .Values.core_project_repo }}
+        core_project_version: {{ .Values.core_project_version }}
         admin_project_chart: {{ .Values.admin_project_chart }}
+        admin_project_repo: {{ .Values.admin_project_repo }}
+        admin_project_version: {{ .Values.admin_project_version }}
         maia_project_chart: {{ .Values.maia_project_chart }}
         maia_project_repo: {{ .Values.maia_project_repo }}
         maia_project_version: {{ .Values.maia_project_version }}
