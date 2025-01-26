@@ -29,7 +29,7 @@ RUN pip install jupyter-rsession-proxy
 #RUN apt-get install python3-pyqt5.qtquick python3-pyqt5.qtsvg -y && pip install glueviz[recommended,qt]  glue-jupyterlab && pip install git+https://github.com/glue-viz/glue-jupyter.git
 
 
-RUN pip install python-dotenv jupyter-ai jupyter-server-proxy jupyter-vscode-proxy
+RUN pip install jupyter-ai jupyter-vscode-proxy
 
 RUN pip install panel 
 

@@ -26,7 +26,7 @@ RUN pip install jupyterhub  notebook jupyterlab
 RUN pip install jupyterlab-git jupyter_scheduler
 RUN pip install jupyter_contrib_nbextensions  && pip install nbgitpuller 
 #&& jupyter contrib nbextension install --user
-
+RUN pip install python-dotenv jupyter-server-proxy
 ENV PATH="$PATH:/root/.local/bin"
 
 USER 1000
