@@ -12,6 +12,7 @@ Submodules
    MAIA.dashboard_utils
    MAIA.maia_core
    MAIA.maia_admin
+   MAIA.maia_docker_images
 
 Module contents
 ---------------
