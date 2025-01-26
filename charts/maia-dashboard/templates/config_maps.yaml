@@ -16,7 +16,8 @@ data:
     env.env: |-
         DEBUG=True
         SERVER={{ .Values.dashboard.host }}
-        DISCORD_SIGNUP_URL={{ .Values.dashboard.discord_signup_url }}
+        DISCORD_SIGNUP_URL={{ default "None" .Values.dashboard.discord_signup_url }}
+        DISCORD_URL={{ default "None" .Values.dashboard.discord_url }}
         OIDC_RP_CLIENT_ID={{ .Values.dashboard.keycloak.client_id }}
         OIDC_SERVER_URL={{ .Values.dashboard.keycloak.url }}
         OIDC_REALM_NAME={{ .Values.dashboard.keycloak.realm }}
@@ -31,8 +32,17 @@ data:
         OIDC_RP_SCOPES=openid email profile
         ARGOCD_SERVER={{ .Values.dashboard.argocd_server }}
         ARGOCD_CLUSTER={{ .Values.dashboard.argocd_cluster_name }}
+        {{- if .Values.dashboard.local_db_path }}
         LOCAL_DB_PATH={{ .Values.dashboard.local_db_path }}
-    
+        {{- end }}
+        {{- if .Values.mysql.enabled }}
+        DB_ENGINE=mysql
+        DB_NAME={{ .Values.mysql.mysqlDatabase }}
+        DB_HOST={{ include "maia-dashboard.fullname" . }}-mysql
+        DB_PORT=3306
+        DB_USERNAME={{ .Values.mysql.mysqlUser }}
+        DB_PASS={{ .Values.mysql.mysqlPassword }}
+        {{- end }}
     maia_config.yaml: |-
         argocd_namespace: {{ .Values.argocd_namespace }}
         admin_group_ID: {{ .Values.admin_group_ID }}

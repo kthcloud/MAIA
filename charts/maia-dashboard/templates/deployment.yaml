@@ -42,7 +42,7 @@ spec:
           env: {{- toYaml .Values.env | nindent 12 }}
           volumeMounts:
             - name: config
-              mountPath: /etc/MAIA-Dashboard/config
+              mountPath: {{ .Values.dashboard.local_config_path }}
             - name: db
               mountPath: {{ .Values.dashboard.local_db_path }}
           ports:

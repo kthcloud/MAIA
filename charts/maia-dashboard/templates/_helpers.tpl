@@ -43,10 +43,30 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Common labels
+*/}}
+{{- define "maia-dashboard-mysql.labels" -}}
+helm.sh/chart: {{ include "maia-dashboard.chart" . }}
+{{ include "maia-dashboard-mysql.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
 Selector labels
 */}}
 {{- define "maia-dashboard.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "maia-dashboard.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "maia-dashboard-mysql.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "maia-dashboard.name" . }}-mysql
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
