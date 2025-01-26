@@ -110,6 +110,12 @@ def create_configuration(cluster_config, config_folder):
         "enabled": True,
         "token": ""
     }
+    
+    cluster_config_dict["imagePullSecrets"] = "registry."+cluster_config_dict["domain"]
+    cluster_config_dict["docker_server"] = "registry."+cluster_config_dict["domain"]
+    cluster_config_dict["docker_username"] = "CHANGEME_ROBOT"
+    cluster_config_dict["docker_password"] = "CHANGEME_ROBOT_PASSWORD"
+    cluster_config_dict["docker_email"] = "CHANGEME_ROBOT_EMAIL"
 
 
     with open(os.path.join(config_folder,"MAIA_realm_template.json"), "r") as f:

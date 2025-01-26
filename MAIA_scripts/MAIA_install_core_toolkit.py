@@ -193,13 +193,17 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     
     
         project_chart = maia_config_dict["core_project_chart"]
-        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart))
+        project_repo = maia_config_dict["core_project_repo"]
+        project_version = maia_config_dict["core_project_version"]
+        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart, project_repo=project_repo, project_version=project_version))
     else:
         print("Upgrading MAIA Core Toolkit")
     
     
         project_chart = maia_config_dict["core_project_chart"]
-        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart))
+        project_repo = maia_config_dict["core_project_repo"]
+        project_version = maia_config_dict["core_project_version"]
+        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart, project_repo=project_repo, project_version=project_version))
 
 
 if __name__ == "__main__":

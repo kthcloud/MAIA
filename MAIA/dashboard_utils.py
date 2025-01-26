@@ -1180,7 +1180,8 @@ def register_user_in_keycloak(email, settings):
                                             'temporary':True,
                                             'value': temp_password}],                         
                                               })
-    send_approved_registration_email(email, maia_login_url, temp_password)
+    if "email_account" in os.environ and "email_password" in os.environ and "email_smtp_server" in os.environ:
+        send_approved_registration_email(email, maia_login_url, temp_password)
 
 def register_group_in_keycloak(group_id, settings):
     """
