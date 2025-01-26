@@ -808,9 +808,9 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
     
     maia_dashboard_values.update({
         "image": {
-            "repository": "registry." + cluster_config_dict["domain"] + "/maia/maia-dashboard",
+            "repository": maia_config_dict["dashboard_image"],
             "pullPolicy": "IfNotPresent",
-            "tag": "1.0"
+            "tag": maia_config_dict["dashboard_version"]
         },
         "imagePullSecrets": [
             {
