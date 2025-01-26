@@ -107,7 +107,7 @@ The home page displays an overview of the MAIA API, including the associated clu
 **MAIA Admin**:
 
 <p align="center">
-    <img src="image/README/MAIA_Admin.png" alt="MAIA Admin" width="20%">
+    <img src="image/README/MAIA-Admin.png" alt="MAIA Admin" width="50%">
 </p>
 
 - MinIO Operator: A Kubernetes operator that allows users to deploy MinIO, a high-performance object storage server, on the Kubernetes cluster.
