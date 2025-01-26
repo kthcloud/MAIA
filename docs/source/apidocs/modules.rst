@@ -1,4 +1,4 @@
-MAIAKubeGate
+MAIA
 ============
 
 .. toctree::
