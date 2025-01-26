@@ -9,6 +9,10 @@ import os
 import yaml
 from secrets import token_urlsafe
 import base64
+import random
+import string
+import nltk
+from nltk.corpus import words
 
 
 def generate_minio_configs():
@@ -100,7 +104,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     """
     
     maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
-    ssh_ports = get_ssh_ports(cluster_config["ssh_port_type"],cluster_config["port_range"], len(namespace_config["users"]), maia_metallb_ip=maia_metallb_ip)
+    ssh_ports = get_ssh_ports(len(namespace_config["users"]),cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
     ssh_port_dict = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
     users = []
 
@@ -897,7 +901,14 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         ]
         maia_dashboard_values["dashboard"]["local_config_path"] = "/etc/MAIA-Dashboard/config"
     else:
-        db_password = token_urlsafe(16)
+        def generate_human_memorable_password(length=12):
+            nltk.download('words')
+            word_list = words.words()
+            password = '-'.join(random.choice(word_list) for _ in range(length // 6))
+            password += ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length - len(password)))
+            return password
+
+        db_password = generate_human_memorable_password()
         maia_dashboard_values["dashboard"]["local_config_path"] = "/mnt/dashboard-config"
         maia_dashboard_values["env"] = [
             { "name": "DEBUG", "value": "False" },

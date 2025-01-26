@@ -12,4 +12,5 @@ Requests
 SQLAlchemy
 toml
 click
+nltk
 hydra-core
