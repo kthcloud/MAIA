@@ -1,9 +1,10 @@
 from pathlib import Path
 import yaml
 
-def deploy_maia_kaniko(namespace,config_folder,cluster_config_dict, release_name, project_id, registry_url, registry_secret_name, image_name, image_tag, subpath, build_args=None):
+def deploy_maia_kaniko(namespace, config_folder, cluster_config_dict, release_name, project_id, registry_url, registry_secret_name, image_name, image_tag, subpath, build_args=None):
     """
     Deploys a Kaniko job for building and pushing Docker images to a specified registry.
+
     Parameters
     ----------
     namespace : str
@@ -28,6 +29,7 @@ def deploy_maia_kaniko(namespace,config_folder,cluster_config_dict, release_name
         The subpath of the repository where the Dockerfile is located.
     build_args : list, optional
         A list of build arguments to be passed to the Kaniko job.
+
     Returns
     -------
     dict

@@ -762,6 +762,7 @@ def create_minio_operator_values(config_folder, project_id, cluster_config_dict)
 def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict, maia_config_dict):
     """
     Create MAIA dashboard values for Helm chart deployment.
+    
     Parameters
     ----------
     config_folder : str
@@ -772,6 +773,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         Dictionary containing cluster configuration details.
     maia_config_dict : dict
         Dictionary containing MAIA configuration details.
+    
     Returns
     -------
     dict
