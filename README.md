@@ -23,7 +23,9 @@
 ![GitHub release (with filter)](https://img.shields.io/github/v/release/kthcloud/MAIA?logo=github)
 ![PyPI](https://img.shields.io/pypi/v/maia-toolkit?logo=pypi)
 
-![](MAIA.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kthcloud/maia/master/MAIA.png" width="80%" alt='MAIA'>
+</p>
 
 MAIA Toolkit is the main tool for deploying and managing MAIA, a platform for collaborative research in medical AI. 
 
@@ -44,7 +46,9 @@ MAIA is composed of three different layers, each serving a specific purpose:
 
 ### MAIA Core:
 
-![](dashboard/image/README/MAIA_Core.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/image/README/MAIA_Core.png" width="70%" alt='MAIA'>
+</p>
 
 The `MAIA Core` layer includes the core components that provide the basic functionality of the platform.
 
@@ -65,7 +69,10 @@ The core components of MAIA include:
 ### MAIA Admin:
 
 
-![](dashboard/image/README/MAIA-Admin.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/image/README/MAIA-Admin.png" width="70%" alt='MAIA'>
+</p>
+
 
 The `MAIA Admin` layer includes the administrative components that provide the administrative functionality of the MAIA platform.
 
@@ -82,7 +89,10 @@ The admin components of MAIA include:
 The `MAIA Namespaces` layer is designed to be project-specific, allowing users to create isolated environments for their projects.
 This layers is designed to provide the external interfaces for the users to interact with the platform, making the MAIA platform remotely accessible to the users.
 
-![](dashboard/image/README/MAIA_Workspace.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/image/README/MAIA_Workspace.png" width="70%" alt='MAIA'>
+</p>
+
 
 
 The MAIA platform provides a range of applications and tools that you can use to develop your projects, grouped into a *MAIA Workspace*.
@@ -109,9 +119,12 @@ Additionally, the MAIA platform provides access to a range of cloud services and
 - **XNAT [Experimental]** : An open-source platform for managing and sharing medical imaging data.
 - **Label Studio**: An open-source platform for data labeling and annotation.
 - **KubeFlow**: An open-source platform for deploying machine learning workflows on Kubernetes.
-- **MONAI Deploy **: An open-source platform for deploying deep learning models for medical imaging in clinical production settings.
+- **MONAI Deploy [Experimental]**: An open-source platform for deploying deep learning models for medical imaging in clinical production settings.
 
-![](Workspace.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kthcloud/maia/master/Workspace.png" width="70%" alt='MAIA'>
+</p>
+
 
 ## Installation
 
@@ -126,10 +139,6 @@ To build the documentation, run:
 
 ```shell
 cp README.md docs/source/README.md
-cp MAIA.png docs/source/MAIA.png
-cp Workspace.png docs/source/Workspace.png
-mkdir -p docs/source/dashboard/image/README
-cp dashboard/image/README/* docs/source/dashboard/image/README/
 cp -r docker/MAIA-Workspace/Tutorials docs/source/apidocs/tutorials/MAIA-Workspace
 python docs/scripts/generate_tutorials_rst.py
 cd docs
