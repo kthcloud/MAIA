@@ -1,0 +1,21 @@
+{{- if .Values.argocd.additional_clusters }}
+{{- range .Values.argocd.additional_clusters }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .name }}-cluster
+  namespace: {{ .Values.argocd.argocd_namespace }}
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+data:
+  name: {{ .name | b64encode }}
+  server: {{ .server | b64encode }}
+  {{- if .token }}
+  config: {{ "{\"bearerToken\":\"" | b64encode }}{{ .token | b64encode }}{{ "\",\"tlsClientConfig\":{\"insecure\":true}}" | b64encode }}
+  {{- else }}
+  config: {{ "{\"tlsClientConfig\":{\"insecure\":true}}" | b64encode }}
+  {{- end }}
+
+type: Opaque
+{{- end }}
+{{- end }}

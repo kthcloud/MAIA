@@ -1,4 +1,5 @@
-FROM kthcloud/maia-kube:1.0
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
 
 
 USER root
@@ -9,15 +10,15 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get install -y default-libmysqlclient-dev build-essential pkg-config
 RUN mkdir /etc/MAIA-Dashboard
 WORKDIR /etc/MAIA-Dashboard
-COPY dashboard/requirements.txt /etc/MAIA-Dashboard
+COPY requirements.txt /etc/MAIA-Dashboard
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY dashboard/manage.py /etc/MAIA-Dashboard
-COPY dashboard/apps /etc/MAIA-Dashboard/apps
-COPY dashboard/core /etc/MAIA-Dashboard/core
+COPY manage.py /etc/MAIA-Dashboard
+COPY apps /etc/MAIA-Dashboard/apps
+COPY core /etc/MAIA-Dashboard/core
 
-COPY dashboard/start.sh /etc/MAIA-Dashboard
+COPY start.sh /etc/MAIA-Dashboard
 
 
 #COPY MAIA /etc/MAIA-Dashboard/MAIA

@@ -1,6 +1,6 @@
 ruamel_yaml
 git+https://github.com/globocom/argocd-client.git
-keycloak
+python-keycloak
 kubernetes
 minio
 numpy

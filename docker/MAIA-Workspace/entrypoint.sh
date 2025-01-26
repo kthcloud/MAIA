@@ -13,10 +13,17 @@ sudo -u maia-user chmod 700 /tmp/runtime-user
 # Make user directory owned by the user in case it is not
 sudo chown maia-user:maia-user /home/maia-user || sudo chown maia-user:maia-user /home/maia-user/* || { echo "Failed to change maia-user directory permissions. There may be permission issues."; }
 # Change operating system password to environment variable
-sudo cp -r /etc/Tutorials /home/maia-user
-sudo cp /etc/Welcome.ipynb /home/maia-user
-sudo chmod -R 777 /home/maia-user/Tutorials
-sudo chmod 777 /home/maia-user/Welcome.ipynb
+if [ ! -d /home/maia-user/Tutorials ]; then
+  sudo cp -r /etc/Tutorials /home/maia-user
+  sudo chmod -R 777 /home/maia-user/Tutorials
+fi
+
+if [ ! -f /home/maia-user/Welcome.ipynb ]; then
+  sudo cp /etc/Welcome.ipynb /home/maia-user
+  sudo chmod 777 /home/maia-user/Welcome.ipynb
+fi
+
+
 #if [ ! -d /home/maia-user/Shared ]; then
 #    ln -s /mnt/shared /home/maia-user/Shared
 #fi
@@ -86,10 +93,48 @@ sudo nginx -c /etc/nginx/nginx.conf -g 'daemon off;' &
 
 
 
-cp /etc/.bash_profile /home/maia-user/
+if [ ! -f /home/maia-user/.bash_profile ]; then
+  cp /etc/.bash_profile /home/maia-user/
+fi
 cp /etc/MAIA.png /home/maia-user/
 echo "Session Running. Press [Return] to exit."
 read
 
+
+sleep 30
+
+until [ -d "$HOME/Desktop" ]; do
+  sleep 1
+done
+
+bash /etc/change_desktop_wallpaper.sh
+
+if [ "$INSTALL_ZSH" = "1" ]; then
+    /etc/install_zsh.sh
+fi
+
+if [ "$INSTALL_SLICER" = "1" ]; then
+    /etc/install_slicer.sh
+fi
+
+if [ "$INSTALL_FREESURFER" = "1" ]; then
+    /etc/install_freesurfer.sh
+fi
+
+if [ "$INSTALL_ITKSNAP" = "1" ]; then
+    /etc/install_itksnap.sh
+fi
+
+if [ "$INSTALL_QUPATH" = "1" ]; then
+    /etc/install_qupath.sh
+fi
+
+if [ ! -f "$HOME/.zshrc" ]; then
+  cp /etc/.zshrc "$HOME/"
+fi
+
+if [ ! -f "$HOME/.tmux.conf" ]; then
+  cp /etc/.tmux.conf "$HOME/"
+fi
 # Only for debugging and development
 #exec "$@"

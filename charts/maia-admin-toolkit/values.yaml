@@ -5,6 +5,11 @@ argocd:
   keycloak_issuer_url: ""
   keycloak_client_id: ""
   keycloak_client_secret: ""
+## Additional clusters to be added to ArgoCD
+#  additional_clusters: 
+#    - name: "fake-cluster"
+#      server: "https://kubernetes.default.svc"
+#      token: "fake-token"
 certResolver: ""
 admin_group_ID: "MAIA:admin"
 

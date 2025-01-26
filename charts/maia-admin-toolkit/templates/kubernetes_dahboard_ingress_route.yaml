@@ -21,7 +21,7 @@ spec:
     - websecure
   routes:                           
   - kind: Rule
-    match:   Host(`{{ .Values.dashboard.dashboard_domain }}`) && PathPrefix(`/dashboard`)
+    match:   Host(`{{ .Values.dashboard.dashboard_domain }}`) #&& PathPrefix(`/dashboard`)
     priority: 10                    
     services:                       
     - kind: Service

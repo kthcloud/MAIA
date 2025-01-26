@@ -1,0 +1,130 @@
+# Default values for maia-dashboard.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+mysql:
+  enabled: false
+  mysqlRootPassword: ""
+  mysqlUser: ""
+  mysqlPassword: ""
+  mysqlDatabase: ""
+
+storage_class: ""
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: DEBUG
+    value: "True"
+  - name: CLUSTER_CONFIG_PATH
+    value: /etc/MAIA-Dashboard/config
+  - name: CONFIG_PATH
+    value: /etc/MAIA-Dashboard/config
+  - name: MAIA_CONFIG_PATH
+    value: /etc/MAIA-Dashboard/config/maia_config.yaml
+
+gpuList: []
+
+dashboard:
+  discord_signup_url: ""
+  keycloak:
+    client_id: ""
+    client_secret: ""
+    url: ""
+    realm: ""
+    username: ""
+  argocd_server: ""
+  argocd_cluster_name: ""
+
+argocd_namespace: ""
+admin_group_ID: ""
+core_project_chart: ""
+admin_project_chart: ""
+maia_project_chart: ""
+maia_project_repo: ""
+maia_project_version: ""
+maia_workspace_version: ""
+maia_workspace_image: ""
+maia_monai_toolkit_image: ""
+
+clusters:    
+- domain: ""
+  ingress_resolver_email: ""
+  cluster_name: demo-cluster
+  k8s_distribution: microk8s
