@@ -758,3 +758,171 @@ def create_minio_operator_values(config_folder, project_id, cluster_config_dict)
         "version": minio_operator_values["chart_version"],
         "values": str(Path(config_folder).joinpath(project_id, "minio_operator_values", "minio_operator_values.yaml"))
     }
+
+def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict, maia_config_dict):
+    """
+    Create MAIA dashboard values for Helm chart deployment.
+    
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The project identifier.
+    cluster_config_dict : dict
+        Dictionary containing cluster configuration details.
+    maia_config_dict : dict
+        Dictionary containing MAIA configuration details.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the namespace, release name, chart name, repository URL, chart version, 
+        and the path to the generated values YAML file.
+    """
+    
+    maia_dashboard_values = {
+        "namespace": "maia-dashboard",
+        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "chart_name": "maia-dashboard",
+        "chart_version": "0.1.2",
+    }
+    
+
+              
+    
+    maia_dashboard_values.update({
+        "image": {
+            "repository": "registry." + cluster_config_dict["domain"] + "/maia/maia-dashboard",
+            "pullPolicy": "IfNotPresent",
+            "tag": "1.0"
+        },
+        "imagePullSecrets": [
+            {
+                "name": "registry."+ cluster_config_dict["domain"]
+            }
+        ],
+        "storageClass": cluster_config_dict["storage_class"],
+        "ingress": {
+            "enabled": True,
+            "className": cluster_config_dict["ingress_class"],
+            "annotations": {
+            },
+            "hosts": [
+                { "host": cluster_config_dict["domain"],
+                    "paths": [
+                        { "path": "/maia/",
+                            "pathType": "Prefix"
+                        }
+                    ]
+                    }
+            ],
+            "tls": [
+                { "hosts": [
+                    cluster_config_dict["domain"]
+                    ]
+                }
+            ]
+        },
+    "gpuList": maia_config_dict["gpu_list"],
+    "dashboard": {
+        "host": cluster_config_dict["domain"],
+        "keycloak": {
+            "client_id": "maia",
+            "client_secret": cluster_config_dict["keycloak_maia_client_secret"],
+            "url": "https://iam." + cluster_config_dict["domain"]+"/",
+            "realm": "maia",
+            "username": "admin"
+        },
+        "argocd_server": "https://argocd." + cluster_config_dict["domain"],
+        "argocd_cluster_name": cluster_config_dict["cluster_name"],
+        "local_db_path": "/etc/MAIA-Dashboard/db"
+    },
+    "argocd_namespace": maia_config_dict["argocd_namespace"],
+    "admin_group_ID": maia_config_dict["admin_group_ID"],
+    "core_project_chart": "maia-core-project",
+    "core_project_repo": "https://kthcloud.github.io/MAIA/",
+    "core_project_version": "1.0.0",
+    "admin_project_chart": "maia-admin-project",
+    "admin_project_repo": "https://kthcloud.github.io/MAIA/",
+    "admin_project_version": "1.0.0",
+    "maia_project_chart": "maia-project",
+    "maia_project_repo": "https://kthcloud.github.io/MAIA/",
+    "maia_project_version": "1.0.0",
+    "maia_workspace_version": "1.6c",
+    "maia_workspace_image": "kthcloud/maia-workspace-notebook-ssh-addons",
+    "maia_monai_toolkit_image": "kthcloud/maia-monai-toolkit:3.0.1",    
+    "name": "maia-dashboard",
+    "dockerRegistrySecretName": "registry."+ cluster_config_dict["domain"],
+    "dockerRegistryUsername": cluster_config_dict["docker_username"],
+    "dockerRegistryPassword": cluster_config_dict["docker_password"],
+    "dockerRegistryEmail": cluster_config_dict["docker_email"],
+    "dockerRegistryServer": "registry."+ cluster_config_dict["domain"],
+    }
+    )
+    
+    maia_dashboard_values["clusters"] = [
+        cluster_config_dict
+    ]
+    
+    if "discord_url" in maia_config_dict:
+        maia_dashboard_values["dashboard"]["discord_url"] = maia_config_dict["discord_url"]
+    if "discord_signup_url" in maia_config_dict:
+        maia_dashboard_values["dashboard"]["discord_signup_url"] = maia_config_dict["discord_signup_url"]
+    
+    debug = True
+    
+    if debug:
+    
+        maia_dashboard_values["env"] = [
+            { "name": "DEBUG", "value": "True" },
+            { "name": "CLUSTER_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config" },
+            { "name": "CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config" },
+            { "name": "MAIA_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config/maia_config.yaml" }
+        ]
+        maia_dashboard_values["dashboard"]["local_config_path"] = "/etc/MAIA-Dashboard/config"
+    else:
+        db_password = token_urlsafe(16)
+        maia_dashboard_values["dashboard"]["local_config_path"] = "/mnt/dashboard-config"
+        maia_dashboard_values["env"] = [
+            { "name": "DEBUG", "value": "False" },
+            { "name": "CLUSTER_CONFIG_PATH", "value": "/mnt/dashboard-config" },
+            { "name": "CONFIG_PATH", "value": "/mnt/dashboard-config" },
+            { "name": "MAIA_CONFIG_PATH", "value": "/mnt/dashboard-config/maia_config.yaml" },
+            { "name": "DB_ENGINE", "value": "mysql" },
+            { "name": "DB_NAME", "value": "mysql" },
+            { "name": "DB_HOST", "value": "maia-admin-maia-dashboard-mysql" },
+            { "name": "DB_PORT", "value": "3306" },
+            { "name": "DB_USERNAME", "value": "maia-admin" },
+            { "name": "DB_PASS", "value": db_password },
+        ]
+        maia_dashboard_values["mysql"] = {
+            "enabled": True,
+            "mysqlRootPassword": db_password,
+            "mysqlUser": "maia-admin",
+            "mysqlPassword": db_password,
+            "mysqlDatabase": "mysql"
+        }
+    
+    if maia_config_dict["email_server_credentials"]:
+        maia_dashboard_values["env"].extend([
+            { "name": "email_account", "value": maia_config_dict["email_server_credentials"]["email_account"] },
+            { "name": "email_password", "value": maia_config_dict["email_server_credentials"]["email_password"] },
+            { "name": "email_smtp_server", "value": maia_config_dict["email_server_credentials"]["email_smtp_server"] }
+        ])
+        
+    Path(config_folder).joinpath(project_id, "maia_dashboard_values").mkdir(parents=True, exist_ok=True)
+    with open(Path(config_folder).joinpath(project_id, "maia_dashboard_values", "maia_dashboard_values.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(maia_dashboard_values))
+        
+    return {
+        "namespace": maia_dashboard_values["namespace"],
+        "release": f"{project_id}-dashboard",
+        "chart": maia_dashboard_values["chart_name"],
+        "repo": maia_dashboard_values["repo_url"],
+        "version": maia_dashboard_values["chart_version"],
+        "values": str(Path(config_folder).joinpath(project_id, "maia_dashboard_values", "maia_dashboard_values.yaml"))
+    }
+
+
+

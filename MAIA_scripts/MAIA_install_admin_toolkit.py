@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 import yaml
 from omegaconf import OmegaConf
-from MAIA.maia_admin import install_maia_project, create_harbor_values, create_keycloak_values, create_loginapp_values, create_minio_operator_values, create_maia_admin_toolkit_values
+from MAIA.maia_admin import install_maia_project, create_harbor_values, create_keycloak_values, create_loginapp_values, create_minio_operator_values, create_maia_admin_toolkit_values, create_maia_dashboard_values
 from hydra import initialize, initialize_config_dir
 from hydra import compose as hydra_compose
 import datetime
@@ -115,6 +115,7 @@ def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
     helm_commands.append(create_loginapp_values(config_folder, project_id,cluster_config_dict))
     helm_commands.append(create_minio_operator_values(config_folder, project_id,cluster_config_dict))
     helm_commands.append(create_maia_admin_toolkit_values(config_folder, project_id,cluster_config_dict, maia_config_dict=maia_config_dict))
+    helm_commands.append(create_maia_dashboard_values(config_folder, project_id,cluster_config_dict, maia_config_dict=maia_config_dict))
     
 
     for helm_command in helm_commands:
@@ -144,6 +145,7 @@ def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
                 {"loginapp_values": "loginapp_values"},
                 {"minio_operator_values": "minio_operator_values"},
                 {"maia_admin_toolkit_values": "maia_admin_toolkit_values"},
+                {"maia_dashboard_values": "maia_dashboard_values"}
               
          ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
@@ -181,13 +183,17 @@ def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
     
     
         project_chart = maia_config_dict["admin_project_chart"]
-        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart))
+        project_repo = maia_config_dict["admin_project_repo"]
+        project_version = maia_config_dict["admin_project_version"]
+        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart, project_repo=project_repo, project_version=project_version))
     else:
         print("Upgrading MAIA Admin Toolkit")
     
     
         project_chart = maia_config_dict["admin_project_chart"]
-        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart))
+        project_repo = maia_config_dict["admin_project_repo"]
+        project_version = maia_config_dict["admin_project_version"]
+        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart, project_repo=project_repo, project_version=project_version))
 
 
 if __name__ == "__main__":
