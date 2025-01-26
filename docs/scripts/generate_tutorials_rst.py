@@ -4,7 +4,7 @@ def find_notebooks(directory):
     notebooks = []
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith(".ipynb"):
+            if file.endswith(".ipynb") or file.endswith(".md"):
                 notebooks.append(os.path.relpath(os.path.join(root, file), directory))
     return notebooks
 
@@ -21,13 +21,22 @@ def generate_rst(notebooks, output_file):
         f.write("=========\n\n")
         for subfolder, notebooks in grouped_notebooks.items():
             if subfolder:
-                f.write(f"{subfolder}\n")
-                f.write(f"{'-' * len(subfolder)}\n\n")
+                last_subfolder = subfolder.split("/")[-1]
+                f.write(f"{last_subfolder}\n")
+                f.write(f"{'-' * len(last_subfolder)}\n\n")
             f.write(f".. toctree::\n")
             f.write(f"   :maxdepth: 1\n\n")
+            readme_found = False
             for notebook in notebooks:
-                title = os.path.splitext(os.path.basename(notebook))[0]
-                f.write(f"   tutorials/{notebook}\n")
+                if "README.md" in notebook:
+                    title = os.path.splitext(os.path.basename(notebook))[0]
+                    f.write(f"   tutorials/{notebook}\n")
+                    readme_found = True
+                    break
+            if not readme_found:
+                for notebook in notebooks:
+                    title = os.path.splitext(os.path.basename(notebook))[0]
+                    f.write(f"   tutorials/{notebook}\n")
             f.write("\n")
 
 if __name__ == "__main__":
