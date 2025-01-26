@@ -44,9 +44,7 @@ MAIA is composed of three different layers, each serving a specific purpose:
 
 ### MAIA Core:
 
-<p align="center">
-    <img src="dashboard/image/README/MAIA_Core.png" alt="MAIA Core" width="50%">
-</p>
+![](dashboard/image/README/MAIA_Core.png)
 
 The `MAIA Core` layer includes the core components that provide the basic functionality of the platform.
 
@@ -67,9 +65,7 @@ The core components of MAIA include:
 ### MAIA Admin:
 
 
-<p align="center">
-    <img src="dashboard/image/README/MAIA-Admin.png" alt="MAIA Admin" width="50%">
-</p>
+![](dashboard/image/README/MAIA-Admin.png)
 
 The `MAIA Admin` layer includes the administrative components that provide the administrative functionality of the MAIA platform.
 
@@ -86,9 +82,8 @@ The admin components of MAIA include:
 The `MAIA Namespaces` layer is designed to be project-specific, allowing users to create isolated environments for their projects.
 This layers is designed to provide the external interfaces for the users to interact with the platform, making the MAIA platform remotely accessible to the users.
 
-<p align="center">
-    <img src="dashboard/image/README/MAIA_Workspace.png" alt="Workspace" width="45%">
-</p>
+![](dashboard/image/README/MAIA_Workspace.png)
+
 
 The MAIA platform provides a range of applications and tools that you can use to develop your projects, grouped into a *MAIA Workspace*.
 
@@ -116,9 +111,7 @@ Additionally, the MAIA platform provides access to a range of cloud services and
 - **KubeFlow**: An open-source platform for deploying machine learning workflows on Kubernetes.
 - **MONAI Deploy **: An open-source platform for deploying deep learning models for medical imaging in clinical production settings.
 
-<p align="center">
-    <img src="Workspace.png" alt="Workspace" width="45%">
-</p>
+![](Workspace.png)
 
 ## Installation
 
@@ -138,7 +131,7 @@ cp Workspace.png docs/source/Workspace.png
 mkdir -p docs/source/dashboard/image/README
 cp dashboard/image/README/* docs/source/dashboard/image/README/
 cp -r docker/MAIA-Workspace/Tutorials docs/source/apidocs/tutorials/MAIA-Workspace
-python docs/source/generate_tutorials_rst.py
+python docs/scripts/generate_tutorials_rst.py
 cd docs
 sphinx-autobuild source _build/html
 ```
