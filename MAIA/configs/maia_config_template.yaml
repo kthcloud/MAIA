@@ -1,0 +1,31 @@
+argocd_namespace: "argocd"
+admin_group_ID: "MAIA:admin"
+
+core_project_chart: "maia-core-project"
+core_project_repo: "https://kthcloud.github.io/MAIA/"
+core_project_version: "1.0.0"          
+
+admin_project_chart: "maia-admin-project"
+admin_project_repo: "https://kthcloud.github.io/MAIA/"
+admin_project_version: "1.0.0"        
+
+docker_build_project_chart: "charts/maia-docker-build-project"
+
+maia_project_chart: "maia-project"
+maia_project_repo: "https://kthcloud.github.io/MAIA/"
+maia_project_version: "1.0.0"
+
+dashboard_image: "registry.<your_domain>/maia/maia-dashboard"
+dashboard_version: "1.0.0"
+
+maia_workspace_version: "1.0"
+maia_workspace_image: "registry.<your_domain>/maia/maia-workspace-notebook-ssh-addons"
+maia_monai_toolkit_image: "registry.<your_domain>/maia/maia-monai-toolkit:3.0.1"
+
+gpu_list: []
+
+email_server_credentials:
+  email_account: <your_server_email>
+  email_password: <your_server_password>
+  email_smtp_server: <your_server_smtp>
+
