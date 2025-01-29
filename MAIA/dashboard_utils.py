@@ -1462,6 +1462,21 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                     if path['backend']['service']['name'] == 'proxy-public':
                         ## JupyterHub
                         maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
+                    if path['backend']['service']['name'] == 'maia-xnat':
+                        ## XNAT
+                        maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
+                        ## Orthanc
+                    if path['backend']['service']['name'] == 'orthanc' and ingress['metadata']['name'] == namespace + "-orthanc":
+                        
+                        maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
+                        maia_workspace_apps['ohif'] = "https://" + rule['host'] + "/ohif"
+                    
+                    if path['backend']['service']['name'] == 'orthanc':
+                        orthanc_list.append({
+                            "name": ingress['metadata']['name'],
+                            "internal_url": "",
+                            "url": "https://" + rule['host'] + path['path']+"/dicom-web/"
+                        })
 
         for service in services['items']:
             for port in service['spec']['ports']:
