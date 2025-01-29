@@ -13,6 +13,8 @@ sed -i "s+INGRESS_PATH+$MONAI_LABEL_INGRESS_PATH+g" /workspace/MONAILabel/plugin
 sed -i "s+INGRESS_PATH+$MONAI_LABEL_INGRESS_PATH+g" /workspace/MONAILabel/plugins/ohifv3/run.sh
 sed -i "s+INGRESS_PATH+$MONAI_LABEL_INGRESS_PATH+g" /workspace/MONAILabel/plugins/ohifv3/config/monai_label.js
 
+exec "$@" &
+
 cd MONAILabel && BUILD_OHIF=true pip install -e .
 
 pip install dicomweb-client[gcp]
@@ -38,4 +40,4 @@ else
   fi
 fi
 
-exec "$@"
+sleep infinity
