@@ -1421,7 +1421,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
     """
     maia_workspace_apps = {}
     remote_desktop_dict = {}
-    orthanc_list = {}
+    orthanc_list = []
     monai_models = {}
     ssh_ports = {}
 
