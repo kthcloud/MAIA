@@ -1469,7 +1469,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                     if path['backend']['service']['name'] == namespace + "-svc":
                         
                         maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
-                        maia_workspace_apps['ohif'] = "https://" + rule['host'] + "/ohif"
+                        maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path']+ "/ohif/"
                     
                     if 'port' in path['backend']['service'] and 'name' in path['backend']['service']['port']:
                         if path['backend']['service']['port']['name'] == 'orthanc':
