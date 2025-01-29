@@ -8,12 +8,12 @@ metadata:
   labels:
     argocd.argoproj.io/secret-type: cluster
 data:
-  name: {{ .name | b64encode }}
-  server: {{ .server | b64encode }}
+  name: {{ .name | b64enc }}
+  server: {{ .server | b64enc }}
   {{- if .token }}
-  config: {{ "{\"bearerToken\":\"" | b64encode }}{{ .token | b64encode }}{{ "\",\"tlsClientConfig\":{\"insecure\":true}}" | b64encode }}
+  config: {{ "{\"bearerToken\":\"" | b64enc }}{{ .token | b64enc }}{{ "\",\"tlsClientConfig\":{\"insecure\":true}}" | b64enc }}
   {{- else }}
-  config: {{ "{\"tlsClientConfig\":{\"insecure\":true}}" | b64encode }}
+  config: {{ "{\"tlsClientConfig\":{\"insecure\":true}}" | b64enc }}
   {{- end }}
 
 type: Opaque
