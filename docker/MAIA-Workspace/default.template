@@ -37,13 +37,13 @@ server {
        proxy_set_header X-Real-IP $remote_addr;
     }
 
-    location /${NAMESPACE}/ {
-      rewrite ^/(.*) /$1 break;
-      proxy_pass http://${NAMESPACE}:81/;
-      client_max_body_size 10240M;
-      proxy_set_header Host $host;
-       proxy_set_header X-Real-IP $remote_addr;
-    }
+    #location /${NAMESPACE}/ {
+    #  rewrite ^/(.*) /$1 break;
+    #  proxy_pass http://${NAMESPACE}:81/;
+    #  client_max_body_size 10240M;
+    #  proxy_set_header Host $host;
+    #   proxy_set_header X-Real-IP $remote_addr;
+    #}
 
     #location /vscode/${JUPYTERHUB_USER}/ {
    #   proxy_pass http://127.0.0.1:8081/;

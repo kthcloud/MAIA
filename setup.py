@@ -30,7 +30,7 @@ setup(
     zip_safe=False,
     data_files=[('', ["requirements.txt"]), ],
     package_data={
-        "": ["configs/*.json"],
+        "": ["configs/*.yaml", "configs/*.json", "configs/*.yml"],
     },
     entry_points={
         "console_scripts": [
