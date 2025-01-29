@@ -1466,17 +1466,18 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                         ## XNAT
                         maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
                         ## Orthanc
-                    if path['backend']['service']['name'] == 'orthanc' and ingress['metadata']['name'] == namespace + "-orthanc":
+                    if path['backend']['service']['name'] == namespace + "-svc":
                         
                         maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
                         maia_workspace_apps['ohif'] = "https://" + rule['host'] + "/ohif"
                     
-                    if path['backend']['service']['name'] == 'orthanc':
-                        orthanc_list.append({
-                            "name": ingress['metadata']['name'],
-                            "internal_url": "",
-                            "url": "https://" + rule['host'] + path['path']+"/dicom-web/"
-                        })
+                    if 'port' in path['backend']['service'] and 'name' in path['backend']['service']['port']:
+                        if path['backend']['service']['port']['name'] == 'orthanc':
+                            orthanc_list.append({
+                                "name": ingress['metadata']['name'],
+                                "internal_url": "",
+                                "url": "https://" + rule['host'] + path['path']+"/dicom-web/"
+                            })
 
         for service in services['items']:
             for port in service['spec']['ports']:
@@ -1496,8 +1497,8 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
         maia_workspace_apps["hub"] = "N/A"
     if "orthanc" not in maia_workspace_apps:
         maia_workspace_apps["orthanc"] = "N/A"
-    if "monai_label" not in maia_workspace_apps:
-        maia_workspace_apps["monai_label"] = "N/A"
+    if "ohif" not in maia_workspace_apps:
+        maia_workspace_apps["ohif"] = "N/A"
     if "label_studio" not in maia_workspace_apps:
         maia_workspace_apps["label_studio"] = "N/A"
     if "kubeflow" not in maia_workspace_apps:
