@@ -500,3 +500,36 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         "version": mlflow_values["chart_version"],
         "values": str(Path(config_folder).joinpath(user_config["group_ID"], "mlflow_values", "mlflow_values.yaml"))
     }
+
+
+def gpu_list_from_nodes():
+    """
+    Retrieves a list of GPUs from the nodes in a Kubernetes cluster.
+
+    This function loads the Kubernetes configuration from the environment,
+    initializes the Kubernetes client, and retrieves the list of nodes.
+    It then checks each node to see if it is ready and has GPU labels,
+    and constructs a dictionary with the node names as keys and a list
+    containing the GPU product and count as values.
+
+    Returns
+    -------
+    dict
+        A dictionary where the keys are node names and the values are lists
+        containing the GPU product and GPU count.
+    """
+
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
+
+    v1 = client.CoreV1Api()
+
+
+    nodes = v1.list_node(watch=False)
+    gpu_dict = {}
+    for node in nodes.items:
+        for status in node.status.conditions:
+            if status.type == "Ready" and status.status == "True":
+                if "nvidia.com/gpu.product" in node.metadata.labels:
+                    gpu_dict[node.metadata.name] = [ node.metadata.labels["nvidia.com/gpu.product"], node.metadata.labels["nvidia.com/gpu.count"] ] 
+    return gpu_dict

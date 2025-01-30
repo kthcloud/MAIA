@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 /opt/conda/bin/conda init bash
 /opt/conda/bin/conda init zsh
 

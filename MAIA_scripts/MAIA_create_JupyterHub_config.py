@@ -435,7 +435,7 @@ def create_jupyterhub_config_api( form,
     }
     
     if "imagePullSecrets" in cluster_config:
-        jh_template["singleuser"]["image"]["pullSecrets"] = cluster_config["imagePullSecrets"]
+        jh_template["singleuser"]["image"]["pullSecrets"] = [cluster_config["imagePullSecrets"]]
 
     maia_workspace_version = maia_form["maia_workspace_version"]
     maia_workspace_image = maia_form["maia_workspace_image"]

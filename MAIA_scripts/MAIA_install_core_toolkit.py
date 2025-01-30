@@ -116,7 +116,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
 
     # Allow either traefik or nginx ingress controller
     helm_commands.append(create_traefik_values(config_folder, project_id, cluster_config_dict))
-    #helm_commands.append(create_ingress_nginx_values(config_folder, project_id))
+    helm_commands.append(create_ingress_nginx_values(config_folder, project_id))
     
     helm_commands.append(create_metallb_values(config_folder, project_id))
     helm_commands.append(create_cert_manager_values(config_folder, project_id))
@@ -156,7 +156,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                 {"cert_manager_values": "cert_manager_values"},
                 {"rancher_values": "rancher_values"},
                 {"gpu_operator_values": "gpu_operator_values"},
-                #{"ingress_nginx_values": "ingress_nginx_values"}
+                {"ingress_nginx_values": "ingress_nginx_values"}
          ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "admin_group_ID": admin_group_ID,

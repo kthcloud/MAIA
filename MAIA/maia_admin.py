@@ -351,7 +351,7 @@ def create_maia_admin_toolkit_values(config_folder, project_id, cluster_config_d
         "namespace": "maia-admin-toolkit",
         "repo_url": "https://kthcloud.github.io/MAIA/",
         "chart_name": "maia-admin-toolkit",
-        "chart_version": "1.1.0",
+        "chart_version": "1.2.1",
     }
 
     admin_toolkit_values.update(
@@ -859,18 +859,18 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
     },
     "argocd_namespace": maia_config_dict["argocd_namespace"],
     "admin_group_ID": maia_config_dict["admin_group_ID"],
-    "core_project_chart": "maia-core-project",
-    "core_project_repo": "https://kthcloud.github.io/MAIA/",
-    "core_project_version": "1.0.0",
-    "admin_project_chart": "maia-admin-project",
-    "admin_project_repo": "https://kthcloud.github.io/MAIA/",
-    "admin_project_version": "1.0.0",
-    "maia_project_chart": "maia-project",
-    "maia_project_repo": "https://kthcloud.github.io/MAIA/",
-    "maia_project_version": "1.0.0",
-    "maia_workspace_version": "1.6c",
-    "maia_workspace_image": "kthcloud/maia-workspace-notebook-ssh-addons",
-    "maia_monai_toolkit_image": "kthcloud/maia-monai-toolkit:3.0.1",    
+    "core_project_chart": maia_config_dict["core_project_chart"],
+    "core_project_repo": maia_config_dict["core_project_repo"],
+    "core_project_version": maia_config_dict["core_project_version"],
+    "admin_project_chart": maia_config_dict["admin_project_chart"],
+    "admin_project_repo": maia_config_dict["admin_project_repo"],
+    "admin_project_version": maia_config_dict["admin_project_version"],
+    "maia_project_chart": maia_config_dict["maia_project_chart"],
+    "maia_project_repo": maia_config_dict["maia_project_repo"],
+    "maia_project_version": maia_config_dict["maia_project_version"],
+    "maia_workspace_version": maia_config_dict["maia_workspace_version"],
+    "maia_workspace_image": maia_config_dict["maia_workspace_image"],
+    "maia_monai_toolkit_image": maia_config_dict["maia_monai_toolkit_image"],    
     "name": "maia-dashboard",
     "dockerRegistrySecretName": "registry."+ cluster_config_dict["domain"],
     "dockerRegistryUsername": cluster_config_dict["docker_username"],
@@ -879,6 +879,14 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
     "dockerRegistryServer": "registry."+ cluster_config_dict["domain"],
     }
     )
+    
+    if cluster_config_dict["ingress_class"] == "maia-core-traefik":
+        maia_dashboard_values["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
+        maia_dashboard_values["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = 'true'
+        maia_dashboard_values["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config_dict["traefik_resolver"]
+    elif cluster_config_dict["ingress_class"] == "nginx":
+        maia_dashboard_values["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = "cluster-issuer"
+        maia_dashboard_values["ingress"]["tls"][0]["secretName"] = cluster_config_dict["domain"]
     
     maia_dashboard_values["clusters"] = [
         cluster_config_dict
