@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ .name }}-cluster
-  namespace: {{ .Values.argocd.argocd_namespace }}
+  namespace: {{ $.Values.argocd.argocd_namespace }}
   labels:
     argocd.argoproj.io/secret-type: cluster
 data:
