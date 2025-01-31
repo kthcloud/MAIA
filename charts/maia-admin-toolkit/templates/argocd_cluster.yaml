@@ -11,7 +11,7 @@ data:
   name: {{ .name | b64enc }}
   server: {{ .server | b64enc }}
   {{- if .token }}
-  config: {{ "{\"bearerToken\":\"" .token "\",\"tlsClientConfig\":{\"insecure\":true}}" | b64enc }}
+  config: {{ printf "{\"bearerToken\":\"%s\",\"tlsClientConfig\":{\"insecure\":true}}" .token | b64enc }}
   {{- else }}
   config: {{ "{\"tlsClientConfig\":{\"insecure\":true}}" | b64enc }}
   {{- end }}
