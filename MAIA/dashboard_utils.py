@@ -813,7 +813,8 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
     try:
         id = authentication_maiaproject[authentication_maiaproject["namespace"] == namespace ]["id"].values[0]
     except:
-        return
+        id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
+        authentication_maiaproject = authentication_maiaproject.append({"id": id, "namespace": namespace, "cluster": cluster}, ignore_index=True)
         
     authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
 
