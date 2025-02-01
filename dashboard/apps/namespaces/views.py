@@ -10,7 +10,7 @@ from pathlib import Path
 from django.http import HttpResponse, HttpResponseRedirect
 from .utils import get_svc_for_namespace
 # Create your views here.
-from MAIA.dashboard_utils import get_allocation_date_for_project, get_namespace_details, get_project
+from MAIA.dashboard_utils import get_allocation_date_for_project, get_namespace_details, get_project, register_cluster_for_project_in_db
 import datetime
 from django.conf import settings
 
@@ -82,7 +82,7 @@ def namespace_view(request,namespace_id):
         is_admin = False
         if request.user.is_superuser:
             is_admin = True
-        maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list = get_namespace_details(settings,id_token, namespace_id, user_id, is_admin=is_admin)
+        maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters = get_namespace_details(settings, id_token, namespace_id, user_id, is_admin=is_admin)
 
         groups = request.user.groups.all()
 
@@ -100,9 +100,14 @@ def namespace_view(request,namespace_id):
         _, cluster_id = get_project(namespace_id, settings=settings, is_namespace_style=True)
 
         cluster_config_path = os.environ["CLUSTER_CONFIG_PATH"]
-        cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(cluster_id+".yaml").read_text())
+        
+        if cluster_id is not None:
+            cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(cluster_id+".yaml").read_text())
+        else:
+            register_cluster_for_project_in_db(settings, namespace_id, deployed_clusters[0])
+            cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(deployed_clusters[0]+".yaml").read_text())
 
-        context = { "maia_workspace_ingress":maia_workspace_apps,"namespace":namespace_id,
+        context = { "maia_workspace_ingress": maia_workspace_apps,"namespace":namespace_id,
                     #"pods":pods, "nodes": nodes,
                     "remote_desktop_dict": remote_desktop_dict,
                     "allocation_date": allocation_date,
