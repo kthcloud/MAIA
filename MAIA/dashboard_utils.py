@@ -777,6 +777,57 @@ def get_user_table(settings):
 
     return table, users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict
 
+def register_cluster_for_project_in_db(settings, namespace, cluster):
+    """
+    Registers a cluster for a project in the database.
+    Depending on the DEBUG setting, this function connects to either a local SQLite database or a remote MySQL database.
+    It updates the cluster information for a given namespace in the `authentication_maiaproject` table.
+    
+    Parameters
+    ----------
+    settings : object
+        An object containing configuration settings. Must have `DEBUG` and `LOCAL_DB_PATH` attributes.
+    namespace : str
+        The namespace of the project to update.
+    cluster : str
+        The cluster information to register for the project.
+    
+    Returns
+    -------
+    None
+    """
+    
+    if settings.DEBUG:
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+    else:
+        db_host = os.environ["DB_HOST"]
+        db_user = os.environ["DB_USERNAME"]
+        dp_password = os.environ["DB_PASS"]
+
+        #try:
+        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
+        cnx = engine.raw_connection()
+    
+    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
+    
+    try:
+        id = authentication_maiaproject[authentication_maiaproject["namespace"] == namespace ]["id"].values[0]
+    except:
+        return
+        
+    authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
+
+    cnx.close()
+    
+
+    if settings.DEBUG:
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+        authentication_maiaproject.to_sql("authentication_maiaproject", con=cnx, if_exists="replace", index=False)
+
+    else:
+        engine.dispose()
+        engine_2 = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
+        authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
 
 
 def update_user_table(form, settings):
@@ -1122,7 +1173,7 @@ def get_project(group_id, settings, is_namespace_style=False):
                     cluster_id = None
                 return namespace_form, cluster_id
     
-    return None
+    return None, None
 
 
 def register_user_in_keycloak(email, settings):
@@ -1394,7 +1445,7 @@ def get_argocd_project_status(argocd_namespace, project_id):
 
 def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False):
     """
-    Retrieve details about the namespace including workspace applications, remote desktops, SSH ports, MONAI models, and Orthanc instances.
+    Retrieve details about the namespace including workspace applications, remote desktops, SSH ports, MONAI models, Orthanc instances and deployed clusters.
 
     Parameters
     ----------
@@ -1418,12 +1469,14 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
         - ssh_ports (dict): Dictionary of SSH ports for users.
         - monai_models (dict): Dictionary of MONAI models.
         - orthanc_list (dict): Dictionary of Orthanc instances.
+        - deployed_clusters (list): List of clusters where the namespace is deployed.
     """
     maia_workspace_apps = {}
     remote_desktop_dict = {}
     orthanc_list = []
     monai_models = {}
     ssh_ports = {}
+    deployed_clusters = []
 
     for API_URL in settings.API_URL:
         if API_URL in settings.PRIVATE_CLUSTERS:
@@ -1454,6 +1507,9 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
             if services['code'] == 403:
                 ...
 
+        if len(ingresses['items']) > 0 or len(services['items']) > 0:
+            deployed_clusters.append(settings.CLUSTER_NAMES[API_URL])
+            
         for ingress in ingresses['items']:
             for rule in ingress['spec']['rules']:
                 if 'host' not in rule:
@@ -1510,7 +1566,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
     if "xnat" not in maia_workspace_apps:
         maia_workspace_apps["xnat"] = "N/A"
 
-    return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list
+    return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters
 
 
 def get_allocation_date_for_project(settings, group_id, is_namespace_style=False):
