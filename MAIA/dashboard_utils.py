@@ -814,7 +814,7 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
         id = authentication_maiaproject[authentication_maiaproject["namespace"] == namespace ]["id"].values[0]
     except:
         id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-        authentication_maiaproject = authentication_maiaproject.append({"id": id, "namespace": namespace, "cluster": cluster}, ignore_index=True)
+        authentication_maiaproject = authentication_maiaproject.append({"id": id, "namespace": namespace, "cluster": cluster, "memory_limit": "2 Gi", "cpu_limit": "2"}, ignore_index=True)
         
     authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
 
