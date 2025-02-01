@@ -88,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'mozilla_django_oidc.middleware.SessionRefresh',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -280,8 +281,8 @@ for root, dirs, files in os.walk(MOUNT_DIR):
 
                     if v_file["maia_dashboard"]["token"] != "":
                         PRIVATE_CLUSTERS[v_file["api"]] = v_file["maia_dashboard"]["token"]
-
-API_URL = list(set(API_URL))
-with open(os.path.join(MOUNT_DIR, 'cluster_config.json')) as v_file:
-    CLUSTER_CONFIG = json.load(v_file)
-    GPU_LIST.extend(CLUSTER_CONFIG["GPU_LIST"])
+        if file.endswith(".yaml"):
+            with open(os.path.join(root, file)) as v_file:
+                v_file = yaml.safe_load(v_file)
+                if "gpu_list" in v_file:
+                    GPU_LIST.extend(v_file["gpu_list"])
