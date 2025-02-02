@@ -72,7 +72,7 @@ metadata:
   labels:
     {{- include "maia-dashboard.labels" . | nindent 4 }}
 spec:
-  storageClassName: {{ .Values.storage_class }}
+  storageClassName: {{ .Values.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:
