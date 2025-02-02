@@ -37,12 +37,11 @@ def generate_minio_configs(namespace):
     
     existing_minio_configs = get_minio_config_if_exists(namespace)
     
-    print(existing_minio_configs)
     minio_configs = {
         "access_key": "admin",
         "secret_key": existing_minio_configs["secret_key"] if "secret_key" in existing_minio_configs else token_urlsafe(16).replace("-", "_"),
-        "console_access_key": existing_minio_configs["console_access_key"] if "console_access_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
-        "console_secret_key": existing_minio_configs["console_secret_key"] if "console_secret_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii")
+        "console_access_key": base64.b64encode(existing_minio_configs["console_access_key"].replace("-", "_").encode("ascii")).decode("ascii") if "console_access_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
+        "console_secret_key": base64.b64encode(existing_minio_configs["console_secret_key"].replace("-", "_").encode("ascii")).decode("ascii") if "console_secret_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii")
     }
 
     return minio_configs
@@ -114,10 +113,10 @@ def generate_mlflow_configs(namespace):
         A dictionary containing the encoded MLflow user and password.
     """
     existing_mlflow_configs = get_mlflow_config_if_exists(namespace)
-    print(existing_mlflow_configs)
+
     mlflow_configs = {
-        "mlflow_user": existing_mlflow_configs["mlflow_user"] if "mlflow_user" in existing_mlflow_configs else base64.b64encode(namespace.encode("ascii")).decode("ascii"),
-        "mlflow_password": existing_mlflow_configs["mlflow_password"] if "mlflow_password" in existing_mlflow_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
+        "mlflow_user": base64.b64encode(existing_mlflow_configs["mlflow_user"].encode("ascii")).decode("ascii") if "mlflow_user" in existing_mlflow_configs else base64.b64encode(namespace.encode("ascii")).decode("ascii"),
+        "mlflow_password": base64.b64encode(existing_mlflow_configs["mlflow_password"].replace("-", "_").encode("ascii")).decode("ascii") if "mlflow_password" in existing_mlflow_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
     }
 
     return mlflow_configs
@@ -184,7 +183,6 @@ def generate_mysql_configs(namespace):
     """
     
     existing_mysql_configs = get_mysql_config_if_exists(namespace)
-    print(existing_mysql_configs)
     
     mysql_configs = {
         "mysql_user": namespace,
