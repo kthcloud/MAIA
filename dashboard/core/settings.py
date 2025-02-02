@@ -286,4 +286,6 @@ for root, dirs, files in os.walk(MOUNT_DIR):
             with open(os.path.join(root, file)) as v_file:
                 v_file = yaml.safe_load(v_file)
                 if "gpu_list" in v_file:
-                    GPU_LIST.extend(v_file["gpu_list"])
+                    for gpu in v_file["gpu_list"]:
+                        if gpu not in GPU_LIST:
+                            GPU_LIST.append(gpu)

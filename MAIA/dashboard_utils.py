@@ -810,14 +810,20 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
     
     authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
     
+    
+    namespace_form, cluster_id = get_project(namespace, settings, is_namespace_style=True)
+    
+    if namespace_form is not None:
+        group_id = namespace_form["group_ID"]
+    else:
+        group_id = namespace
     try:
-        id = authentication_maiaproject[authentication_maiaproject["namespace"] == namespace ]["id"].values[0]
+        id = authentication_maiaproject[authentication_maiaproject["namespace"] == group_id ]["id"].values[0]
         authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
     except:
         id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-        authentication_maiaproject = authentication_maiaproject.append({"id": id, "namespace": namespace, "cluster": cluster, "memory_limit": "2 Gi", "cpu_limit": "2"}, ignore_index=True)
+        authentication_maiaproject = authentication_maiaproject.append({"id": id, "namespace": group_id, "cluster": cluster, "memory_limit": "2 Gi", "cpu_limit": "2"}, ignore_index=True)
         
-    
 
     cnx.close()
     
