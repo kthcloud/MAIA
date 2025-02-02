@@ -274,7 +274,8 @@ for root, dirs, files in os.walk(MOUNT_DIR):
 
                     if "api" in v_file:
                         CLUSTER_NAMES[v_file["api"]] = v_file["cluster_name"]
-                        API_URL.append(v_file["api"])
+                        if v_file["api"] not in API_URL:
+                            API_URL.append(v_file["api"])
                     else:
                         CLUSTER_NAMES[v_file["cluster_name"]+"-None"] = v_file["cluster_name"]
                         API_URL.append(v_file["cluster_name"]+"-None")
