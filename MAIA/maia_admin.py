@@ -135,7 +135,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
                     "sshPort": ssh_port
                 })
-
+    print(users)
     maia_namespace_values = {
         "pvc": {
             "pvc_type": cluster_config["shared_storage_class"],
