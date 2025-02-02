@@ -826,10 +826,9 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
 
 
     maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}
-    print(maia_groups)
     for maia_group in maia_groups:
-        if maia_group.lower().replace("_", "-") == namespace:
-            group_id = maia_group
+        if maia_groups[maia_group].lower().replace("_", "-") == namespace:
+            group_id = maia_groups[maia_group]
     
     print("Registering Existing Cluster for Group: ", group_id) 
     try:
