@@ -13,12 +13,18 @@ import random
 import string
 import nltk
 from nltk.corpus import words
+from kubernetes import client, config
+from kubernetes.client.rest import ApiException
 
-
-def generate_minio_configs():
+def generate_minio_configs(project_id):
     """
     Generate configuration settings for MinIO.
 
+    Parameters
+    ----------
+    project_id : int or str
+        The unique identifier for the project.
+    
     Returns
     -------
     dict
@@ -28,14 +34,68 @@ def generate_minio_configs():
         - console_access_key (str): A base64 encoded access key for console access.
         - console_secret_key (str): A base64 encoded secret key for console access.
     """
+    
+    existing_minio_configs = get_minio_config_if_exists(project_id)
     minio_configs = {
         "access_key": "admin",
-        "secret_key": token_urlsafe(16).replace("-", "_"),
-        "console_access_key": base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
-        "console_secret_key": base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii")
+        "secret_key": existing_minio_configs["secret_key"] if "secret_key" in existing_minio_configs else token_urlsafe(16).replace("-", "_"),
+        "console_access_key": existing_minio_configs["console_access_key"] if "console_access_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
+        "console_secret_key": existing_minio_configs["console_secret_key"] if "console_secret_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii")
     }
 
     return minio_configs
+
+
+def get_minio_config_if_exists(project_id):
+    """
+    Retrieves MinIO configuration if it exists for the given project ID.
+    This function loads the Kubernetes configuration from the environment,
+    accesses the Kubernetes API to list secrets in the specified namespace,
+    and extracts MinIO-related configuration from the secrets.
+    
+    Parameters
+    ----------
+    project_id : str
+        The ID of the project for which to retrieve the MinIO configuration.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing MinIO configuration keys and their corresponding values.
+        The dictionary may contain the following keys:
+        - "access_key": The default access key (always "admin").
+        - "console_access_key": The console access key, if found.
+        - "console_secret_key": The console secret key, if found.
+        - "secret_key": The MinIO root password, if found.
+    """
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
+
+    v1 = client.CoreV1Api()
+    minio_configs = {
+        "access_key": "admin",
+    }
+    secrets = v1.list_namespaced_secret(namespace=project_id.lower().replace("_", "-"))
+    for secret in secrets.items:
+        if secret.metadata.name == "storage-user":
+            for item in secret.data:
+                
+                decoded_value = base64.b64decode(secret.data[item]).decode("ascii")
+                if item =="CONSOLE_ACCESS_KEY":
+                    minio_configs["console_access_key"] = decoded_value
+                if item =="CONSOLE_SECRET_KEY":
+                    minio_configs["console_secret_key"] = decoded_value
+        if secret.metadata.name == "storage-configuration":
+            for key, value in secret.data.items():
+                decoded_value = base64.b64decode(value).decode("ascii")
+                for line in decoded_value.split('\n'):
+                    if line.startswith("export MINIO_ROOT_PASSWORD="):
+                        minio_configs["secret_key"] = line[len("export MINIO_ROOT_PASSWORD="):]
+
+    return minio_configs
+
+    
+    
 
 def generate_mlflow_configs(namespace):
     """
@@ -51,10 +111,57 @@ def generate_mlflow_configs(namespace):
     dict
         A dictionary containing the encoded MLflow user and password.
     """
+    existing_mlflow_configs = get_mlflow_config_if_exists(namespace)
     mlflow_configs = {
-        "mlflow_user": base64.b64encode(namespace.encode("ascii")).decode("ascii"),
-        "mlflow_password": base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
+        "mlflow_user": existing_mlflow_configs["mlflow_user"] if "mlflow_user" in existing_mlflow_configs else base64.b64encode(namespace.encode("ascii")).decode("ascii"),
+        "mlflow_password": existing_mlflow_configs["mlflow_password"] if "mlflow_password" in existing_mlflow_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
     }
+
+    return mlflow_configs
+
+def get_mlflow_config_if_exists(project_id):
+    """
+    Retrieve MLflow configuration from Kubernetes secrets if they exist.
+    
+    Parameters
+    ----------
+    project_id : str
+        The ID of the project for which to retrieve the MLflow configuration. This ID is used to
+        locate the corresponding Kubernetes namespace and secrets.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the MLflow configuration with keys "mlflow_user" and "mlflow_password"
+        if they exist in the Kubernetes secrets. If the secrets are not found, an empty dictionary is returned.
+    
+    Raises
+    ------
+    KeyError
+        If the "KUBECONFIG" environment variable is not set.
+    yaml.YAMLError
+        If there is an error parsing the Kubernetes configuration file.
+    kubernetes.client.exceptions.ApiException
+        If there is an error communicating with the Kubernetes API.
+    """
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
+
+    v1 = client.CoreV1Api()
+    mlflow_configs = {
+        
+    }
+    secrets = v1.list_namespaced_secret(namespace=project_id.lower().replace("_", "-"))
+    for secret in secrets.items:
+        if secret.metadata.name == project_id.lower().replace("_", "-"):
+            for item in secret.data:
+                
+                decoded_value = base64.b64decode(secret.data[item]).decode("ascii")
+                if item =="user":
+                    mlflow_configs["mlflow_user"] = decoded_value
+                if item =="password":
+                    mlflow_configs["mlflow_password"] = decoded_value
+      
 
     return mlflow_configs
 
@@ -72,12 +179,60 @@ def generate_mysql_configs(namespace):
     dict
         A dictionary containing MySQL user and password.
     """
+    
+    existing_mysql_configs = get_mysql_config_if_exists(namespace)
+    
+    
     mysql_configs = {
         "mysql_user": namespace,
-        "mysql_password": token_urlsafe(16),
+        "mysql_password": existing_mysql_configs["mysql_password"] if "mysql_password" in existing_mysql_configs else token_urlsafe(16),
     }
 
     return mysql_configs
+
+def get_mysql_config_if_exists(project_id):
+    """
+    Retrieves MySQL configuration from Kubernetes environment variables if they exist.
+    
+    Parameters
+    ----------
+    project_id : str
+        The ID of the project for which to retrieve the MySQL configuration. This ID is used to
+        identify the namespace and the MySQL deployment within the Kubernetes cluster.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the MySQL user and password if they exist in the environment
+        variables of the MySQL deployment. The dictionary keys are:
+        - "mysql_user": The MySQL user.
+        - "mysql_password": The MySQL password.
+   
+    Notes
+    -----
+    This function assumes that the Kubernetes configuration file is specified in the environment
+    variable "KUBECONFIG" and that the MySQL deployment name starts with the project ID followed
+    by "-mysql-mkg".
+    """
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
+
+    v1 = client.CoreV1Api()
+    mlflow_configs = {
+        
+    }
+    deploy = v1.list_namespaced_pod(namespace=project_id.lower().replace("_", "-"))
+
+    for deployment in deploy.items:
+        if deployment.metadata.name.startswith(project_id.lower().replace("_", "-")+"-mysql-mkg"):
+            envs = deployment.spec.containers[0].env
+            for env in envs:
+                if env.name == "MYSQL_USER":
+                    mlflow_configs["mysql_user"] = env.value
+                if env.name == "MYSQL_PASSWORD":
+                    mlflow_configs["mysql_password"] = env.value
+
+    return mlflow_configs
 
 def create_maia_namespace_values(namespace_config, cluster_config, config_folder, minio_configs=None, mlflow_configs=None):
     """

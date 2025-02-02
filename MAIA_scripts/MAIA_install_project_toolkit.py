@@ -147,7 +147,7 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
     helm_commands = []
 
 
-    minio_configs = generate_minio_configs()
+    minio_configs = generate_minio_configs(namespace=group_id.lower().replace("_", "-"))
     mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
     mysql_configs = generate_mysql_configs(namespace=group_id.lower().replace("_", "-"))
 
