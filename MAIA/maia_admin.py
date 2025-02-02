@@ -106,6 +106,9 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
     ssh_ports = get_ssh_ports(len(namespace_config["users"]),cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
     ssh_port_dict = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
+    
+    print(ssh_port_dict)
+    print(namespace_config["users"])
     users = []
 
     if cluster_config["ssh_port_type"] == "LoadBalancer":
@@ -804,7 +807,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         "namespace": "maia-dashboard",
         "repo_url": "https://kthcloud.github.io/MAIA/",
         "chart_name": "maia-dashboard",
-        "chart_version": "0.1.4",
+        "chart_version": "0.1.5",
     }
     
 
