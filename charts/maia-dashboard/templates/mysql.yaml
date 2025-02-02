@@ -54,6 +54,7 @@ metadata:
   labels:
     {{- include "maia-dashboard-mysql.labels" . | nindent 4 }}
 spec:
+  storageClassName: {{ .Values.storage_class }}
   accessModes:
     - ReadWriteOnce
   resources:
