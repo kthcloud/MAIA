@@ -40,8 +40,8 @@ def generate_minio_configs(namespace):
     minio_configs = {
         "access_key": "admin",
         "secret_key": existing_minio_configs["secret_key"] if "secret_key" in existing_minio_configs else token_urlsafe(16).replace("-", "_"),
-        "console_access_key": base64.b64encode(existing_minio_configs["console_access_key"].replace("-", "_").encode("ascii")).decode("ascii") if "console_access_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
-        "console_secret_key": base64.b64encode(existing_minio_configs["console_secret_key"].replace("-", "_").encode("ascii")).decode("ascii") if "console_secret_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii")
+        "console_access_key": existing_minio_configs["console_access_key"] if "console_access_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
+        "console_secret_key": existing_minio_configs["console_secret_key"] if "console_secret_key" in existing_minio_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii")
     }
 
     return minio_configs
