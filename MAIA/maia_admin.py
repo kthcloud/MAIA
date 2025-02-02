@@ -16,13 +16,13 @@ from nltk.corpus import words
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
-def generate_minio_configs(project_id):
+def generate_minio_configs(namespace):
     """
     Generate configuration settings for MinIO.
 
     Parameters
     ----------
-    project_id : int or str
+    namespace : int or str
         The unique identifier for the project.
     
     Returns
@@ -35,7 +35,7 @@ def generate_minio_configs(project_id):
         - console_secret_key (str): A base64 encoded secret key for console access.
     """
     
-    existing_minio_configs = get_minio_config_if_exists(project_id)
+    existing_minio_configs = get_minio_config_if_exists(namespace)
     minio_configs = {
         "access_key": "admin",
         "secret_key": existing_minio_configs["secret_key"] if "secret_key" in existing_minio_configs else token_urlsafe(16).replace("-", "_"),
