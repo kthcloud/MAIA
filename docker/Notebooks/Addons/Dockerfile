@@ -44,7 +44,7 @@ RUN chmod 777 /etc/Matlab.desktop
 RUN chmod a+x /etc/Matlab.desktop
 
 RUN pip install jupyterlab_nvdashboard 
-RUN pip install "elyra[all]"
+#RUN pip install "elyra[all]"
 COPY start.sh /opt/start.sh
 USER 1000
 CMD ["jupyterhub-singleuser"]
