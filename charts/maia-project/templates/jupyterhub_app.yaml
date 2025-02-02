@@ -7,9 +7,9 @@ metadata:
 spec:
   project: {{ .Release.Name }}
   source:
-    chart: {{ .Values.jupyterhub_values.chart_name }}
-    repoURL: {{.Values.jupyterhub_values.repo_url}}
-    targetRevision: {{ .Values.jupyterhub_values.chart_version }}
+    chart: {{ .Values.jupyterhub_chart_info.chart_name }}
+    repoURL: {{.Values.jupyterhub_chart_info.repo_url}}
+    targetRevision: {{ .Values.jupyterhub_chart_info.chart_version }}
     helm:
       releaseName: {{ .Release.Name }}-jupyterhub
       valuesObject:

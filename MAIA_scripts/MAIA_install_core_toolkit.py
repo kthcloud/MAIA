@@ -11,7 +11,7 @@ import datetime
 import os
 import asyncio
 from pyhelm3 import Client
-from MAIA.maia_core import create_prometheus_values, create_tempo_values, create_loki_values, create_core_toolkit_values, create_traefik_values, create_metallb_values, create_cert_manager_values, create_rancher_values, create_gpu_operator_values, create_ingress_nginx_values
+from MAIA.maia_core import create_prometheus_values, create_tempo_values, create_loki_values, create_core_toolkit_values, create_traefik_values, create_metallb_values, create_cert_manager_values, create_rancher_values, create_gpu_operator_values, create_ingress_nginx_values, create_nfs_server_provisioner_values
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
@@ -106,7 +106,12 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     admin_group_ID = maia_config_dict["admin_group_ID"]
     project_id = "maia-core"
 
-    cluster_address = "https://kubernetes.default.svc" #TODO: Change this to make it configurable
+    if "argocd_destination_cluster_address" in cluster_config_dict and not cluster_config_dict["argocd_destination_cluster_address"].endswith("/k8s/clusters/local"):
+        cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
+        if cluster_config_dict["argocd_destination_cluster_address"] is not "https://kubernetes.default.svc":
+            project_id += f"-{cluster_config_dict['cluster_name']}"
+    else:
+        cluster_address = "https://kubernetes.default.svc"
 
     helm_commands = []
     helm_commands.append(create_prometheus_values(config_folder, project_id, cluster_config_dict, maia_config_dict))
@@ -122,6 +127,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     helm_commands.append(create_cert_manager_values(config_folder, project_id))
     helm_commands.append(create_rancher_values(config_folder, project_id, cluster_config_dict))
     helm_commands.append(create_gpu_operator_values(config_folder, project_id, cluster_config_dict))
+    helm_commands.append(create_nfs_server_provisioner_values(config_folder, project_id, cluster_config_dict))
     
 
     for helm_command in helm_commands:
@@ -156,7 +162,10 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                 {"cert_manager_values": "cert_manager_values"},
                 {"rancher_values": "rancher_values"},
                 {"gpu_operator_values": "gpu_operator_values"},
-                {"ingress_nginx_values": "ingress_nginx_values"}
+                {"ingress_nginx_values": "ingress_nginx_values"},
+                {"nfs_provisioner_values": "nfs_provisioner_values"},
+                {"cert_manager_chart_info": "cert_manager_chart_info"},
+                
          ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "admin_group_ID": admin_group_ID,
@@ -169,7 +178,8 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                 "https://metallb.github.io/metallb",
                 "https://charts.jetstack.io",
                 "https://releases.rancher.com/server-charts/latest",
-                "https://helm.ngc.nvidia.com/nvidia"
+                "https://helm.ngc.nvidia.com/nvidia",
+                "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/"
                 #"https://kubernetes.github.io/ingress-nginx"
         ]
     }

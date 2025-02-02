@@ -469,7 +469,7 @@ def create_jupyterhub_config_api( form,
     if "maia_monai_toolkit_image" in maia_form:
         jh_template["singleuser"]["profileList"].append(
             {"display_name": "MONAI Toolkit 3.0",
-            "description": "MONAI Toolkit 3.0, including MONAI Bundles from the MONAI Model ZOO and Tutorial Notebooks for MONAI Core, MONAI Label and MONAI FL",
+            "description": "MONAI Toolkit 3.0, including MONAI Bundles from the MONAI Model ZOO and Tutorial Notebooks for MONAI Core, MONAI Label and NVFlare for Federated Learning",
             "kubespawner_override": {
                 "image": maia_form["maia_monai_toolkit_image"],
                 "start_timeout": 3600,
@@ -496,22 +496,27 @@ def create_jupyterhub_config_api( form,
     ]
 
     
-    jh_template["chart_name"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["chart"]
-    jh_template["chart_version"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
-    jh_template["repo_url"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
+    
+    chart_info = {}
+    chart_info["chart_name"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["chart"]
+    chart_info["chart_version"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["version"]
+    chart_info["repo_url"] = jh_helm_template["resource"]["helm_release"]["jupyterhub"]["repository"]
 
     Path(config_folder).joinpath(team_id,"jupyterhub_values").mkdir(parents=True, exist_ok=True)
-
+    Path(config_folder).joinpath(team_id,"jupyterhub_chart_info").mkdir(parents=True, exist_ok=True)
+    
     with open( Path(config_folder).joinpath(team_id,"jupyterhub_values","jupyterhub_values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(jh_template))
     
+    with open( Path(config_folder).joinpath(team_id,"jupyterhub_chart_info","jupyterhub_chart_info.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(chart_info))
     
-    return {  ##  TODO: Causing issues from ArgoCD
+    return {  
         "namespace": namespace,
-        "chart": jh_template["chart_name"],
+        "chart": chart_info["chart_name"],
         "release": f"{namespace}-jupyterhub",
-        "repo": jh_template["repo_url"],
-        "version": jh_template["chart_version"],
+        "repo":chart_info["repo_url"],
+        "version": chart_info["chart_version"],
         "values": str(Path(config_folder).joinpath(team_id,"jupyterhub_values","jupyterhub_values.yaml"))
 
     }

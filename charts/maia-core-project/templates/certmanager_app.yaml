@@ -7,14 +7,14 @@ metadata:
 spec:
   project: {{ .Release.Name }}
   source:
-    chart: {{ .Values.cert_manager_values.chart_name }}
-    repoURL: {{ .Values.cert_manager_values.repo_url }}
-    targetRevision: {{ .Values.cert_manager_values.chart_version }}
+    chart: {{ .Values.cert_manager_chart_info.chart_name }}
+    repoURL: {{ .Values.cert_manager_chart_info.repo_url }}
+    targetRevision: {{ .Values.cert_manager_chart_info.chart_version }}
     helm:
       releaseName: {{ .Release.Name }}-cert-manager
       valuesObject:
       {{ .Values.cert_manager_values | toYaml | nindent 8 }}
   destination:
     server: {{ .Values.destination_server }}
-    namespace: {{ .Values.cert_manager_values.namespace }}
+    namespace: {{ .Values.cert_manager_chart_info.namespace }}
 {{- end }}

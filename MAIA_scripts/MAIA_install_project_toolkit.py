@@ -211,7 +211,8 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
               {"jupyterhub_values": "jupyterhub_values"},
             {"oauth2_proxy_values": "oauth2_proxy_values"},
             {"mysql_values": "mysql_values"},
-            {"mlflow_values": "mlflow_values"}
+            {"mlflow_values": "mlflow_values"},
+            {"jupyterhub_chart_info": "jupyterhub_chart_info"},
          ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "group_ID": f"MAIA:{group_id}",

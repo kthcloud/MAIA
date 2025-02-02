@@ -45,6 +45,7 @@ data:
     p, role:maia-user, applications, get, maia-user/*, allow
     p, role:maia-user, projects, get, maia-user, allow
     p, {{ .Values.admin_group_ID }}, *, *, *, allow
+    g, {{ .Values.admin_group_ID }}, role:admin
   policy.default: role:maia-user
 ---
 apiVersion: v1

@@ -47,7 +47,7 @@ spec:
       server: {{ .Values.destination_server }}
     - namespace: {{ .Values.traefik_values.namespace }}
       server: {{ .Values.destination_server }}
-    - namespace: {{ .Values.cert_manager_values.namespace }}
+    - namespace: {{ .Values.cert_manager_chart_info.namespace }}
       server: {{ .Values.destination_server }}
     - namespace: {{ .Values.metallb_values.namespace }}
       server: {{ .Values.destination_server }}

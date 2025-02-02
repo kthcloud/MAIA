@@ -576,13 +576,14 @@ def create_cert_manager_values(config_folder, project_id):
         A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
     """
 
-    cert_manager_values = { ## TODO: Causing issues from ArgoCD
+    cert_manager_chart_info = { 
         "namespace": "cert-manager",
         "chart_version": "1.16.2",
         "repo_url": "https://charts.jetstack.io",
         "chart_name": "cert-manager"
-    } # TODO: Change this to updated values
+    }
 
+    cert_manager_values = {}
     cert_manager_values.update({
         "crds": {
             "enabled": True
@@ -590,16 +591,20 @@ def create_cert_manager_values(config_folder, project_id):
     })
 
     Path(config_folder).joinpath(project_id,"cert_manager_values").mkdir(parents=True, exist_ok=True)
+    Path(config_folder).joinpath(project_id,"cert_manager_chart_info","cert_manager_chart_info.yaml").mkdir(parents=True, exist_ok=True)
 
     with open( Path(config_folder).joinpath(project_id,"cert_manager_values","cert_manager_values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(cert_manager_values))
+    
+    with open( Path(config_folder).joinpath(project_id,"cert_manager_chart_info","cert_manager_chart_info.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(cert_manager_chart_info))
 
-    return {"namespace": cert_manager_values["namespace"],
-        "repo": cert_manager_values["repo_url"],
-        "version": cert_manager_values["chart_version"],
+    return {"namespace": cert_manager_chart_info["namespace"],
+        "repo": cert_manager_chart_info["repo_url"],
+        "version": cert_manager_chart_info["chart_version"],
         "values": str( Path(config_folder).joinpath(project_id,"cert_manager_values","cert_manager_values.yaml")),
         "release": f"{project_id}-cert-manager",
-        "chart": cert_manager_values["chart_name"]
+        "chart": cert_manager_chart_info["chart_name"]
         }
 def create_rancher_values(config_folder, project_id, cluster_config_dict):
     """
@@ -727,6 +732,15 @@ def create_gpu_operator_values(config_folder, project_id, cluster_config_dict):
                 }
             ]
         }
+    elif cluster_config_dict["k8s_distribution"] == "rke2":
+        gpu_operator_values["toolkit"] = {
+            "env": [
+                {
+                    "name": "CONTAINERD_SOCKET",
+                    "value": "/run/k3s/containerd/containerd.sock"
+                }
+            ]
+        }
 
     Path(config_folder).joinpath(project_id,"gpu_operator_values").mkdir(parents=True, exist_ok=True)
 
@@ -783,4 +797,57 @@ def create_ingress_nginx_values(config_folder, project_id):
         "values": str( Path(config_folder).joinpath(project_id,"ingress_nginx_values","ingress_nginx_values.yaml")),
         "release": f"{project_id}-ingress-nginx",
         "chart": ingress_nginx_values["chart_name"]
+        }
+    
+def create_nfs_server_provisioner_values(config_folder, project_id, cluster_config_dict):
+    """
+    Creates and writes the NFS server provisioner Helm chart values to a YAML file.
+
+    Parameters
+    ----------
+    config_folder : str
+        The path to the configuration folder.
+    project_id : str
+        The unique identifier for the project.
+    cluster_config_dict : dict
+        A dictionary containing cluster configuration details, including the NFS server and path.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the following keys:
+        - namespace (str): The namespace for the NFS server provisioner.
+        - repo (str): The repository URL for the NFS server provisioner chart.
+        - version (str): The version of the NFS server provisioner chart.
+        - values (str): The file path to the generated NFS server provisioner values YAML file.
+        - release (str): The release name for the NFS server provisioner chart.
+        - chart (str): The name of the NFS server provisioner chart.
+    """
+
+    nfs_server_provisioner_values = {
+        "namespace": "nfs-server-provisioner",
+        "repo_url": "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/",
+        "chart_name": "nfs-subdir-external-provisioner",
+        "chart_version": "4.0.18"
+    }
+    
+    nfs_server_provisioner_values.update({
+        "nfs": {
+            "server": cluster_config_dict["nfs_server"],
+            "path": cluster_config_dict["nfs_path"]
+        }
+        
+    })
+    
+    Path(config_folder).joinpath(project_id,"nfs_provisioner_values").mkdir(parents=True, exist_ok=True)
+    
+    with open( Path(config_folder).joinpath(project_id,"nfs_provisioner_values","nfs_provisioner_values.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(nfs_server_provisioner_values))
+    
+    return {"namespace": nfs_server_provisioner_values["namespace"],
+        "repo": nfs_server_provisioner_values["repo_url"],
+        "version": nfs_server_provisioner_values["chart_version"],
+        "values": str( Path(config_folder).joinpath(project_id,"nfs_provisioner_values","nfs_provisioner_values.yaml")),
+        "release": f"{project_id}-nfs-server-provisioner",
+        "chart": nfs_server_provisioner_values["chart_name"]
         }

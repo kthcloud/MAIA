@@ -351,7 +351,7 @@ def create_maia_admin_toolkit_values(config_folder, project_id, cluster_config_d
         "namespace": "maia-admin-toolkit",
         "repo_url": "https://kthcloud.github.io/MAIA/",
         "chart_name": "maia-admin-toolkit",
-        "chart_version": "1.2.1",
+        "chart_version": "1.2.5",
     }
 
     admin_toolkit_values.update(
