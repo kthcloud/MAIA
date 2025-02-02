@@ -58,6 +58,7 @@ data:
         maia_workspace_version: {{ .Values.maia_workspace_version }}
         maia_workspace_image: {{ .Values.maia_workspace_image }}
         maia_monai_toolkit_image: {{ .Values.maia_monai_toolkit_image }}
+        gpu_list: {{ .Values.gpuList }}
     
     
     {{- range $index, $cluster := .Values.clusters }}
