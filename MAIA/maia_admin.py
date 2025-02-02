@@ -105,15 +105,16 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     
     maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
     ssh_ports = get_ssh_ports(len(namespace_config["users"]),cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
-    ssh_port_dict = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
+    ssh_port_list = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
     
-    print(ssh_port_dict)
-    print(namespace_config["users"])
+    
+    ssh_port_dict = {list(entry.keys())[0]: list(entry.values())[0] for entry in ssh_port_list}
+    
     users = []
 
     if cluster_config["ssh_port_type"] == "LoadBalancer":
         for user in namespace_config["users"]:
-            if "jupyter-"+convert_username_to_jupyterhub_username(user) in list(ssh_port_dict.keys()):
+            if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
                 users.append({
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
                     "sshPort": ssh_port_dict["jupyter-"+convert_username_to_jupyterhub_username(user)]
@@ -125,7 +126,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
                 })
     else:
         for ssh_port, user in zip(ssh_ports, namespace_config["users"]):
-            if "jupyter-"+convert_username_to_jupyterhub_username(user) in list(ssh_port_dict.keys()):
+            if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
                 users.append({
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
                     "sshPort": ssh_port_dict["jupyter-"+convert_username_to_jupyterhub_username(user)]
