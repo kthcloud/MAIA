@@ -113,7 +113,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
 
     if cluster_config["ssh_port_type"] == "LoadBalancer":
         for user in namespace_config["users"]:
-            if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
+            if "jupyter-"+convert_username_to_jupyterhub_username(user) in list(ssh_port_dict.keys()):
                 users.append({
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
                     "sshPort": ssh_port_dict["jupyter-"+convert_username_to_jupyterhub_username(user)]
@@ -125,7 +125,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
                 })
     else:
         for ssh_port, user in zip(ssh_ports, namespace_config["users"]):
-            if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
+            if "jupyter-"+convert_username_to_jupyterhub_username(user) in list(ssh_port_dict.keys()):
                 users.append({
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
                     "sshPort": ssh_port_dict["jupyter-"+convert_username_to_jupyterhub_username(user)]
