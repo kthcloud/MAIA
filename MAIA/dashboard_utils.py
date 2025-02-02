@@ -831,7 +831,7 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
         if maia_group.lower().replace("_", "-") == namespace:
             group_id = maia_group
     
-    
+    print("Registering Existing Cluster for Group: ", group_id) 
     try:
         id = authentication_maiaproject[authentication_maiaproject["namespace"] == group_id ]["id"].values[0]
         authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
