@@ -810,13 +810,28 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
     
     authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
     
+    keycloak_connection = KeycloakOpenIDConnection(
+                    server_url=settings.OIDC_SERVER_URL,
+                    username=settings.OIDC_USERNAME,
+                    password='',
+                    realm_name=settings.OIDC_REALM_NAME,
+                    client_id=settings.OIDC_RP_CLIENT_ID,
+                    client_secret_key=settings.OIDC_RP_CLIENT_SECRET,
+                    verify=False
+                )
+
+    group_id = namespace
+    keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
+    groups = keycloak_admin.get_groups()
+
+
+    maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}
+
+    for maia_group in maia_groups:
+        if maia_group.lower().replace("_", "-") == namespace:
+            group_id = maia_group
     
-    namespace_form, cluster_id = get_project(namespace, settings, is_namespace_style=True)
     
-    if namespace_form is not None:
-        group_id = namespace_form["group_ID"]
-    else:
-        group_id = namespace
     try:
         id = authentication_maiaproject[authentication_maiaproject["namespace"] == group_id ]["id"].values[0]
         authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
