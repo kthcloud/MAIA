@@ -300,7 +300,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "size": "10Gi"
         },
         "chart_name": "maia-namespace", 
-        "chart_version": "0.1.6", 
+        "chart_version": "0.1.7", 
         "repo_url": "https://kthcloud.github.io/MAIA/", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
