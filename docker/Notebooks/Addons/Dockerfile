@@ -43,6 +43,7 @@ COPY Tools/Matlab/Matlab_Logo.png /etc/Matlab_Logo.png
 RUN chmod 777 /etc/Matlab.desktop
 RUN chmod a+x /etc/Matlab.desktop
 
+RUN pip install jupyterlab_nvdashboard "elyra[all]"
 COPY start.sh /opt/start.sh
 USER 1000
 CMD ["jupyterhub-singleuser"]
