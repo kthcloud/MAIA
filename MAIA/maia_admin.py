@@ -155,6 +155,7 @@ def get_mlflow_config_if_exists(project_id):
     }
     secrets = v1.list_namespaced_secret(namespace=project_id.lower().replace("_", "-"))
     for secret in secrets.items:
+        print(secret.metadata.name)
         if secret.metadata.name == project_id.lower().replace("_", "-"):
             for item in secret.data:
                 
