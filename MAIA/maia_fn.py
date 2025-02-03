@@ -137,6 +137,8 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
 
     v1 = client.CoreV1Api()
 
+    print(v1.list_namespace(watch=False))
+    print(os.environ["KUBECONFIG"])
     try:
         used_port = []
         services = v1.list_service_for_all_namespaces(watch=False)
