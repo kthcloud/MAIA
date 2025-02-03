@@ -273,6 +273,8 @@ def deploy_view(request, group_id):
     
     with open(Path("/tmp").joinpath("kubeconfig-project"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
+    with open(Path("/tmp").joinpath("kubeconfig-project-local"), "w") as f:
+        yaml.dump(local_kubeconfig_dict, f)
         os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-project"))
         os.environ["KUBECONFIG_LOCAL"] = str(Path("/tmp").joinpath("kubeconfig-project-local"))
     
