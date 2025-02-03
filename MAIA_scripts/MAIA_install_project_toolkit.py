@@ -157,7 +157,7 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
     helm_commands.append(create_maia_namespace_values(project_form_dict, cluster_config_dict, config_folder, minio_configs=minio_configs, mlflow_configs=mlflow_configs))
 
 
-    with open(Path(config_folder).joinpath(group_id.lower().replace("_", "-"),"maia_namespace_values","namespace_values.yaml")) as f:
+    with open(Path(config_folder).joinpath(group_id,"maia_namespace_values","namespace_values.yaml")) as f:
         maia_namespace_values = yaml.safe_load(f)
         project_form_dict["ssh_users"] = []
         for user in maia_namespace_values["users"]:

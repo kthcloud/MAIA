@@ -349,8 +349,8 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         }
 
     namespace_id = namespace_config["group_ID"].lower().replace("_", "-")
-    Path(config_folder).joinpath(namespace_id, "maia_namespace_values").mkdir(parents=True, exist_ok=True)
-    with open(Path(config_folder).joinpath(namespace_id, "maia_namespace_values", "namespace_values.yaml"), "w") as f:
+    Path(config_folder).joinpath(namespace_config["group_ID"], "maia_namespace_values").mkdir(parents=True, exist_ok=True)
+    with open(Path(config_folder).joinpath(namespace_config["group_ID"], "maia_namespace_values", "namespace_values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(maia_namespace_values))
 
     return {
@@ -359,7 +359,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         "chart": maia_namespace_values["chart_name"],
         "repo": maia_namespace_values["repo_url"],
         "version": maia_namespace_values["chart_version"],  
-        "values": str(Path(config_folder).joinpath(namespace_id, "maia_namespace_values", "namespace_values.yaml"))
+        "values": str(Path(config_folder).joinpath(namespace_config["group_ID"], "maia_namespace_values", "namespace_values.yaml"))
     }
 
 async def get_maia_toolkit_apps(group_id, token, argo_cd_host):
