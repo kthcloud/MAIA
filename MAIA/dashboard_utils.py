@@ -1658,9 +1658,9 @@ def get_project_argo_status_and_user_table(request, settings):
     id_token = request.session.get('oidc_id_token')
     kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", argocd_cluster_id, settings=settings)
     config.load_kube_config_from_dict(kubeconfig_dict)
-    with open(Path("/tmp").joinpath("kubeconfig"), "w") as f:
+    with open(Path("/tmp").joinpath("kubeconfig-argo"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
-        #os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
+        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-argo"))
 
     user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict = get_user_table(settings=settings)
     project_argo_status = {}
@@ -1698,9 +1698,9 @@ def create_namespace(request, settings, namespace_id, cluster_id):
     id_token = request.session.get('oidc_id_token')
     kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
     config.load_kube_config_from_dict(kubeconfig_dict)
-    with open(Path("/tmp").joinpath("kubeconfig"), "w") as f:
+    with open(Path("/tmp").joinpath("kubeconfig-ns"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
-        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
+        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-ns"))
 
         with kubernetes.client.ApiClient() as api_client:
             api_instance = kubernetes.client.CoreV1Api(api_client)

@@ -270,9 +270,9 @@ def deploy_view(request, group_id):
     kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", argocd_cluster_id, settings=settings)
     config.load_kube_config_from_dict(kubeconfig_dict)
     
-    with open(Path("/tmp").joinpath("kubeconfig"), "w") as f:
+    with open(Path("/tmp").joinpath("kubeconfig-project"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
-        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
+        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-project"))
     
     
 
