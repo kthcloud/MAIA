@@ -36,7 +36,7 @@ def generate_minio_configs(namespace):
     """
     
     existing_minio_configs = get_minio_config_if_exists(namespace)
-    
+    print(existing_minio_configs)
     minio_configs = {
         "access_key": "admin",
         "secret_key": existing_minio_configs["secret_key"] if "secret_key" in existing_minio_configs else token_urlsafe(16).replace("-", "_"),
@@ -113,7 +113,7 @@ def generate_mlflow_configs(namespace):
         A dictionary containing the encoded MLflow user and password.
     """
     existing_mlflow_configs = get_mlflow_config_if_exists(namespace)
-
+    print(existing_mlflow_configs)
     mlflow_configs = {
         "mlflow_user": base64.b64encode(existing_mlflow_configs["mlflow_user"].encode("ascii")).decode("ascii") if "mlflow_user" in existing_mlflow_configs else base64.b64encode(namespace.encode("ascii")).decode("ascii"),
         "mlflow_password": base64.b64encode(existing_mlflow_configs["mlflow_password"].replace("-", "_").encode("ascii")).decode("ascii") if "mlflow_password" in existing_mlflow_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
@@ -183,7 +183,7 @@ def generate_mysql_configs(namespace):
     """
     
     existing_mysql_configs = get_mysql_config_if_exists(namespace)
-    
+    print(existing_mysql_configs)
     mysql_configs = {
         "mysql_user": namespace,
         "mysql_password": existing_mysql_configs["mysql_password"] if "mysql_password" in existing_mysql_configs else token_urlsafe(16),
@@ -261,6 +261,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     
     maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
     ssh_ports = get_ssh_ports(len(namespace_config["users"]),cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
+    print(ssh_ports)
     ssh_port_list = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
     
     
