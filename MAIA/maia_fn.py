@@ -86,7 +86,7 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
         Returns None if an exception occurs.
     """
 
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
     v1 = client.CoreV1Api()
@@ -132,13 +132,13 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
     None
         If an error occurs during the process.
     """
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
     v1 = client.CoreV1Api()
 
     print(v1.list_namespace(watch=False))
-    print(os.environ["KUBECONFIG"])
+
     try:
         used_port = []
         services = v1.list_service_for_all_namespaces(watch=False)
@@ -370,7 +370,7 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
         A dictionary containing deployment details such as namespace, release name, chart name, repository URL, version, and values file path.
     """
     namespace = user_config["group_ID"].lower().replace("_", "-")
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
 
     mysql_config = {
         "namespace": namespace,
@@ -446,7 +446,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
     """
     namespace = user_config["group_ID"].lower().replace("_", "-")
 
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
     mlflow_config = {

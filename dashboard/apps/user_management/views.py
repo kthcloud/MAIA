@@ -268,11 +268,13 @@ def deploy_view(request, group_id):
         return redirect("/maia/user-management/")
 
     kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", argocd_cluster_id, settings=settings)
+    local_kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
     config.load_kube_config_from_dict(kubeconfig_dict)
     
     with open(Path("/tmp").joinpath("kubeconfig-project"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
         os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-project"))
+        os.environ["KUBECONFIG_LOCAL"] = str(Path("/tmp").joinpath("kubeconfig-project-local"))
     
     
 

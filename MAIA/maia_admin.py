@@ -69,7 +69,7 @@ def get_minio_config_if_exists(project_id):
         - "console_secret_key": The console secret key, if found.
         - "secret_key": The MinIO root password, if found.
     """
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
     v1 = client.CoreV1Api()
@@ -146,7 +146,7 @@ def get_mlflow_config_if_exists(project_id):
     kubernetes.client.exceptions.ApiException
         If there is an error communicating with the Kubernetes API.
     """
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
     v1 = client.CoreV1Api()
@@ -216,7 +216,7 @@ def get_mysql_config_if_exists(project_id):
     variable "KUBECONFIG" and that the MySQL deployment name starts with the project ID followed
     by "-mysql-mkg".
     """
-    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG"]).read_text())
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
     v1 = client.CoreV1Api()
