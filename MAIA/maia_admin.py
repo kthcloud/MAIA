@@ -113,7 +113,7 @@ def generate_mlflow_configs(namespace):
         A dictionary containing the encoded MLflow user and password.
     """
     existing_mlflow_configs = get_mlflow_config_if_exists(namespace)
-    print(existing_mlflow_configs)
+
     mlflow_configs = {
         "mlflow_user": base64.b64encode(existing_mlflow_configs["mlflow_user"].encode("ascii")).decode("ascii") if "mlflow_user" in existing_mlflow_configs else base64.b64encode(namespace.encode("ascii")).decode("ascii"),
         "mlflow_password": base64.b64encode(existing_mlflow_configs["mlflow_password"].replace("-", "_").encode("ascii")).decode("ascii") if "mlflow_password" in existing_mlflow_configs else base64.b64encode(token_urlsafe(16).replace("-", "_").encode("ascii")).decode("ascii"),
@@ -155,7 +155,7 @@ def get_mlflow_config_if_exists(project_id):
     }
     secrets = v1.list_namespaced_secret(namespace=project_id.lower().replace("_", "-"))
     for secret in secrets.items:
-        print(secret.metadata.name)
+
         if secret.metadata.name == project_id.lower().replace("_", "-"):
             for item in secret.data:
                 
@@ -184,7 +184,7 @@ def generate_mysql_configs(namespace):
     """
     
     existing_mysql_configs = get_mysql_config_if_exists(namespace)
-    print(existing_mysql_configs)
+
     mysql_configs = {
         "mysql_user": namespace,
         "mysql_password": existing_mysql_configs["mysql_password"] if "mysql_password" in existing_mysql_configs else token_urlsafe(16),

@@ -1660,7 +1660,7 @@ def get_project_argo_status_and_user_table(request, settings):
     config.load_kube_config_from_dict(kubeconfig_dict)
     with open(Path("/tmp").joinpath("kubeconfig"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
-        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
+        #os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig"))
 
     user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict = get_user_table(settings=settings)
     project_argo_status = {}

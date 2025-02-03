@@ -141,7 +141,6 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
         used_port = []
         services = v1.list_service_for_all_namespaces(watch=False)
         for svc in services.items:
-            print(svc.metadata.name)
             if port_type == 'LoadBalancer':
                 if svc.status.load_balancer.ingress is not None:
                     if svc.spec.type == 'LoadBalancer' and svc.status.load_balancer.ingress[0].ip == maia_metallb_ip:
