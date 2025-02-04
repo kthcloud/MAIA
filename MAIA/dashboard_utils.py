@@ -836,7 +836,7 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
         authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
     except:
         id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-        authentication_maiaproject = authentication_maiaproject.append({"id": id, "namespace": group_id, "cluster": cluster, "memory_limit": "2 Gi", "cpu_limit": "2"}, ignore_index=True)
+        authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "namespace": group_id, "cluster": cluster, "memory_limit": "2 Gi", "cpu_limit": "2"}, ignore_index=True)
         
 
     cnx.close()
@@ -900,7 +900,7 @@ def update_user_table(form, settings):
                 authentication_maiauser.loc[authentication_maiauser["user_ptr_id"] == id, "namespace"] = form[k]
             else:
 
-                authentication_maiauser = authentication_maiauser.append({"user_ptr_id": id, "namespace": form[k]},
+                authentication_maiauser = authentication_maiauser.append({"user_ptr_id": int(id), "namespace": form[k]},
                                                                          ignore_index=True)
         elif k.startswith("memory_limit"):
             
@@ -914,7 +914,7 @@ def update_user_table(form, settings):
                 authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "memory_limit"] = form[k]
             else:
                 
-                authentication_maiaproject = authentication_maiaproject.append({"id": id, "memory_limit": form[k],"namespace": k[len("memory_limit_"):]},
+                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "memory_limit": form[k],"namespace": k[len("memory_limit_"):]},
                                                                             ignore_index=True)
         elif k.startswith("cpu_limit"):
             try:
@@ -925,7 +925,7 @@ def update_user_table(form, settings):
             if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
                 authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cpu_limit"] = form[k]
             else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": id, "cpu_limit": form[k],"namespace": k[len("cpu_limit_"):]},
+                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "cpu_limit": form[k],"namespace": k[len("cpu_limit_"):]},
                                                                             ignore_index=True)
         elif k.startswith("date"):
             try:
@@ -936,7 +936,7 @@ def update_user_table(form, settings):
             if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
                 authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "date"] = form[k]
             else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": id, "date": form[k],"namespace": k[len("date_"):]},
+                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "date": form[k],"namespace": k[len("date_"):]},
                                                                             ignore_index=True)
         elif k.startswith("cluster"):
             try:
@@ -947,7 +947,7 @@ def update_user_table(form, settings):
             if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
                 authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = form[k]
             else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": id, "cluster": form[k],"namespace": k[len("cluster_"):]},
+                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "cluster": form[k],"namespace": k[len("cluster_"):]},
                                                                             ignore_index=True)
         elif k.startswith("gpu"):
             try:
@@ -960,7 +960,7 @@ def update_user_table(form, settings):
             if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
                 authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "gpu"] = form[k]
             else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": id, "gpu": form[k],"namespace": k[len("gpu_"):]},
+                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "gpu": form[k],"namespace": k[len("gpu_"):]},
                                                                             ignore_index=True)
         elif k.startswith("minimal_environment"):
             try:
@@ -971,7 +971,7 @@ def update_user_table(form, settings):
             if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
                 authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "minimal_env"] = form[k]
             else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": id, "minimal_env": form[k],"namespace": k[len("minimal_environment_"):]},
+                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "minimal_env": form[k],"namespace": k[len("minimal_environment_"):]},
                                                                             ignore_index=True)
             
       
