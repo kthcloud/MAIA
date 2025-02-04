@@ -777,6 +777,54 @@ def get_user_table(settings):
 
     return table, users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict
 
+def check_pending_projects_and_assign_id(settings):
+    """
+    Check for pending projects and assign an ID if necessary.
+   
+    Parameters
+    ----------
+    settings : object
+        An object containing configuration settings, including DEBUG and LOCAL_DB_PATH attributes.
+    
+    Returns
+    -------
+    None
+    """
+    
+    
+     if settings.DEBUG:
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+    else:
+        db_host = os.environ["DB_HOST"]
+        db_user = os.environ["DB_USERNAME"]
+        dp_password = os.environ["DB_PASS"]
+
+        #try:
+        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
+        cnx = engine.raw_connection()
+    
+    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
+    
+    id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
+    for project in authentication_maiaproject.iterrows():
+        if pd.isna(project[1]['id']):
+            authentication_maiaproject.loc[project[0], "id"] = int(id)
+            
+            id += 1
+            
+    cnx.close()
+    
+
+    if settings.DEBUG:
+        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
+        authentication_maiaproject.to_sql("authentication_maiaproject", con=cnx, if_exists="replace", index=False)
+
+    else:
+        engine.dispose()
+        engine_2 = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
+        authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
+        
+
 def register_cluster_for_project_in_db(settings, namespace, cluster):
     """
     Registers a cluster for a project in the database.
