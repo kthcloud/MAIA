@@ -52,7 +52,7 @@ class MAIAProject(models.Model):
     class Meta:
         app_label = 'authentication'
 
-    #id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True, null=False, auto_created=True)
     email = models.EmailField('email', max_length=150, null=True)
     namespace = models.CharField('namespace', max_length=150, blank=True, unique=True)
     gpu = models.CharField('gpu', max_length=150, blank=True, null=True)
