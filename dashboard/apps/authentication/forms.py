@@ -121,4 +121,4 @@ class RegisterProjectForm(forms.ModelForm):
 
     class Meta:
         model = MAIAProject
-        fields = ('id',namespace','gpu', 'conda', 'date', 'email', 'memory_limit', 'cpu_limit')
+        fields = ('id','namespace','gpu', 'conda', 'date', 'email', 'memory_limit', 'cpu_limit')
