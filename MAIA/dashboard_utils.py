@@ -792,7 +792,7 @@ def check_pending_projects_and_assign_id(settings):
     """
     
     
-     if settings.DEBUG:
+    if settings.DEBUG:
         cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
     else:
         db_host = os.environ["DB_HOST"]
