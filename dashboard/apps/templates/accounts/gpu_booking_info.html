@@ -49,8 +49,19 @@
                                                         <td>{{ booking.gpu }}</td>
                                                         <td>{{ booking.start_date }}</td>
                                                         <td>{{ booking.end_date }}</td>
-                                                        <td>{{ booking.namespace }}</td>
-                                                        <td>{{ booking.status }}</td>
+                                                        <td><a href="/maia/namespaces/{{ booking.namespace }}">{{ booking.namespace }}</a></td>
+                                                        <td>
+                                                            
+                                                            {% if booking.status == 'Active' %}
+                                                                <input type="checkbox" checked style="background-color: green;">
+                                                            {% elif booking.status == 'Expired' %}
+                                                                
+                                                                <i class="fa fa-hourglass-end"></i>
+                                                            {% else %}
+                                                                <i class="fa fa-clock"></i>
+                                                            {% endif %}
+                                                            {{ booking.status }}
+                                                        </td>
 
                                                     </tr>
                                                     {% endfor %}

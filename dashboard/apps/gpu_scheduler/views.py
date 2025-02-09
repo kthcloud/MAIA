@@ -139,11 +139,29 @@ def gpu_booking_info(request):
                 
     bookings = GPUBooking.objects.filter(user_email=request.user.email)
     
-    total_days = 0
-    for booking in bookings:
-        total_days += (booking.end_date - booking.start_date).days
     
-    context = {"namespaces": namespaces, "dashboard_version": settings.DASHBOARD_VERSION, "bookings": bookings, "total_days": total_days}
+    bookings_dict = []
+    total_days = 0
+    
+   
+    for booking in bookings:
+        if booking.start_date <= datetime.now(timezone.utc) and booking.end_date >= datetime.now(timezone.utc):
+            status = "Active"
+        elif booking.end_date < datetime.now(timezone.utc):
+            status = "Expired"
+        else:
+            status = "Waiting"
+        booking_item = {
+            "start_date": booking.start_date,
+            "end_date": booking.end_date,
+            "gpu": booking.gpu,
+            "status": status,
+            "namespace": booking.namespace,
+        }
+        total_days += (booking.end_date - booking.start_date).days
+        bookings_dict.append(booking_item)
+    
+    context = {"namespaces": namespaces, "dashboard_version": settings.DASHBOARD_VERSION, "bookings": bookings_dict, "total_days": total_days}
     if request.user.is_superuser:
         context["username"] = request.user.username + " [ADMIN]"
         context["user"] = ["admin"]
