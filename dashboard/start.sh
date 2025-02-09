@@ -6,6 +6,7 @@ helm repo update
 git clone https://github.com/kthcloud/MAIA.git
 pip install ./MAIA
 python manage.py makemigrations authentication
+python manage.py makemigrations gpu_scheduler
 python manage.py makemigrations
 python manage.py migrate
 
