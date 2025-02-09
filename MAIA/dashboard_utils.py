@@ -188,6 +188,22 @@ def get_namespaces(id_token, api_urls, private_clusters = []):
     for API_URL in api_urls:
         if API_URL in private_clusters:
             token = private_clusters[API_URL]
+            try:
+                response = requests.get(API_URL + "/api/v1/namespaces",
+                                    headers={"Authorization": "Bearer {}".format(token)}, verify=False)
+            except:
+                continue
+        else:
+            try:
+                response = requests.get(API_URL + "/api/v1/namespaces",
+                                    headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
+            except:
+                continue
+        namespaces = json.loads(response.text)
+        for namespace in namespaces['items']:
+            namespace_list.append(namespace['metadata']['name'])
+    return list(set(namespace_list))
+
 def get_cluster_status(id_token, api_urls, cluster_names, private_clusters = []):
     """
     Retrieve the status of clusters and their nodes.

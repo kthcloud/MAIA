@@ -85,7 +85,8 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
         A list of dictionaries with service names as keys and their corresponding used SSH ports as values.
         Returns None if an exception occurs.
     """
-
+    if not "KUBECONFIG_LOCAL" in os.environ:
+        os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
@@ -132,6 +133,8 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
     None
         If an error occurs during the process.
     """
+    if not "KUBECONFIG_LOCAL" in os.environ:
+        os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
@@ -370,6 +373,8 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
         A dictionary containing deployment details such as namespace, release name, chart name, repository URL, version, and values file path.
     """
     namespace = user_config["group_ID"].lower().replace("_", "-")
+    if not "KUBECONFIG_LOCAL" in os.environ:
+        os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
 
     mysql_config = {
@@ -445,7 +450,8 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         A dictionary containing deployment details such as namespace, release name, chart name, repository URL, chart version, and path to the values file.
     """
     namespace = user_config["group_ID"].lower().replace("_", "-")
-
+    if not "KUBECONFIG_LOCAL" in os.environ:
+        os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
