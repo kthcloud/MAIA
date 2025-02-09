@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'apps.dyn_datatables',
     'mozilla_django_oidc',  # Load after auth
     'bootstrap5',
+    "apps.gpu_scheduler",
 ]
 
 MIDDLEWARE = [
