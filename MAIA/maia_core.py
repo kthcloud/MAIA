@@ -706,7 +706,7 @@ def create_gpu_operator_values(config_folder, project_id, cluster_config_dict):
 
     gpu_operator_values = {
         "namespace": "gpu-operator",
-        "chart_version": "24.9.1",
+        "chart_version": "24.3.0",
         "repo_url": "https://helm.ngc.nvidia.com/nvidia",
         "chart_name": "gpu-operator"
     } # TODO: Change this to updated values
@@ -732,12 +732,30 @@ def create_gpu_operator_values(config_folder, project_id, cluster_config_dict):
                 }
             ]
         }
+        
+
     elif cluster_config_dict["k8s_distribution"] == "rke2":
         gpu_operator_values["toolkit"] = {
+            "driver": {
+                "enabled": False
+            },
             "env": [
                 {
                     "name": "CONTAINERD_SOCKET",
                     "value": "/run/k3s/containerd/containerd.sock"
+                }
+                ,
+                {
+                    "name": "CONTAINERD_CONFIG",
+                    "value": "/var/lib/rancher/rke2/agent/etc/containerd/config.toml.tmpl"
+                },
+                {
+                    "name": "CONTAINERD_RUNTIME_CLASS",
+                    "value": "nvidia"
+                },
+                {
+                    "name": "CONTAINERD_SET_AS_DEFAULT",
+                    "value": "true"
                 }
             ]
         }

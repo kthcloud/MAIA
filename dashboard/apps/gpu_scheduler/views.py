@@ -21,8 +21,11 @@ class GPUSchedulabilityAPIView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             user_email = request.data.get("user_email")
+            namespace = request.data.get("namespace")
             if not user_email:
                 return Response({"error": "Missing user_email"}, status=400)
+            if not namespace:
+                return Response({"error": "Missing namespace"}, status=400)
 
             secret_token = request.data.get("token")
             if not secret_token or secret_token != settings.SECRET_KEY:
@@ -41,6 +44,7 @@ class GPUSchedulabilityAPIView(APIView):
                 # Calculate the number of days for the new booking
                 ending_time = datetime.strptime(booking_data["ending_time"], "%Y-%m-%d %H:%M:%S")
                 starting_time = datetime.strptime(booking_data["starting_time"], "%Y-%m-%d %H:%M:%S")
+                gpu = booking_data["gpu"]
                 new_booking_days = (ending_time - starting_time).days
                 
                 # Verify that the sum of existing bookings and the new booking does not exceed 60 days
@@ -51,7 +55,9 @@ class GPUSchedulabilityAPIView(APIView):
                 GPUBooking.objects.create(
                     user_email=user_email,
                     start_date=booking_data["starting_time"],
-                    end_date=booking_data["ending_time"]
+                    end_date=booking_data["ending_time"],
+                    namespace=namespace,
+                    gpu=gpu
                 )
                 return Response({"message": "Booking created successfully"})
 
@@ -62,7 +68,7 @@ class GPUSchedulabilityAPIView(APIView):
                 
                 current_time = datetime.now(timezone.utc)
                 is_schedulable = any(
-                    status.start_date <= current_time and status.end_date >= current_time
+                    status.start_date <= current_time and status.end_date >= current_time and status.namespace == namespace
                     for status in user_statuses
                 )
                 if is_schedulable:
@@ -119,9 +125,21 @@ def book_gpu(request):
 
 @login_required(login_url="/maia/login/")
 def gpu_booking_info(request):
+    
+    id_token = request.session.get('oidc_id_token')
+    groups = request.user.groups.all()
+    namespaces = []
+    if request.user.is_superuser:
+        namespaces = get_namespaces(id_token)
+
+    else:
+        for group in groups:
+            if str(group) != "MAIA:users":
+                namespaces.append(str(group).split(":")[-1].lower().replace("_","-"))
+                
     bookings = GPUBooking.objects.filter(user_email=request.user.email)
     
     total_days = 0
     for booking in bookings:
         total_days += (booking.end_date - booking.start_date).days
-    return render(request, "accounts/gpu_booking_info.html", {"dashboard_version": settings.DASHBOARD_VERSION, "bookings": bookings, "total_days": total_days})
+    return render(request, "accounts/gpu_booking_info.html", {"namespaces": namespaces, "dashboard_version": settings.DASHBOARD_VERSION, "bookings": bookings, "total_days": total_days})

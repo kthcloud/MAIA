@@ -68,11 +68,11 @@
                         <span class="text-danger">{{ form.namespace.errors }}</span>
                       </div>
 
-                      <div class="mb-3">
+                        <div class="mb-3">
                         <label>Email</label>
-                        {{ form.user_email }}
+                        {{ form.user_email|attr:"disabled:true" }}
                         <span class="text-danger">{{ form.email.errors }}</span>
-                      </div>
+                        </div>
 
                       <div class="mb-3">
                         <label>GPU Request</label>
