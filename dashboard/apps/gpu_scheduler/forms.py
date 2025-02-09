@@ -24,10 +24,11 @@ class GPUBookingForm(forms.ModelForm):
         )
         self.fields['user_email'] = forms.EmailField(
             widget=forms.EmailInput(
-                attrs={
-                    "placeholder": "Your Email.",
-                    "class": "form-control"
-                }
+            attrs={
+                "placeholder": "Your Email.",
+                "class": "form-control",
+                "readonly": "readonly"
+            }
             ))
         
         self.fields['gpu'] = forms.ChoiceField(
