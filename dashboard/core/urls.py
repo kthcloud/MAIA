@@ -5,8 +5,10 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django.contrib import admin
 from django.urls import path, include  # add this
+from django.shortcuts import redirect
 
 urlpatterns = [
+    path('', lambda request: redirect('maia/', permanent=True)),
     path('admin/', admin.site.urls),
     path('maia/resources',include("apps.resources.urls")),
     path('maia/user-management/',include("apps.user_management.urls")),#path('app',include("apps.deploy_app.urls")),
