@@ -108,7 +108,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
 
     if "argocd_destination_cluster_address" in cluster_config_dict and not cluster_config_dict["argocd_destination_cluster_address"].endswith("/k8s/clusters/local"):
         cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
-        if cluster_config_dict["argocd_destination_cluster_address"] is not "https://kubernetes.default.svc":
+        if cluster_config_dict["argocd_destination_cluster_address"] != "https://kubernetes.default.svc":
             project_id += f"-{cluster_config_dict['cluster_name']}"
     else:
         cluster_address = "https://kubernetes.default.svc"
