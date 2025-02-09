@@ -12,7 +12,7 @@ from django.conf import settings
 from datetime import datetime, timezone
 from .forms import GPUBookingForm
 from MAIA.dashboard_utils import get_namespaces
-
+from django import forms
 
 @method_decorator(csrf_exempt, name='dispatch')  # 🚀 This disables CSRF for this API
 class GPUSchedulabilityAPIView(APIView):
@@ -119,6 +119,14 @@ def book_gpu(request):
     else:
         form = GPUBookingForm(request.POST or None, request.FILES or None, initial=initial_data)
         form.fields['namespace'].choices = [(ns, ns) for ns in namespaces]
+        form.fields['user_email'] = forms.EmailField(
+            widget=forms.EmailInput(
+            attrs={
+                "placeholder": "Your Email.",
+                "class": "form-control",
+
+            }
+            ))
 
     return render(request, "accounts/gpu_booking.html", {"dashboard_version": settings.DASHBOARD_VERSION, "form": form, "msg": msg, "success": success})
 
