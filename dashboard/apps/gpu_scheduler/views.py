@@ -130,7 +130,7 @@ def gpu_booking_info(request):
     groups = request.user.groups.all()
     namespaces = []
     if request.user.is_superuser:
-        namespaces = get_namespaces(id_token)
+        namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
     else:
         for group in groups:
@@ -142,4 +142,11 @@ def gpu_booking_info(request):
     total_days = 0
     for booking in bookings:
         total_days += (booking.end_date - booking.start_date).days
-    return render(request, "accounts/gpu_booking_info.html", {"namespaces": namespaces, "dashboard_version": settings.DASHBOARD_VERSION, "bookings": bookings, "total_days": total_days})
+    
+    context = {"namespaces": namespaces, "dashboard_version": settings.DASHBOARD_VERSION, "bookings": bookings, "total_days": total_days}
+    if request.user.is_superuser:
+        context["username"] = request.user.username + " [ADMIN]"
+        context["user"] = ["admin"]
+    else:
+        context["username"] = request.user.username
+    return render(request, "accounts/gpu_booking_info.html", context=context)
