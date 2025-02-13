@@ -27,9 +27,7 @@ spec:
       server: {{ .Values.destination_server }}
     - namespace: {{ .Values.keycloak_values.namespace }}
       server: {{ .Values.destination_server }}
-    - namespace: {{ .Values.loginapp_values.namespace }}
-      server: {{ .Values.destination_server }}
-    - namespace: {{ .Values.minio_operator_values.namespace }}
+    - namespace: {{ .Values.rancher_values.namespace }}
       server: {{ .Values.destination_server }}
     - namespace: kube-system
       server: {{ .Values.destination_server }}
