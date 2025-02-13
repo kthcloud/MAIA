@@ -24,6 +24,66 @@ from kubernetes import config
 from minio import Minio
 from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_toolkit
 
+def send_maia_info_email(receiver_email, register_project_url, register_user_url, discord_support_link):
+    """
+    Send an email with registration information for the MAIA platform.
+    Parameters
+    ----------
+    receiver_email : str
+        The email address of the recipient.
+    register_project_url : str
+        The URL for project registration.
+    register_user_url : str
+        The URL for user registration.
+    discord_support_link : str
+        The URL for the MAIA support Discord.
+    Returns
+    -------
+    None
+    """
+
+    sender_email = os.environ["email_account"]
+    message = MIMEMultipart()
+    message["Subject"] = "Registration Information for the MAIA Platform"
+    message["From"] = "MAIA Team"
+    message["To"] = receiver_email
+
+    html = """\
+    <html>
+        <head></head>
+        <body>
+            <p>Hello</p>
+            <p>Thank you for your interest in the MAIA platform. Below are the steps to register:</p>
+            <p><b>Project Registration:</b><br>
+            If you are starting a research work and you want to have it hosted in MAIA, please first register your project here:<br>
+            <a href="{}">MAIA Project Registration</a></p>
+            <p><b>User Registration:</b><br>
+            To create a user account, an active project must be available to select. Once a project is registered, you can sign up for an account linked to that project here:<br>
+            <a href="{}">MAIA User Registration</a></p>
+            <p>If you have any questions or need further assistance, feel free to join our Discord community:<br>
+            <a href="{}">MAIA Support Discord</a></p>
+            <br>
+            <p>Best regards,</p>
+            <p>The MAIA Admin Team</p>
+        </body>
+    </html>
+    """.format(register_project_url, register_user_url, discord_support_link)
+
+    # Turn these into plain/html MIMEText objects
+    part1 = MIMEText(html, "html")
+
+    message.attach(part1)
+
+    port = 465  # For SSL
+    password = os.environ["email_password"]
+
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL(os.environ["email_smtp_server"], port, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message.as_string())
+
 def verify_minio_availability(settings):
     """
     Verifies the availability of a MinIO server.
