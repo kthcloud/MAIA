@@ -13,6 +13,7 @@ from textwrap import dedent
 import MAIA
 import random
 import string
+import importlib.resources as pkg_resources
 version = MAIA.__version__
 
 
@@ -20,7 +21,7 @@ TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
 
 DESC = dedent(
     """
-    Script to initialize the MAIA Cluster configuration. The cluster configuration is specified by the ``--cluster-config`` option,
+    Script to initialize the MAIA Admin Cluster configuration. The cluster configuration is specified by the ``--cluster-config`` option,
     and the configuration folder where the resolved configuration files will be saved is specified by the ``--config-folder`` option.
     """  # noqa: E501
 )
@@ -41,7 +42,7 @@ def get_arg_parser():
         "--cluster-config",
         type=str,
         required=True,
-        help="YAML configuration file used to extract the cluster configuration.",
+        help="YAML configuration file used to extract the Admin cluster configuration.",
     )
 
     pars.add_argument(
@@ -72,8 +73,6 @@ def create_configuration(cluster_config, config_folder):
    
     cluster_config_dict = yaml.safe_load(Path(cluster_config).read_text())
 
-
-
     cluster_config_dict["traefik_dashboard_password"] = generate_random_password(12)
     cluster_config_dict["rancher_password"] = generate_random_password(12)
     cluster_config_dict["ingress_class"] = "maia-core-traefik" #Alternative: "nginx"
@@ -94,6 +93,7 @@ def create_configuration(cluster_config, config_folder):
         "userdata_url": f"https://iam.{cluster_config_dict['domain']}/realms/maia/protocol/openid-connect/userinfo"
     }
     cluster_config_dict["argocd_destination_cluster_address"] = f"https://mgmt.{cluster_config_dict['domain']}/k8s/clusters/local"
+    cluster_config_dict["api"] = f"https://mgmt.{cluster_config_dict['domain']}/k8s/clusters/local"
     cluster_config_dict["services"] = {
         "dashboard": f"https://dashboard.{cluster_config_dict['domain']}",
         "login":  f"https://login.{cluster_config_dict['domain']}",
@@ -117,14 +117,15 @@ def create_configuration(cluster_config, config_folder):
     cluster_config_dict["docker_password"] = "CHANGEME_ROBOT_PASSWORD"
     cluster_config_dict["docker_email"] = "CHANGEME_ROBOT_EMAIL"
 
-
-    with open(os.path.join(config_folder,"MAIA_realm_template.json"), "r") as f:
-        realm = json.load(f)
-        clients = realm["clients"]
-        for idx,client in enumerate(clients):
-            if client['clientId'] == 'maia':
-                clients[idx]['secret'] = cluster_config_dict["keycloak_maia_client_secret"]
+    with pkg_resources.path(MAIA, 'configs') as config_file:
+        with open(os.path.join(config_file,"MAIA_realm_template.json"), "r") as f:
+            realm = json.load(f)
+            clients = realm["clients"]
+            for idx,client in enumerate(clients):
+                if client['clientId'] == 'maia':
+                    clients[idx]['secret'] = cluster_config_dict["keycloak_maia_client_secret"]
     
+    Path(config_folder).mkdir(parents=True, exist_ok=True)
     with open(os.path.join(config_folder,"MAIA_realm.json"), "w") as f:
         json.dump(realm, f)
 
@@ -132,6 +133,18 @@ def create_configuration(cluster_config, config_folder):
 
     with open(os.path.join(config_folder, f"{cluster_config_dict['cluster_name']}.yaml"), "w") as f:
         yaml.dump(cluster_config_dict, f)
+
+    with pkg_resources.path(MAIA, 'configs') as config_file:
+        with open(Path(config_file).joinpath("maia_config_template.yaml"), "r") as f:
+            maia_config = yaml.safe_load(f)
+            maia_config["dashboard_image"] = f"registry.{cluster_config_dict['domain']}/maia/maia-dashboard"
+            maia_config["maia_workspace_image"] = f"registry.{cluster_config_dict['domain']}/maia/maia-workspace-notebook-ssh-addons"
+            maia_config["maia_monai_toolkit_image"] = f"registry.{cluster_config_dict['domain']}/maia/monai-toolkit:1.0"
+
+        with open(os.path.join(config_folder, "maia_config.yaml"), "w") as f:
+            yaml.dump(maia_config, f)
+
+        
 
 if __name__ == "__main__":
     main()

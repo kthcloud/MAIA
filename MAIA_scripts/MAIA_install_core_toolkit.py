@@ -11,6 +11,7 @@ import datetime
 import os
 import asyncio
 from pyhelm3 import Client
+from MAIA.maia_admin import create_loginapp_values, create_minio_operator_values
 from MAIA.maia_core import create_prometheus_values, create_tempo_values, create_loki_values, create_core_toolkit_values, create_traefik_values, create_metallb_values, create_cert_manager_values, create_rancher_values, create_gpu_operator_values, create_ingress_nginx_values, create_nfs_server_provisioner_values
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
@@ -125,9 +126,11 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     
     helm_commands.append(create_metallb_values(config_folder, project_id))
     helm_commands.append(create_cert_manager_values(config_folder, project_id))
-    helm_commands.append(create_rancher_values(config_folder, project_id, cluster_config_dict))
     helm_commands.append(create_gpu_operator_values(config_folder, project_id, cluster_config_dict))
     helm_commands.append(create_nfs_server_provisioner_values(config_folder, project_id, cluster_config_dict))
+    
+    helm_commands.append(create_loginapp_values(config_folder, project_id,cluster_config_dict))
+    helm_commands.append(create_minio_operator_values(config_folder, project_id,cluster_config_dict))
     
 
     for helm_command in helm_commands:
@@ -160,7 +163,9 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                 {"traefik_values": "traefik_values"},
                 {"metallb_values": "metallb_values"},
                 {"cert_manager_values": "cert_manager_values"},
-                {"rancher_values": "rancher_values"},
+                
+                {"loginapp_values": "loginapp_values"},
+                {"minio_operator_values": "minio_operator_values"},
                 {"gpu_operator_values": "gpu_operator_values"},
                 {"ingress_nginx_values": "ingress_nginx_values"},
                 {"nfs_provisioner_values": "nfs_provisioner_values"},
@@ -177,9 +182,10 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                 "https://traefik.github.io/charts",
                 "https://metallb.github.io/metallb",
                 "https://charts.jetstack.io",
-                "https://releases.rancher.com/server-charts/latest",
                 "https://helm.ngc.nvidia.com/nvidia",
-                "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/"
+                "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/",
+                "https://storage.googleapis.com/loginapp-releases/charts/",
+                "https://operator.min.io"
                 #"https://kubernetes.github.io/ingress-nginx"
         ]
     }

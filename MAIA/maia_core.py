@@ -591,7 +591,7 @@ def create_cert_manager_values(config_folder, project_id):
     })
 
     Path(config_folder).joinpath(project_id,"cert_manager_values").mkdir(parents=True, exist_ok=True)
-    Path(config_folder).joinpath(project_id,"cert_manager_chart_info","cert_manager_chart_info.yaml").mkdir(parents=True, exist_ok=True)
+    Path(config_folder).joinpath(project_id,"cert_manager_chart_info").mkdir(parents=True, exist_ok=True)
 
     with open( Path(config_folder).joinpath(project_id,"cert_manager_values","cert_manager_values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(cert_manager_values))
@@ -849,13 +849,21 @@ def create_nfs_server_provisioner_values(config_folder, project_id, cluster_conf
         "chart_version": "4.0.18"
     }
     
-    nfs_server_provisioner_values.update({
-        "nfs": {
-            "server": cluster_config_dict["nfs_server"],
-            "path": cluster_config_dict["nfs_path"]
-        }
-        
-    })
+    if "nfs_server" not in cluster_config_dict or "nfs_path" not in cluster_config_dict:
+        nfs_server_provisioner_values.update({
+            "nfs": {
+                "server": "nfs-server.default.svc.cluster.local",
+                "path": "/exports"
+            }
+        })
+    else:
+        nfs_server_provisioner_values.update({
+            "nfs": {
+                "server": cluster_config_dict["nfs_server"],
+                "path": cluster_config_dict["nfs_path"]
+            }
+            
+        })
     
     Path(config_folder).joinpath(project_id,"nfs_provisioner_values").mkdir(parents=True, exist_ok=True)
     

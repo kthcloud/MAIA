@@ -3,7 +3,8 @@ from pathlib import Path
 import click
 import yaml
 from omegaconf import OmegaConf
-from MAIA.maia_admin import install_maia_project, create_harbor_values, create_keycloak_values, create_loginapp_values, create_minio_operator_values, create_maia_admin_toolkit_values, create_maia_dashboard_values
+from MAIA.maia_admin import install_maia_project, create_harbor_values, create_keycloak_values,  create_maia_admin_toolkit_values, create_maia_dashboard_values
+from MAIA.maia_core import create_rancher_values
 from hydra import initialize, initialize_config_dir
 from hydra import compose as hydra_compose
 import datetime
@@ -112,8 +113,7 @@ def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
 
     helm_commands.append(create_harbor_values(config_folder, project_id, cluster_config_dict))
     helm_commands.append(create_keycloak_values(config_folder, project_id,cluster_config_dict))
-    helm_commands.append(create_loginapp_values(config_folder, project_id,cluster_config_dict))
-    helm_commands.append(create_minio_operator_values(config_folder, project_id,cluster_config_dict))
+    helm_commands.append(create_rancher_values(config_folder, project_id, cluster_config_dict))
     helm_commands.append(create_maia_admin_toolkit_values(config_folder, project_id,cluster_config_dict, maia_config_dict=maia_config_dict))
     helm_commands.append(create_maia_dashboard_values(config_folder, project_id,cluster_config_dict, maia_config_dict=maia_config_dict))
     
@@ -142,10 +142,9 @@ def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
               "_self_",
               {"harbor_values": "harbor_values"},
                 {"keycloak_values": "keycloak_values"},
-                {"loginapp_values": "loginapp_values"},
-                {"minio_operator_values": "minio_operator_values"},
                 {"maia_admin_toolkit_values": "maia_admin_toolkit_values"},
-                {"maia_dashboard_values": "maia_dashboard_values"}
+                {"maia_dashboard_values": "maia_dashboard_values"},
+                {"rancher_values": "rancher_values"}
               
          ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
@@ -155,8 +154,7 @@ def install_maia_admin_toolkit(maia_config_file, cluster_config, config_folder):
             "https://kthcloud.github.io/MAIA/",
             "https://helm.goharbor.io",
             "https://charts.bitnami.com/bitnami",
-            "https://storage.googleapis.com/loginapp-releases/charts/",
-            "https://operator.min.io"
+            "https://releases.rancher.com/server-charts/latest"
             
         ]
     }
