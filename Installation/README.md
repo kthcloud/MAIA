@@ -39,6 +39,8 @@ k8s_distribution: microk8s
 
 
 ## 1. Install MicroK8s
+[Install Microk8s Playbook](Ansible/Playbooks/install_microk8s.yaml)
+
 To install MicroK8s on the control node, run the following command:
 ```bash
 ansible-playbook -i inventory.ini Ansible/Playbooks/install_microk8s.yaml
@@ -61,12 +63,16 @@ kubectl get nodes
 ```
 
 ## 2. Enable OIDC Authentication
+[Enable OIDC Authentication Playbook](Ansible/Playbooks/enable_oidc_authentication.yaml)
+
 OIDC authentication is needed to enable user authentication through JWT tokens provided by Keycloak. To enable OIDC authentication on the MicroK8s cluster, run the following command:
 ```bash
 ansible-playbook -i inventory.ini Ansible/Playbooks/enable_oidc_authentication.yaml -e cluster_config=/path/to/cluster_config.yaml
 ```
 
 ## 3. Install ArgoCD
+[Enable OIDC Authentication Playbook](Ansible/Playbooks/install_argocd.yaml)
+
 ArgoCD is a GitOps continuous delivery tool for Kubernetes. ArgoCD is used to deploy and manage all the MAIA components and applications in the cluster. To install ArgoCD on the MicroK8s cluster, run the following command:
 ```bash
 ansible-playbook -i inventory.ini Ansible/Playbooks/install_argocd.yaml
@@ -79,6 +85,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 The default username for ArgoCD is `admin` and the password can be retrieved from the output of the installation playbook.
 
 ## 4. Install MAIA Core
+[Install MAIA Core Playbook](Ansible/Playbooks/install_maia_core.yaml)
 
 You can then install the MAIA Core components by running the following command:
 ```bash
