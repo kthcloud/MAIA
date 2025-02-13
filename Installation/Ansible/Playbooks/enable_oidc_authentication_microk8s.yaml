@@ -1,0 +1,39 @@
+- name: Enable OIDC authentication in MicroK8s [Get Domain]
+  hosts: localhost
+  vars:
+    cluster_config: /path/to/cluster_config.yaml
+  tasks:
+    - name: Read cluster config YAML file
+      ansible.builtin.slurp:
+        src: "{{ cluster_config }}"
+      register: cluster_config_content_updated
+
+    - name: Extract Cluster domain
+      set_fact:
+        cluster_domain: "{{ (cluster_config_content_updated.content | b64decode | from_yaml).domain }}"
+    - name: Set cluster_domain as a fact
+      set_fact:
+        cluster_domain_fact: "{{ cluster_domain }}"
+
+- name: Enable OIDC authentication in MicroK8s 
+  hosts: control-plane
+  become: yes
+  tasks:
+    - name: Ensure MicroK8s is installed
+      snap:
+        name: microk8s
+        state: present
+
+    - name: Enable OIDC authentication
+      lineinfile:
+        path: /var/snap/microk8s/current/args/kube-apiserver
+        line: "{{ item }}"
+        create: yes
+      with_items:
+        - "--oidc-username-claim=email"
+        - "--oidc-groups-claim=groups"
+        - "--oidc-issuer-url='https://iam.{{ hostvars['localhost']['cluster_domain_fact'] }}/realms/maia'"
+        - "--oidc-client-id=maia"
+
+    - name: Restart MicroK8s
+      command: microk8s.stop && microk8s.start

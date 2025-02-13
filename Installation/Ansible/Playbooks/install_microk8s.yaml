@@ -1,0 +1,86 @@
+---
+- name: Install and start MicroK8s
+  hosts: control-plane
+  become: yes
+  vars:
+    microk8s_version: 1.31/stable  # Default version
+    ansible_user: maia-admin  # Define ansible_user with default
+  tasks:
+    - name: Create directory for MicroK8s config
+      file:
+        path: /var/snap/microk8s/common/
+        state: directory
+        mode: '0755'
+
+    - name: Copy MicroK8s config file
+      copy:
+        src: microk8s-config.yaml
+        dest: /var/snap/microk8s/common/.microk8s.yaml
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install snapd
+      apt:
+        name: snapd
+        state: present
+
+    - name: Ensure snapd is started
+      service:
+        name: snapd
+        state: started
+
+    - name: Install MicroK8s
+      snap:
+        name: microk8s
+        state: present
+        channel: "{{ microk8s_version }}"
+        classic: yes
+
+    - name: Add user to microk8s group
+      user:
+        name: "{{ ansible_user }}"
+        groups: microk8s
+        append: yes
+
+    - name: Enable MicroK8s addons for Local Persistent Storage Provisioning
+      command: microk8s enable hostpath-storage rbac
+
+    - name: Start MicroK8s
+      command: microk8s start
+
+    - name: Get MicroK8s config
+      command: microk8s config
+      register: microk8s_config_output
+
+    - name: Write MicroK8s config to local file
+      local_action:
+        module: copy
+        content: "{{ microk8s_config_output.stdout }}"
+        dest: MAIA-kubeconfig.yaml
+
+    - name: Allow port 16443 on the firewall
+      ufw:
+        rule: allow
+        port: 16443
+        proto: tcp
+
+    - name: Allow port 80 on the firewall
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: Allow port 443 on the firewall
+      ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+    - name: Assign Roles to Node
+      command: microk8s.kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/master=master
+      when: "'control-plane' in group_names"
+      
+    - name: Assign Roles to Node
+      command: microk8s.kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/control-plane=control-plane
+      when: "'control-plane' in group_names"
