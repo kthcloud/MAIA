@@ -134,6 +134,12 @@ To install the MAIA Toolkit, run:
 pip install maia-toolkit
 ```
 
+## Deploy for MicroK8s
+
+To start and configure the MAIA platform on a MicroK8s cluster, follow the instructions in the [MAIA-MicroK8s](Installation/README.md) file.
+
+
+
 ## Build the Documentation
 To build the documentation, run:
 
