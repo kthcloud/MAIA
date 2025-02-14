@@ -2,7 +2,6 @@ from keycloak import KeycloakAdmin
 from keycloak import KeycloakOpenIDConnection
 import json
 import os
-from MAIA.dashboard_utils import send_approved_registration_email
 import pandas as pd
 import sqlite3
 from sqlalchemy import create_engine
@@ -167,6 +166,7 @@ def register_user_in_keycloak(email, settings):
                                             'value': temp_password}],                         
                                               })
     if "email_account" in os.environ and "email_password" in os.environ and "email_smtp_server" in os.environ:
+        from MAIA.dashboard_utils import send_approved_registration_email
         send_approved_registration_email(email, maia_login_url, temp_password)
 
 def register_group_in_keycloak(group_id, settings):
