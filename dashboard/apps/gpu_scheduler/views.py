@@ -11,7 +11,9 @@ from .models import GPUBooking
 from django.conf import settings
 from datetime import datetime, timezone
 from .forms import GPUBookingForm
-from MAIA.dashboard_utils import get_namespaces
+from MAIA.kubernetes_utils import get_namespaces, label_pod_for_deletion
+from MAIA.dashboard_utils import verify_gpu_booking_policy
+from MAIA.maia_fn import convert_username_to_jupyterhub_username
 from django import forms
 
 @method_decorator(csrf_exempt, name='dispatch')  # 🚀 This disables CSRF for this API
@@ -33,24 +35,13 @@ class GPUSchedulabilityAPIView(APIView):
 
             if "booking" in request.data:
                 booking_data = request.data["booking"]
-                
+                gpu = booking_data["gpu"]
                 # Calculate the total number of days for existing bookings
                 existing_bookings = GPUBooking.objects.filter(user_email=user_email)
-                total_days = sum(
-                    (booking.end_date - booking.start_date).days
-                    for booking in existing_bookings
-                )
+                is_bookable = verify_gpu_booking_policy(existing_bookings, booking_data)
                 
-                # Calculate the number of days for the new booking
-                ending_time = datetime.strptime(booking_data["ending_time"], "%Y-%m-%d %H:%M:%S")
-                starting_time = datetime.strptime(booking_data["starting_time"], "%Y-%m-%d %H:%M:%S")
-                gpu = booking_data["gpu"]
-                new_booking_days = (ending_time - starting_time).days
-                
-                # Verify that the sum of existing bookings and the new booking does not exceed 60 days
-                if total_days + new_booking_days > 60:
+                if not is_bookable:
                     return Response({"error": "Total booking days exceed the limit of 60 days"}, status=400)
-                
                 # Create the new booking
                 GPUBooking.objects.create(
                     user_email=user_email,
@@ -82,6 +73,22 @@ class GPUSchedulabilityAPIView(APIView):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
+@login_required(login_url="/maia/login/")
+def delete_booking(request, id):
+    booking = GPUBooking.objects.get(id=id)
+    if booking.start_date < datetime.now(timezone.utc):
+        # Create a new booking starting from the start date and ending now
+        GPUBooking.objects.create(
+            user_email=booking.user_email,
+            start_date=booking.start_date,
+            end_date=datetime.now(timezone.utc),
+            namespace=booking.namespace,
+            gpu=booking.gpu
+        )
+    booking.delete()
+    pod_name = "jupyter-"+convert_username_to_jupyterhub_username(booking.user_email)
+    label_pod_for_deletion(booking.namespace, pod_name=pod_name)
+    return redirect("/maia/gpu-booking/my-bookings/")
 
 @login_required(login_url="/maia/login/")
 def book_gpu(request):
@@ -165,6 +172,7 @@ def gpu_booking_info(request):
             "gpu": booking.gpu,
             "status": status,
             "namespace": booking.namespace,
+            "id": booking.id
         }
         total_days += (booking.end_date - booking.start_date).days
         bookings_dict.append(booking_item)

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .forms import ResourceRequestForm
-from MAIA.dashboard_utils import get_filtered_available_nodes, get_available_resources, get_namespaces
+from MAIA.kubernetes_utils import get_namespaces, get_available_resources, get_filtered_available_nodes
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import redirect

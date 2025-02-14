@@ -4,13 +4,13 @@ from django.template import loader
 import time
 import yaml
 from django.template.defaulttags import register
-from .utils import get_namespaces
+from MAIA.kubernetes_utils import get_namespaces
 import os
 from pathlib import Path
 from django.http import HttpResponse, HttpResponseRedirect
-from .utils import get_svc_for_namespace
 # Create your views here.
-from MAIA.dashboard_utils import get_allocation_date_for_project, get_namespace_details, get_project, register_cluster_for_project_in_db
+from MAIA.kubernetes_utils import get_namespace_details
+from MAIA.dashboard_utils import get_allocation_date_for_project, get_project, register_cluster_for_project_in_db
 import datetime
 from django.conf import settings
 

@@ -8,7 +8,9 @@ from kubernetes import config
 
 from pathlib import Path
 from .forms import UserTableForm
-from MAIA.dashboard_utils import get_user_table, generate_kubeconfig, update_user_table, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_users_requesting_a_group, get_list_of_groups_requesting_a_user, get_project, get_project_argo_status_and_user_table, create_namespace
+from MAIA.kubernetes_utils import generate_kubeconfig
+from MAIA.dashboard_utils import get_user_table, update_user_table, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_users_requesting_a_group, get_list_of_groups_requesting_a_user, get_project, get_project_argo_status_and_user_table
+from MAIA.kubernetes_utils import create_namespace
 import urllib3
 import yaml
 from django.shortcuts import redirect
