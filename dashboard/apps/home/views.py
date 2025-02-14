@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.shortcuts import redirect
 from django.template.defaultfilters import register
-from MAIA.dashboard_utils import get_cluster_status, get_namespaces
+from MAIA.kubernetes_utils import get_namespaces, get_cluster_status
 import urllib3
 import os
 

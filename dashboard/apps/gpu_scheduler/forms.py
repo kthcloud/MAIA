@@ -2,8 +2,7 @@ from django import forms
 
 from .models import GPUBooking
 from django.conf import settings
-from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects
-
+from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects, verify_gpu_booking_policy
 
 class GPUBookingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -52,21 +51,19 @@ class GPUBookingForm(forms.ModelForm):
         if start_date and end_date:
             if end_date <= start_date:
                 self.add_error('end_date', "End date must be after start date.")
-            elif (end_date - start_date).days > 60:
-                self.add_error('end_date', "The maximum booking duration is 60 days.")
             else:
-                # Check existing bookings for the same user
                 existing_bookings = GPUBooking.objects.filter(user_email=user_email)
-                total_days = 0
-                for booking in existing_bookings:
-                    total_days += (booking.end_date - booking.start_date).days
+                booking_data = {
+                    "starting_time": start_date,
+                    "ending_time": end_date
+                }
+                is_bookable = verify_gpu_booking_policy(existing_bookings, booking_data)
+                # Check existing bookings for the same user
 
-                if total_days > 60:
-                    self.add_error('end_date', "The total booking duration for this user exceeds 60 days.")
+                if not is_bookable:
+                    self.add_error('end_date', "The booking is not allowed due to the booking policy.")
         
         return cleaned_data
-
-    
 
     class Meta:
         model = GPUBooking

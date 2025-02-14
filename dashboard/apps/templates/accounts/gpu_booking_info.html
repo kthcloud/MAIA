@@ -41,6 +41,7 @@
                                                         <th scope="col">End Time</th>
                                                         <th scope="col">Project</th>
                                                         <th scope="col">Status</th>
+                                                        <th scope="col">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -61,6 +62,14 @@
                                                                 <i class="fa fa-clock"></i>
                                                             {% endif %}
                                                             {{ booking.status }}
+                                                        </td>
+                                                        <td>
+                                                            {% if booking.status != 'Expired' %}
+                                                            <form method="POST" action="{% url 'delete_booking' booking.id %}" onsubmit="deleteElement(event);" {% if not booking.id %}style="display:none;"{% endif %}>
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                            </form>
+                                                            {% endif %}
                                                         </td>
 
                                                     </tr>
