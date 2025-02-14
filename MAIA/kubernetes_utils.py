@@ -43,7 +43,11 @@ def label_pod_for_deletion(namespace, pod_name):
     
     # Load Kubernetes configuration
     #config.load_incluster_config()  # Use in-cluster config
-    config.load_kube_config()  # Uncomment for local testing
+    if not "KUBECONFIG_LOCAL" in os.environ:
+        os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
+
 
     # Label the pod for deletion
     body = {
