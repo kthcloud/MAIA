@@ -24,7 +24,7 @@ from kubernetes import config
 from minio import Minio
 from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_toolkit
 from MAIA.kubernetes_utils import generate_kubeconfig
-from MAIA.keycloack_utils import get_groups_in_keycloak
+from MAIA.keycloak_utils import get_groups_in_keycloak
 from datetime import datetime, timezone
 
 def verify_gpu_booking_policy(existing_bookings, new_booking):
