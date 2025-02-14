@@ -7,6 +7,7 @@ USER root
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN apt-get update
 RUN apt-get install -y default-libmysqlclient-dev build-essential pkg-config
 RUN mkdir /etc/MAIA-Dashboard
 WORKDIR /etc/MAIA-Dashboard
