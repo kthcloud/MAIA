@@ -49,45 +49,44 @@ def verify_gpu_booking_policy(existing_bookings, new_booking):
 
 def send_maia_info_email(receiver_email, register_project_url, register_user_url, discord_support_link):
     """
-    Sends an informational email regarding the MAIA platform registration process.
-
+    Send an email with registration information for the MAIA platform.
     Parameters
     ----------
     receiver_email : str
         The email address of the recipient.
     register_project_url : str
-        The URL for registering a new project on the MAIA platform.
+        The URL for project registration.
     register_user_url : str
-        The URL for registering a new user account on the MAIA platform.
+        The URL for user registration.
     discord_support_link : str
-        The URL for joining the MAIA Discord support community.
-
+        The URL for the MAIA support Discord.
     Returns
     -------
     None
     """
+
     sender_email = os.environ["email_account"]
     message = MIMEMultipart()
-    message["Subject"] = "Registration Information for MAIA Platform"
+    message["Subject"] = "Registration Information for the MAIA Platform"
     message["From"] = "MAIA Team"
     message["To"] = receiver_email
-
 
     html = """\
     <html>
         <head></head>
         <body>
-            <p>Thank you for your interest in MAIA.</p>
-            <p>Please visit the following links to register:</p>
-            <p> If you are starting a research work and you want to have it hosted in MAIA, please first register your project here:</p>
-            <p>Project Registration: <a href="{}">Register Project</a></p>
-            <p>To create a user account, an active project must be available to select. Once a project is registered, you can sign up for an account linked to that project here:</p>
-            <p>User Registration: <a href="{}">Register User</a></p>        
+            <p>Hello</p>
+            <p>Thank you for your interest in the MAIA platform. Below are the steps to register:</p>
+            <p><b>Project Registration:</b><br>
+            If you are starting a research work and you want to have it hosted in MAIA, please first register your project here:<br>
+            <a href="{}">MAIA Project Registration</a></p>
+            <p><b>User Registration:</b><br>
+            To create a user account, an active project must be available to select. Once a project is registered, you can sign up for an account linked to that project here:<br>
+            <a href="{}">MAIA User Registration</a></p>
+            <p>If you have any questions or need further assistance, feel free to join our Discord community:<br>
+            <a href="{}">MAIA Support Discord</a></p>
             <br>
-            <p>If you have any questions or need further assistance, feel free to join our Discord community:</p>
-            <p><a href="{}">Discord Support</a></p>
-            <br>
-            <p>Best Regards,</p>
+            <p>Best regards,</p>
             <p>The MAIA Admin Team</p>
         </body>
     </html>
