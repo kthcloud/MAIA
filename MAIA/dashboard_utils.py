@@ -26,7 +26,6 @@ from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_tool
 from MAIA.kubernetes_utils import generate_kubeconfig
 from datetime import datetime, timezone
 
-
 def verify_gpu_booking_policy(existing_bookings, new_booking):
     
     total_days = sum(
@@ -45,7 +44,6 @@ def verify_gpu_booking_policy(existing_bookings, new_booking):
         return False
     
     return True
-
 
 def send_maia_info_email(receiver_email, register_project_url, register_user_url, discord_support_link):
     """

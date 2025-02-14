@@ -1004,6 +1004,10 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
                         {
                             "path": "/maia-api/",
                             "pathType": "Prefix"
+                        },
+                        {
+                            "path": "/",
+                            "pathType": "Prefix"
                         }
                     ]
                     }

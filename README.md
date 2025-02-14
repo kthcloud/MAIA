@@ -39,6 +39,18 @@ MAIA serves two main purposes:
 
 The toolkit provides a set of scripts and tools to deploy and manage the MAIA platform as a Kubernetes cluster.
 
+## Installation
+
+To install the MAIA Toolkit, run:
+
+```shell
+pip install maia-toolkit
+```
+
+## Deploy for MicroK8s
+
+To deploy and configure the MAIA platform on a MicroK8s cluster, follow the instructions in the [MAIA-MicroK8s](Installation/README.md) file.
+
 ## MAIA Architecture
 
 MAIA is built on top of Kubernetes, a popular open-source container orchestration platform. The platform is designed to be modular and extensible, allowing users to customize and extend its functionality to suit their needs. 
@@ -125,14 +137,6 @@ Additionally, the MAIA platform provides access to a range of cloud services and
   <img src="https://raw.githubusercontent.com/kthcloud/maia/master/Workspace.png" width="70%" alt='MAIA'>
 </p>
 
-
-## Installation
-
-To install the MAIA Toolkit, run:
-
-```shell
-pip install maia-toolkit
-```
 
 ## Build the Documentation
 To build the documentation, run:
