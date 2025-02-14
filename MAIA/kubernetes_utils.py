@@ -53,9 +53,8 @@ def label_pod_for_deletion(namespace, pod_name):
     body = {
         "metadata": {
             "annotations": {
-                "terminate-at": (datetime.now(timezone.utc) + timedelta(seconds=30)).isoformat()
+                "terminate-at": (datetime.now(timezone.utc) + timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
             }
-            
         }
     }
     try:

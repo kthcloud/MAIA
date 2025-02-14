@@ -6,9 +6,23 @@ Copyright (c) 2019 - present AppSeed.us
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from apps.models import MAIAUser, MAIAProject
+from .models import MAIAInfo
 from django.conf import settings
 from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects
 
+
+class MAIAInfoForm(forms.Form):
+    email = forms.EmailField(
+            widget=forms.EmailInput(
+                attrs={
+                    "placeholder": "Your Email",
+                    "class": "form-control"
+                }
+            ))
+    
+    class Meta:
+        model = MAIAInfo
+        fields = ('email')
 
 class LoginForm(forms.Form):
     username = forms.CharField(
