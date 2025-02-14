@@ -48,7 +48,7 @@ def label_pod_for_deletion(namespace, pod_name):
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
 
-
+    
     # Label the pod for deletion
     body = {
         "metadata": {
@@ -59,8 +59,10 @@ def label_pod_for_deletion(namespace, pod_name):
         }
     }
     try:
-        client.patch_namespaced_pod(name=pod_name, namespace=namespace, body=body)
-        logger.info(f"Pod {pod_name} labeled for deletion")
+        with kubernetes.client.ApiClient() as api_client:
+            api_instance = kubernetes.client.CoreV1Api(api_client)
+            api_instance.patch_namespaced_pod(name=pod_name, namespace=namespace, body=body)
+            logger.info(f"Pod {pod_name} labeled for deletion")
     except Exception as e:
         logger.error(f"Error labeling pod {pod_name} for deletion: {e}")
         
