@@ -5,12 +5,14 @@ from django.http import HttpResponse
 from django.template import loader
 from django.conf import settings
 from kubernetes import config
-
+from django.contrib.auth.models import User
 from pathlib import Path
 from .forms import UserTableForm
+from apps.models import MAIAUser
 from MAIA.kubernetes_utils import generate_kubeconfig
-from MAIA.dashboard_utils import get_user_table, update_user_table, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_users_requesting_a_group, get_list_of_groups_requesting_a_user, get_project, get_project_argo_status_and_user_table
+from MAIA.dashboard_utils import get_user_table, update_user_table, get_project, get_project_argo_status_and_user_table
 from MAIA.kubernetes_utils import create_namespace
+from MAIA.keycloak_utils import get_user_ids, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_groups_requesting_a_user, get_list_of_users_requesting_a_group
 import urllib3
 import yaml
 from django.shortcuts import redirect
@@ -28,7 +30,18 @@ def index(request):
     
     argocd_url = settings.ARGOCD_SERVER
 
+    keycloak_users = get_user_ids(settings=settings)
+    
+    for keycloak_user in keycloak_users:
+        if User.objects.filter(email=keycloak_user).exists():
+            ... # do nothing
+        else:
+            MAIAUser.objects.create(email=keycloak_user, username=keycloak_user, namespace=",".join(keycloak_users[keycloak_user]))
+
     user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
+    
+    
+    
     
     if request.method == "POST":
         

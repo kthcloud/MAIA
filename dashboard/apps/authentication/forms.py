@@ -8,7 +8,8 @@ from django.contrib.auth.forms import UserCreationForm
 from apps.models import MAIAUser, MAIAProject
 from .models import MAIAInfo
 from django.conf import settings
-from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects
+from MAIA.dashboard_utils import get_pending_projects
+from MAIA.keycloak_utils import get_groups_in_keycloak
 
 
 class MAIAInfoForm(forms.Form):

@@ -2,7 +2,8 @@ from django import forms
 
 from .models import GPUBooking
 from django.conf import settings
-from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects, verify_gpu_booking_policy
+from MAIA.keycloak_utils import get_groups_in_keycloak
+from MAIA.dashboard_utils import get_pending_projects, verify_gpu_booking_policy
 
 class GPUBookingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
