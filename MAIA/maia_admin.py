@@ -1072,6 +1072,8 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         maia_dashboard_values["dashboard"]["discord_url"] = maia_config_dict["discord_url"]
     if "discord_signup_url" in maia_config_dict:
         maia_dashboard_values["dashboard"]["discord_signup_url"] = maia_config_dict["discord_signup_url"]
+    if "discord_support_url" in maia_config_dict:
+        maia_dashboard_values["dashboard"]["discord_support_url"] = maia_config_dict["discord_support_url"]
     
     debug = False
     

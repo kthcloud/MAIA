@@ -40,6 +40,7 @@ BUCKET_NAME = env('BUCKET_NAME')
 
 DISCORD_URL = env('DISCORD_URL', default=None)
 DISCORD_SIGNUP_URL = env('DISCORD_SIGNUP_URL', default=None)
+DISCORD_SUPPORT_URL = env('DISCORD_SUPPORT_URL', default=None)
 
 os.environ["DISCORD_SIGNUP_URL"] = DISCORD_SIGNUP_URL if DISCORD_SIGNUP_URL else "None"
 
@@ -52,8 +53,8 @@ ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/maia/static/assets')
 
 HOSTNAME = env('SERVER', default='localhost')
 # load production server from .env
-ALLOWED_HOSTS        = ['localhost', 'localhost:85', '127.0.0.1',               env('SERVER', default='127.0.0.1'), 'dev.'+ env('SERVER', default='127.0.0.1') ]
-CSRF_TRUSTED_ORIGINS = ['http://localhost:85', 'http://127.0.0.1', 'https://' + env('SERVER', default='127.0.0.1'), 'dev.'+ env('SERVER', default='127.0.0.1')]
+ALLOWED_HOSTS        = ['localhost', 'localhost:85', '127.0.0.1',               env('SERVER', default='http://127.0.0.1'), 'http://dev.'+ env('SERVER', default='127.0.0.1') ]
+CSRF_TRUSTED_ORIGINS = ['http://localhost:85', 'http://127.0.0.1', 'https://' + env('SERVER', default='http://127.0.0.1'), 'http://dev.'+ env('SERVER', default='127.0.0.1')]
 
 # Application definition
 
@@ -88,6 +89,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'mozilla_django_oidc.middleware.SessionRefresh',
 ]

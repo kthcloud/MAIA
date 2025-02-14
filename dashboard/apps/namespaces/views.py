@@ -88,7 +88,7 @@ def namespace_view(request,namespace_id):
 
         namespaces = []
         if request.user.is_superuser:
-            namespaces = get_namespaces(id_token)
+            namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
         else:
             for group in groups:

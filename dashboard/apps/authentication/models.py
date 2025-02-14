@@ -5,4 +5,8 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django.db import models
 
-# Create your models here.
+class MAIAInfo(models.Model):
+    class Meta:
+        app_label = 'maia_info'
+    email = models.CharField(max_length=255, )
+

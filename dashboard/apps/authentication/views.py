@@ -4,11 +4,12 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 # Create your views here.
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from .forms import LoginForm, SignUpForm, RegisterProjectForm
+from .forms import LoginForm, SignUpForm, RegisterProjectForm, MAIAInfoForm
 from minio import Minio
-from MAIA.dashboard_utils import send_discord_message, verify_minio_availability, check_pending_projects_and_assign_id
+from MAIA.dashboard_utils import send_discord_message, verify_minio_availability, check_pending_projects_and_assign_id, send_maia_info_email
 from core.settings import GITHUB_AUTH
 from django.conf import settings
 
@@ -74,6 +75,38 @@ def register_user(request):
         form = SignUpForm()
 
     return render(request, "accounts/register.html", {"dashboard_version": settings.DASHBOARD_VERSION,"form": form, "msg": msg, "success": success})
+
+@login_required(login_url="/maia/login/")
+def send_maia_info(request):
+    
+    if not request.user.is_superuser:
+        return redirect("/maia/")
+    
+    hostname = settings.HOSTNAME
+    register_project_url = f"https://{hostname}/maia/register_project/"
+    register_user_url = f"https://{hostname}/maia/register/"
+    discord_support_link = settings.DISCORD_SUPPORT_URL
+    msg = None
+    success = False
+
+    if request.method == "POST":
+
+        form = MAIAInfoForm(request.POST, request.FILES)
+        if form.is_valid():
+            send_maia_info_email(form.cleaned_data.get("email"), register_project_url, register_user_url, discord_support_link)
+            msg = 'Request for MAIA Info submitted successfully. Please check your email for more information.'
+            success = True
+
+            #return redirect("/login/")
+
+        else:
+            print(form.errors)
+            msg = 'Form is not valid'
+    else:
+        form = MAIAInfoForm()
+
+    return render(request, "accounts/send_maia_info.html", {"dashboard_version": settings.DASHBOARD_VERSION,"form": form, "msg": msg, "success": success})
+
 
 def register_project(request):
     msg = None

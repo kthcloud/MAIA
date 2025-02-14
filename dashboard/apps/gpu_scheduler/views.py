@@ -12,9 +12,13 @@ from django.conf import settings
 from datetime import datetime, timezone
 from .forms import GPUBookingForm
 from MAIA.kubernetes_utils import get_namespaces, label_pod_for_deletion
-from MAIA.dashboard_utils import verify_gpu_booking_policy
+from MAIA.dashboard_utils import verify_gpu_booking_policy, get_project
 from MAIA.maia_fn import convert_username_to_jupyterhub_username
 from django import forms
+from MAIA.kubernetes_utils import generate_kubeconfig
+from pathlib import Path
+import os
+import yaml
 
 @method_decorator(csrf_exempt, name='dispatch')  # 🚀 This disables CSRF for this API
 class GPUSchedulabilityAPIView(APIView):
@@ -75,7 +79,12 @@ class GPUSchedulabilityAPIView(APIView):
 
 @login_required(login_url="/maia/login/")
 def delete_booking(request, id):
+    
+    id_token = request.session.get('oidc_id_token')
+    
     booking = GPUBooking.objects.get(id=id)
+    if request.user.email != booking.user_email and not request.user.is_superuser:
+        return JsonResponse({"error": "You do not have permission to delete this booking."}, status=403)
     if booking.start_date < datetime.now(timezone.utc):
         # Create a new booking starting from the start date and ending now
         GPUBooking.objects.create(
@@ -87,7 +96,16 @@ def delete_booking(request, id):
         )
     booking.delete()
     pod_name = "jupyter-"+convert_username_to_jupyterhub_username(booking.user_email)
-    label_pod_for_deletion(booking.namespace, pod_name=pod_name)
+    
+    _, cluster_id = get_project(booking.namespace, settings=settings)
+    local_kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
+
+    with open(Path("/tmp").joinpath("kubeconfig-project-local"), "w") as f:
+        yaml.dump(local_kubeconfig_dict, f)
+
+        os.environ["KUBECONFIG_LOCAL"] = str(Path("/tmp").joinpath("kubeconfig-project-local"))
+        
+    label_pod_for_deletion(booking.namespace.lower().replace("_","-"), pod_name=pod_name)
     return redirect("/maia/gpu-booking/my-bookings/")
 
 @login_required(login_url="/maia/login/")

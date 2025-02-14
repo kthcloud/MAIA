@@ -54,8 +54,8 @@ class GPUBookingForm(forms.ModelForm):
             else:
                 existing_bookings = GPUBooking.objects.filter(user_email=user_email)
                 booking_data = {
-                    "starting_time": start_date,
-                    "ending_time": end_date
+                    "starting_time": start_date.strftime('%Y-%m-%d  %H:%M:%S'),
+                    "ending_time": end_date.strftime('%Y-%m-%d  %H:%M:%S')
                 }
                 is_bookable = verify_gpu_booking_policy(existing_bookings, booking_data)
                 # Check existing bookings for the same user
