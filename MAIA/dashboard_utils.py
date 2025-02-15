@@ -13,6 +13,7 @@ import os
 from kubernetes.client.rest import ApiException
 import asyncio
 import sqlite3
+from pyhelm3 import Client
 import kubernetes
 from sqlalchemy import create_engine
 import pandas as pd
@@ -933,6 +934,33 @@ def get_allocation_date_for_project(settings, group_id, is_namespace_style=False
     return None
 
 
+async def get_list_of_deployed_projects():
+    """
+    Asynchronously retrieves a list of deployed projects from the Argo CD namespace.
+    This function uses a Kubernetes client to list all releases in the "argocd" namespace
+    and returns the names of these releases.
+    
+    Returns
+    -------
+    list of str
+        A list containing the names of the deployed projects.
+    
+    Raises
+    ------
+    KeyError
+        If the "KUBECONFIG" environment variable is not set.
+    kubernetes.client.exceptions.ApiException
+        If there is an error communicating with the Kubernetes API.
+    """
+
+    client = Client(kubeconfig = os.environ["KUBECONFIG"])
+    
+    releases = client.list_releases(namespace="argocd")
+    
+    return [release.metadata.name for release in releases.items]
+
+
+
 def get_project_argo_status_and_user_table(request, settings):
     """
     Retrieves the Argo CD project status and user table information.
@@ -966,7 +994,12 @@ def get_project_argo_status_and_user_table(request, settings):
     user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict = get_user_table(settings=settings)
     project_argo_status = {}
 
+    deployed_projects = asyncio.run(get_list_of_deployed_projects())
     for project_id in maia_groups_dict:
-        project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
+        if project_id.lower().replace("_", "-") in deployed_projects:
+            project_argo_status[project_id] = 1
+        else:
+            project_argo_status[project_id] = -1
+        #project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
 
     return user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status
