@@ -48,12 +48,9 @@ def get_user_ids(settings):
     groups = keycloak_admin.get_groups()
     maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}
 
-    delete_groups = ["Brain-Aging","Brain-Diffusion","Demo"]
     
     for maia_group in maia_groups:
-        if maia_groups[maia_group] in delete_groups:
-            keycloak_admin.delete_group(group_id=maia_group)
-            continue
+
         users = keycloak_admin.get_group_members(group_id=maia_group)
         emails = [user['email'] for user in users if 'email' in user]
         for email in emails:
@@ -65,6 +62,49 @@ def get_user_ids(settings):
     
     return user_list
 
+
+def delete_group_in_keycloak(group_id, settings):
+    """
+    Delete a group in Keycloak
+    
+    Parameters
+    ----------
+    group_id : str
+        The ID of the group to be deleted.
+    settings : object
+        An object containing the Keycloak server settings. It should have the following attributes:
+        - OIDC_SERVER_URL: str, the URL of the Keycloak server.
+        - OIDC_USERNAME: str, the username for Keycloak authentication.
+        - OIDC_REALM_NAME: str, the realm name in Keycloak.
+        - OIDC_RP_CLIENT_ID: str, the client ID for Keycloak.
+        - OIDC_RP_CLIENT_SECRET: str, the client secret for Keycloak.
+        
+    Returns
+    -------
+    None
+    """
+    
+    keycloak_connection = KeycloakOpenIDConnection(
+        server_url=settings.OIDC_SERVER_URL,
+        username=settings.OIDC_USERNAME,
+        password='',
+        realm_name=settings.OIDC_REALM_NAME,
+        client_id=settings.OIDC_RP_CLIENT_ID,
+        client_secret_key=settings.OIDC_RP_CLIENT_SECRET,
+        verify=False
+    )
+
+    maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}
+
+    keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
+
+    groups = keycloak_admin.get_groups()
+    
+    for maia_group in maia_groups:
+        if maia_groups[maia_group] in [group_id]:
+            keycloak_admin.delete_group(group_id=maia_group)
+    
+    return None
 
 def get_groups_in_keycloak(settings):
     """
