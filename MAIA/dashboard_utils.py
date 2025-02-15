@@ -449,6 +449,8 @@ def get_user_table(settings):
         }
 
     users_to_register_in_keycloak = []
+    users_to_remove_from_group = {}
+    
     for user in auth_user.iterrows():
         uid = user[1]['id']
         username = user[1]['username']
@@ -475,11 +477,17 @@ def get_user_table(settings):
                         users_to_register_in_group[email] = [requested_namespace]
                     else:
                         users_to_register_in_group[email].append(requested_namespace)
+            for user_group in user_groups:
+                if user_group not in requested_namespaces:
+                    if email not in users_to_remove_from_group:
+                        users_to_remove_from_group[email] = [user_group]
+                    else:
+                        users_to_remove_from_group[email].append(user_group)
 
 
     table.fillna("N/A", inplace=True)
 
-    return table, users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict
+    return table, users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict, users_to_remove_from_group
 
 def check_pending_projects_and_assign_id(settings):
     """
@@ -991,7 +999,7 @@ def get_project_argo_status_and_user_table(request, settings):
         yaml.dump(kubeconfig_dict, f)
         os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-argo"))
 
-    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict = get_user_table(settings=settings)
+    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, users_to_remove_from_group = get_user_table(settings=settings)
     project_argo_status = {}
 
     deployed_projects = asyncio.run(get_list_of_deployed_projects())
@@ -1002,4 +1010,4 @@ def get_project_argo_status_and_user_table(request, settings):
             project_argo_status[project_id] = -1
         #project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
 
-    return user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status
+    return user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status, users_to_remove_from_group
