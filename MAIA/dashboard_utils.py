@@ -537,38 +537,28 @@ def check_pending_projects_and_assign_id(settings):
         authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
         
 
-def register_cluster_for_project_in_db(settings, namespace, cluster):
+def register_cluster_for_project_in_db(project_model, namespace, cluster):
     """
     Registers a cluster for a project in the database.
-    Depending on the DEBUG setting, this function connects to either a local SQLite database or a remote MySQL database.
-    It updates the cluster information for a given namespace in the `authentication_maiaproject` table.
+    This function connects to Keycloak to retrieve group information and 
+    associates a cluster with a project based on the provided namespace. 
+    If the project already exists, it updates the cluster information; 
+    otherwise, it creates a new project entry with the specified cluster.
     
     Parameters
     ----------
-    settings : object
-        An object containing configuration settings. Must have `DEBUG` and `LOCAL_DB_PATH` attributes.
+    project_model : Django model
+        The Django model representing the project.
     namespace : str
-        The namespace of the project to update.
+        The namespace associated with the project.
     cluster : str
-        The cluster information to register for the project.
+        The cluster to be registered for the project.
     
     Returns
     -------
     None
     """
-    
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
 
-        #try:
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-    
-    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
     
     keycloak_connection = KeycloakOpenIDConnection(
                     server_url=settings.OIDC_SERVER_URL,
@@ -591,25 +581,12 @@ def register_cluster_for_project_in_db(settings, namespace, cluster):
             group_id = maia_groups[maia_group]
     
     print("Registering Existing Cluster for Group: ", group_id) 
-    try:
-        id = authentication_maiaproject[authentication_maiaproject["namespace"] == group_id ]["id"].values[0]
-        authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = cluster
-    except:
-        id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-        authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "namespace": group_id, "cluster": cluster, "memory_limit": "2 Gi", "cpu_limit": "2"}, ignore_index=True)
-        
-
-    cnx.close()
     
-
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-        authentication_maiaproject.to_sql("authentication_maiaproject", con=cnx, if_exists="replace", index=False)
-
+    if project_model.objects.filter(namespace=group_id).exists():
+        project_model.objects.filter(namespace=group_id).first().update(cluster=cluster)
     else:
-        engine.dispose()
-        engine_2 = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
+        project_model.objects.create(namespace=group_id, cluster=cluster, memory_limit="2 Gi", cpu_limit="2")
+
 
 
 def update_user_table(form, settings):
