@@ -93,12 +93,9 @@ def delete_group_in_keycloak(group_id, settings):
         client_secret_key=settings.OIDC_RP_CLIENT_SECRET,
         verify=False
     )
-
-    maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}
-
     keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
-
     groups = keycloak_admin.get_groups()
+    maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}    
     
     for maia_group in maia_groups:
         if maia_groups[maia_group] in [group_id]:
