@@ -955,9 +955,9 @@ async def get_list_of_deployed_projects():
 
     client = Client(kubeconfig = os.environ["KUBECONFIG"])
     
-    releases = client.list_releases(namespace="argocd")
-    
-    return [release.metadata.name for release in releases.items]
+    releases = await client.list_releases(namespace="argocd")
+
+    return [release.name for release in releases]
 
 
 
