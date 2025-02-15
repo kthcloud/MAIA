@@ -337,7 +337,7 @@ def get_list_of_groups_requesting_a_user(email, user_model):
     """
     
     try:
-        return user_model.objects.filter(email=email).namespace.split(",")
+        return user_model.objects.filter(email=email).first().namespace.split(",")
     except:
         return []
 
