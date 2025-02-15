@@ -312,7 +312,7 @@ def register_users_in_group_in_keycloak(emails, group_id, settings):
                         ...
 
 
-def get_list_of_groups_requesting_a_user(email, settings):
+def get_list_of_groups_requesting_a_user(email, user_model):
     """
     Retrieves a list of groups (namespaces) that have requested a specific user based on their email.
 
@@ -320,8 +320,8 @@ def get_list_of_groups_requesting_a_user(email, settings):
     ----------
     email : str
         The email address of the user to search for.
-    settings : module
-        The settings module containing configuration such as DEBUG and LOCAL_DB_PATH.
+    user_model : object
+        The user model object to query for user information.
 
     Returns
     -------
@@ -335,28 +335,11 @@ def get_list_of_groups_requesting_a_user(email, settings):
     Exception
         If there is an issue connecting to the database or executing the SQL queries.
     """
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH, "db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-
-    auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
-    authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
-
-    for user in auth_user.iterrows():
-        uid = user[1]['id']
-
-        if user[1]['email'] == email:
-            if uid in authentication_maiauser['user_ptr_id'].values:
-                requested_namespaces = authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid][
-                    'namespace'].values[0].split(",")
-                return requested_namespaces
-
-    return []
+    
+    try:
+        return user_model.objects.filter(email=email).namespace.split(",")
+    except:
+        return []
 
 
 def get_list_of_users_requesting_a_group(group_id, settings):
