@@ -373,7 +373,7 @@ def get_user_table(settings, maia_user_model, maia_project_model):
             date = project.date
             cluster = project.cluster
             gpu = project.gpu
-            environment = project.minimal_environment
+            environment = project.minimal_env
         
         if maia_groups[maia_group] in minio_envs:
             conda_envs.append(maia_groups[maia_group])
