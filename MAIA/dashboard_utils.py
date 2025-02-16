@@ -292,47 +292,28 @@ def get_pending_projects(settings):
 
 
 
-def get_user_table(settings):
+def get_user_table(settings, maia_user_model, maia_project_model):
     """
-    Retrieves and processes user data from various sources including a local SQLite database or a remote MySQL database,
-    Keycloak, and Minio. Combines and returns user information along with group and project details.
-
+    Retrieve user and project information from Keycloak and Minio, and organize it into a dictionary.
+    
     Parameters
     ----------
     settings : object
-        A settings object containing configuration parameters such as database paths, 
-        Keycloak server details, and Minio credentials.
-
+        An object containing configuration settings such as OIDC and Minio credentials.
+    maia_user_model : Django model
+        The Django model representing MAIA users.
+    maia_project_model : Django model
+        The Django model representing MAIA projects.
+    
     Returns
     -------
     tuple
         A tuple containing:
-        - table (pd.DataFrame): A DataFrame containing merged user data from the auth_user and authentication_maiauser tables.
-        - users_to_register_in_group (dict): A dictionary mapping user emails to the groups they need to be registered in.
-        - users_to_register_in_keycloak (list): A list of user emails that need to be registered in Keycloak.
-        - maia_group_dict (dict): A dictionary containing detailed information about each MAIA group and pending projects.
+        - users_to_register_in_group (dict): Users to be registered in Keycloak groups.
+        - users_to_register_in_keycloak (list): Users to be registered in Keycloak.
+        - maia_group_dict (dict): Dictionary containing group information including users, conda environments, and project details.
+        - users_to_remove_from_group (dict): Users to be removed from Keycloak groups.
     """
-
-    if settings.DEBUG:
-         cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-
-
-    auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
-    authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
-
-    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
-
-    authentication_maiauser_copy = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
-
-    authentication_maiauser_copy.rename(columns={"user_ptr_id": "id"}, inplace=True)
-
-    table = auth_user.merge(authentication_maiauser_copy,on="id",how="left")
 
     keycloak_connection = KeycloakOpenIDConnection(
         server_url=settings.OIDC_SERVER_URL,
@@ -367,6 +348,7 @@ def get_user_table(settings):
         minio_envs = [env.object_name[:-len("_env")] for env in list(client.list_objects(settings.BUCKET_NAME))]
     except:
         minio_envs = []
+        
 
     for maia_group in maia_groups:
         if maia_groups[maia_group] == "users":
@@ -380,19 +362,19 @@ def get_user_table(settings):
         cluster = None
         gpu = None
         environment = None
-        for project in authentication_maiaproject.iterrows():
-            if project[1]['namespace'] == maia_groups[maia_group]:
-                admin_users = [project[1]['email']]
-                cpu_limit = project[1]['cpu_limit']
-                memory_limit = project[1]['memory_limit']
-                date = project[1]['date']
-                cluster = project[1]['cluster']
-                gpu = project[1]['gpu']
-                environment = project[1]['minimal_env']
-
-
-
         conda_envs = []
+        
+        if maia_project_model.objects.filter(namespace=maia_groups[maia_group]).exists():
+            project = maia_project_model.objects.filter(namespace=maia_groups[maia_group]).first()
+            
+            admin_users = [project.email]
+            cpu_limit = project.cpu_limit
+            memory_limit = project.memory_limit
+            date = project.date
+            cluster = project.cluster
+            gpu = project.gpu
+            environment = project.minimal_environment
+        
         if maia_groups[maia_group] in minio_envs:
             conda_envs.append(maia_groups[maia_group])
         else:
@@ -407,7 +389,7 @@ def get_user_table(settings):
                 group_users.append(user['email'])
 
         maia_group_dict[maia_groups[maia_group]] = {
-            "users":group_users,
+            "users": group_users,
             "conda": conda_envs,
             "admin_users": admin_users,
             "cpu_limit": cpu_limit,
@@ -426,24 +408,22 @@ def get_user_table(settings):
             conda_envs.append("N/A")
 
         users = []
-        for user in auth_user.iterrows():
-            uid = user[1]['id']
-            if uid in authentication_maiauser['user_ptr_id'].values:
-                requested_namespaces = authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid][
-                    'namespace'].values[0].split(",")
-                if pending_project in requested_namespaces:
-                    users.append(user[1]['email'])
-
+        
+        for user in maia_user_model.objects.all():
+            if user.namespace and pending_project in user.namespace.split(","):
+                users.append(user.email)
+       
+        project = maia_project_model.objects.filter(namespace=pending_project).first()
         maia_group_dict[pending_project] = {
             "users": users,
             "pending": True,
             "conda": conda_envs,
             "admin_users": [],
-            "cpu_limit": authentication_maiaproject[authentication_maiaproject['namespace'] == pending_project]['cpu_limit'].values[0],
-            "memory_limit": authentication_maiaproject[authentication_maiaproject['namespace'] == pending_project]['memory_limit'].values[0],
-            "date": authentication_maiaproject[authentication_maiaproject['namespace'] == pending_project]['date'].values[0],
+            "cpu_limit": project.cpu_limit,
+            "memory_limit": project.memory_limit,
+            "date": project.date,
             "cluster": "N/A",
-            "gpu": authentication_maiaproject[authentication_maiaproject['namespace'] == pending_project]['gpu'].values[0],
+            "gpu": project.gpu,
             "environment": "Minimal" 
             
         }
@@ -451,43 +431,37 @@ def get_user_table(settings):
     users_to_register_in_keycloak = []
     users_to_remove_from_group = {}
     
-    for user in auth_user.iterrows():
-        uid = user[1]['id']
-        username = user[1]['username']
-        email = user[1]['email']
+    for user in maia_user_model.objects.all():
         user_groups = []
         user_in_keycloak = False
         for keycloak_user in keycloak_admin.get_users():
-
+            
+            
             if 'email' in keycloak_user:
-                if keycloak_user['email'] == email:
+                if keycloak_user['email'] == user.email:
                     user_in_keycloak = True
                     user_keycloak_groups = keycloak_admin.get_user_groups(user_id=keycloak_user['id'])
                     for user_keycloak_group in user_keycloak_groups:
                         if user_keycloak_group['name'].startswith("MAIA:"):
                             user_groups.append(user_keycloak_group['name'][len("MAIA:"):])
         if not user_in_keycloak:
-            users_to_register_in_keycloak.append(email)
-        if uid in authentication_maiauser['user_ptr_id'].values:
-            requested_namespaces = authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid][
-                'namespace'].values[0].split(",")
-            for requested_namespace in requested_namespaces:
-                if requested_namespace not in user_groups and requested_namespace != "N/A":
-                    if email not in users_to_register_in_group:
-                        users_to_register_in_group[email] = [requested_namespace]
-                    else:
-                        users_to_register_in_group[email].append(requested_namespace)
+            users_to_register_in_keycloak.append(user.email)
+            
+        requested_namespaces = user.namespace.split(",") if user.namespace else []
+        for requested_namespace in requested_namespaces:
+            if requested_namespace not in user_groups and requested_namespace != "N/A":
+                if user.email not in users_to_register_in_group:
+                    users_to_register_in_group[user.email] = [requested_namespace]
+                else:
+                    users_to_register_in_group[user.email].append(requested_namespace)
             for user_group in user_groups:
                 if user_group not in requested_namespaces:
-                    if email not in users_to_remove_from_group:
-                        users_to_remove_from_group[email] = [user_group]
+                    if user.email not in users_to_remove_from_group:
+                        users_to_remove_from_group[user.email] = [user_group]
                     else:
-                        users_to_remove_from_group[email].append(user_group)
+                        users_to_remove_from_group[user.email].append(user_group)
 
-
-    table.fillna("N/A", inplace=True)
-
-    return table, users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict, users_to_remove_from_group
+    return users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict, users_to_remove_from_group
 
 def check_pending_projects_and_assign_id(settings):
     """
@@ -890,7 +864,7 @@ async def get_list_of_deployed_projects():
 
 
 
-def get_project_argo_status_and_user_table(request, settings):
+def get_project_argo_status_and_user_table(request, settings, maia_user_model, maia_project_model):
     """
     Retrieves the Argo CD project status and user table information.
 
@@ -900,6 +874,10 @@ def get_project_argo_status_and_user_table(request, settings):
         The HTTP request object containing session and user information.
     settings : Settings
         The settings object containing configuration values.
+    maia_user_model : Model
+        The Django model representing MAIA users.
+    maia_project_model : Model
+        The Django model representing MAIA projects.
 
     Returns
     -------
@@ -920,7 +898,7 @@ def get_project_argo_status_and_user_table(request, settings):
         yaml.dump(kubeconfig_dict, f)
         os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-argo"))
 
-    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, users_to_remove_from_group = get_user_table(settings=settings)
+    to_register_in_groups, to_register_in_keycloak, maia_groups_dict, users_to_remove_from_group = get_user_table(settings=settings, maia_user_model=maia_user_model, maia_project_model=maia_project_model)
     project_argo_status = {}
 
     deployed_projects = asyncio.run(get_list_of_deployed_projects())
@@ -931,4 +909,4 @@ def get_project_argo_status_and_user_table(request, settings):
             project_argo_status[project_id] = -1
         #project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
 
-    return user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status, users_to_remove_from_group
+    return to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status, users_to_remove_from_group
