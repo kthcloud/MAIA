@@ -591,149 +591,91 @@ def register_cluster_for_project_in_db(project_model, settings, namespace, clust
 
 
 
-def update_user_table(form, settings):
+def update_user_table(form, user_model, maia_user_model, project_model):
     """
-    Updates the user and project tables based on the provided form data.
-
+    Updates user and project information based on the cleaned data from a form.
+    
     Parameters
     ----------
-    form : dict
-        A dictionary containing form data with keys indicating the type of data (e.g., "namespace", "memory_limit", etc.) and values being the corresponding data.
-    settings : object
-        An object containing configuration settings. It should have a DEBUG attribute to determine the environment and a LOCAL_DB_PATH attribute for the local database path.
-
-    Returns
-    -------
-    None
-
-    The function performs the following steps:
-    1. Connects to the appropriate database (SQLite for debug mode, MySQL for production).
-    2. Reads the current data from the `auth_user`, `authentication_maiauser`, and `authentication_maiaproject` tables.
-    3. Iterates over the form data and updates the `authentication_maiauser` and `authentication_maiaproject` tables accordingly.
-    4. Closes the database connection.
-    5. Writes the updated data back to the database.
+    form : Form
+        The form containing cleaned data to update the user and project models.
+    user_model : Model
+        The user model to query and update user information.
+    maia_user_model : Model
+        The MAIA user model to query and update namespace information.
+    project_model : Model
+        The project model to query and update project information.
+    Notes
+    -----
+    - The function processes entries in the form's cleaned data to update user namespaces and project details.
+    - User namespaces are updated or created in the `maia_user_model` based on the user's email.
+    - Project details are updated or created in the `project_model` based on the namespace.
     """
 
-    if settings.DEBUG:
-         cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-
-        #try:
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-
-    auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
-
-    authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
-
-    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
-
-    for k in form:
-        if k.startswith("namespace"):
-            id = auth_user[auth_user["username"] == k[len("namespace_"):]]["id"].values[0]
-
-            if len(authentication_maiauser[authentication_maiauser["user_ptr_id"] == id]) > 0:
-                authentication_maiauser.loc[authentication_maiauser["user_ptr_id"] == id, "namespace"] = form[k]
-            else:
-
-                authentication_maiauser = authentication_maiauser.append({"user_ptr_id": int(id), "namespace": form[k]},
-                                                                         ignore_index=True)
-        elif k.startswith("memory_limit"):
-            
-
-            try:
-                id = authentication_maiaproject[authentication_maiaproject["namespace"] == k[len("memory_limit_"):]]["id"].values[0]
-            except:
-                id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-
-            if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
-                authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "memory_limit"] = form[k]
-            else:
-                
-                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "memory_limit": form[k],"namespace": k[len("memory_limit_"):]},
-                                                                            ignore_index=True)
-        elif k.startswith("cpu_limit"):
-            try:
-                id = authentication_maiaproject[authentication_maiaproject["namespace"] == k[len("cpu_limit_"):]]["id"].values[0]
-            except:
-                id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-
-            if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
-                authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cpu_limit"] = form[k]
-            else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "cpu_limit": form[k],"namespace": k[len("cpu_limit_"):]},
-                                                                            ignore_index=True)
-        elif k.startswith("date"):
-            try:
-                id = authentication_maiaproject[authentication_maiaproject["namespace"] == k[len("date_"):]]["id"].values[0]
-            except:
-                id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-
-            if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
-                authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "date"] = form[k]
-            else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "date": form[k],"namespace": k[len("date_"):]},
-                                                                            ignore_index=True)
-        elif k.startswith("cluster"):
-            try:
-                id = authentication_maiaproject[authentication_maiaproject["namespace"] == k[len("cluster_"):]]["id"].values[0]
-            except:
-                id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-
-            if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
-                authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "cluster"] = form[k]
-            else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "cluster": form[k],"namespace": k[len("cluster_"):]},
-                                                                            ignore_index=True)
-        elif k.startswith("gpu"):
-            try:
-                id = authentication_maiaproject[authentication_maiaproject["namespace"] == k[len("gpu_"):]]["id"].values[0]
-            except:
-                id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-                
-            
-
-            if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
-                authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "gpu"] = form[k]
-            else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "gpu": form[k],"namespace": k[len("gpu_"):]},
-                                                                            ignore_index=True)
-        elif k.startswith("minimal_environment"):
-            try:
-                id = authentication_maiaproject[authentication_maiaproject["namespace"] == k[len("minimal_environment_"):]]["id"].values[0]
-            except:
-                id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-
-            if len(authentication_maiaproject[authentication_maiaproject["id"] == id]) > 0:
-                authentication_maiaproject.loc[authentication_maiaproject["id"] == id, "minimal_env"] = form[k]
-            else:
-                authentication_maiaproject = authentication_maiaproject.append({"id": int(id), "minimal_env": form[k],"namespace": k[len("minimal_environment_"):]},
-                                                                            ignore_index=True)
-            
-      
-    #try:
-    cnx.close()
+    project_entries = ["memory_limit", "cpu_limit", "date", "cluster", "gpu", "minimal_environment"]
     
+    namespace_list = []
 
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-        authentication_maiauser.to_sql("authentication_maiauser", con=cnx, if_exists="replace", index=False)
-        authentication_maiaproject.to_sql("authentication_maiaproject", con=cnx, if_exists="replace", index=False)
-
-    else:
-        engine.dispose()
-        engine_2 = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        authentication_maiauser.to_sql("authentication_maiauser", con=engine_2, if_exists="replace", index=False)
-        authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
-        #stmt = text("ALTER TABLE authentication_maiauser-copy RENAME TO authentication_maiauser;")
-        #engine.execute(stmt)
-
-    #except:
-    #    ...
-#auth_user[auth_user["username"] == k[len("date_"):]]["date"] = form[k]
+    for entry in form.cleaned_data:
+        if entry.startswith("namespace_"):
+            user = user_model.objects.filter(email=entry.replace("namespace_", "")).first()
+            if user:
+                user_id = user.id
+                if maia_user_model.objects.filter(id=user_id).exists():
+                    namespace_list = form.cleaned_data[entry]
+                    namespaces = []
+                    for namespace in namespace_list:
+                        if namespace.endswith(" (Pending)"):
+                            namespaces.append(namespace[:-len(" (Pending)")])
+                        else:
+                            namespaces.append(namespace)
+                    maia_user_model.objects.filter(id=user_id).update(namespace=",".join(namespaces))
+                else:
+                    if user_id is not None:
+                        if user_model.objects.filter(id=user_id).exists():
+                            namespace_list = form.cleaned_data[entry]
+                            namespaces = []
+                            for namespace in namespace_list:
+                                if namespace.endswith(" (Pending)"):
+                                    namespaces.append(namespace[:-len(" (Pending)")])
+                                else:
+                                    namespaces.append(namespace)
+                            maia_user_model.objects.create(id=user_id, namespace=",".join(namespaces))
+                        else:
+                            namespace_list = form.cleaned_data[entry]
+                            namespaces = []
+                            for namespace in namespace_list:
+                                if namespace.endswith(" (Pending)"):
+                                    namespaces.append(namespace[:-len(" (Pending)")])
+                                else:
+                                    namespaces.append(namespace)
+                            maia_user_model.objects.create(id=user_id, namespace=",".join(namespaces))
+        for project_entry in project_entries:
+            if entry.startswith(project_entry+"_"):
+                namespace = entry[len(project_entry+"_"):]
+                namespace_list.append(namespace)
+    
+    for namespace in namespace_list:
+        namespaced_entries = [entry for entry in form.cleaned_data if entry.endswith(namespace)]
+        if project_model.objects.filter(namespace=namespace).exists():
+            project_model.objects.filter(namespace=namespace).update(
+                memory_limit=form.cleaned_data["memory_limit_"+namespace],
+                cpu_limit=form.cleaned_data["cpu_limit_"+namespace],
+                date=form.cleaned_data["date_"+namespace],
+                cluster=form.cleaned_data["cluster_"+namespace],
+                gpu=form.cleaned_data["gpu_"+namespace],
+                minimal_environment=form.cleaned_data["minimal_environment_"+namespace]
+            )
+        else:
+            project_model.objects.create(
+                namespace=namespace,
+                memory_limit=form.cleaned_data["memory_limit_"+namespace],
+                cpu_limit=form.cleaned_data["cpu_limit_"+namespace],
+                date=form.cleaned_data["date_"+namespace],
+                cluster=form.cleaned_data["cluster_"+namespace],
+                gpu=form.cleaned_data["gpu_"+namespace],
+                minimal_environment=form.cleaned_data["minimal_environment_"+namespace]
+            )
 
 
 def get_project(group_id, settings, is_namespace_style=False):
