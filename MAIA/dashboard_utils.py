@@ -537,7 +537,7 @@ def check_pending_projects_and_assign_id(settings):
         authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
         
 
-def register_cluster_for_project_in_db(project_model, namespace, cluster):
+def register_cluster_for_project_in_db(project_model, settings, namespace, cluster):
     """
     Registers a cluster for a project in the database.
     This function connects to Keycloak to retrieve group information and 
@@ -549,6 +549,8 @@ def register_cluster_for_project_in_db(project_model, namespace, cluster):
     ----------
     project_model : Django model
         The Django model representing the project.
+    settings : object
+        An object containing configuration settings.
     namespace : str
         The namespace associated with the project.
     cluster : str
