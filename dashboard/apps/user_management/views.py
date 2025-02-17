@@ -8,11 +8,11 @@ from kubernetes import config
 from django.contrib.auth.models import User
 from pathlib import Path
 from .forms import UserTableForm
-from apps.models import MAIAUser
+from apps.models import MAIAUser, MAIAProject
 from MAIA.kubernetes_utils import generate_kubeconfig
-from MAIA.dashboard_utils import get_user_table, update_user_table, get_project, get_project_argo_status_and_user_table
+from MAIA.dashboard_utils import update_user_table, get_project, get_project_argo_status_and_user_table
 from MAIA.kubernetes_utils import create_namespace
-from MAIA.keycloak_utils import get_user_ids, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_groups_requesting_a_user, get_list_of_users_requesting_a_group
+from MAIA.keycloak_utils import get_user_ids, register_user_in_keycloak, register_group_in_keycloak, register_users_in_group_in_keycloak, get_list_of_groups_requesting_a_user, get_list_of_users_requesting_a_group, delete_group_in_keycloak, get_groups_for_user, remove_user_from_group_in_keycloak
 import urllib3
 import yaml
 from django.shortcuts import redirect
@@ -38,7 +38,7 @@ def index(request):
         else:
             MAIAUser.objects.create(email=keycloak_user, username=keycloak_user, namespace=",".join(keycloak_users[keycloak_user]))
 
-    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
+    to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status, users_to_remove_from_group = get_project_argo_status_and_user_table(settings=settings, request=request, maia_user_model=MAIAUser, maia_project_model=MAIAProject)   
     
     
     
@@ -46,7 +46,7 @@ def index(request):
     if request.method == "POST":
         
 
-        user_list = user_table.to_dict('records')
+        user_list = list(MAIAUser.objects.all().values())
 
         for user in user_list:
             if user['email'] in to_register_in_keycloak:
@@ -57,6 +57,10 @@ def index(request):
                 user['is_registered_in_groups'] = 0
             else:
                 user['is_registered_in_groups'] = 1
+            if user["email"] in users_to_remove_from_group:
+                user["remove_from_group"] = 1
+            else:
+                user["remove_from_group"] = 0
 
 
         context = {
@@ -74,14 +78,14 @@ def index(request):
         form = UserTableForm(request.POST)
 
         if form.is_valid():
-            update_user_table(request.POST, settings=settings)
+            update_user_table(form, User, MAIAUser, MAIAProject)
         else:
-            update_user_table(request.POST, settings=settings)
+            update_user_table(form, User, MAIAUser, MAIAProject)
 
         return HttpResponse(html_template.render(context, request))
 
     
-    user_list = user_table.to_dict('records')
+    user_list = list(MAIAUser.objects.all().values())
 
     for user in user_list:
         for user in user_list:
@@ -93,6 +97,11 @@ def index(request):
                 user['is_registered_in_groups'] = 0
             else:
                 user['is_registered_in_groups'] = 1
+            if user["email"] in users_to_remove_from_group:
+                user["remove_from_group"] = 1
+            else:
+                user["remove_from_group"] = 0
+
 
 
     user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
@@ -115,6 +124,35 @@ def index(request):
 
 
     return HttpResponse(html_template.render(context, request))
+
+
+@login_required(login_url="/maia/login/")
+def remove_user_from_group_view(request, email):
+    if not request.user.is_superuser:
+        html_template = loader.get_template('home/page-500.html')
+        return HttpResponse(html_template.render({}, request))
+
+    desired_groups = get_list_of_groups_requesting_a_user(email=email, user_model=MAIAUser)
+    
+    keycloak_groups = get_groups_for_user(email=email, settings=settings)
+    
+    for keycloak_group in keycloak_groups:
+        if keycloak_group not in desired_groups:
+            remove_user_from_group_in_keycloak(email=email, group_id=keycloak_group, settings=settings)
+
+    return redirect("/maia/user-management/")
+    
+@login_required(login_url="/maia/login/")
+def delete_group_view(request, group_id):
+    if not request.user.is_superuser:
+        html_template = loader.get_template('home/page-500.html')
+        return HttpResponse(html_template.render({}, request))
+
+    delete_group_in_keycloak(group_id=group_id, settings=settings)
+    
+    MAIAProject.objects.filter(namespace=group_id).delete()
+    
+    return redirect("/maia/user-management/")
 
 @login_required(login_url="/maia/login/")
 def register_user_view(request, email):
@@ -124,41 +162,7 @@ def register_user_view(request, email):
 
     register_user_in_keycloak(email=email, settings=settings)
 
-    argocd_url = settings.ARGOCD_SERVER
-
-    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
-
-
-    user_list = user_table.to_dict('records')
-
-    for user in user_list:
-        for user in user_list:
-            if user['email'] in to_register_in_keycloak:
-                user['is_registered_in_keycloak'] = 0
-            else:
-                user['is_registered_in_keycloak'] = 1
-            if user['email'] in to_register_in_groups:
-                user['is_registered_in_groups'] = 0
-            else:
-                user['is_registered_in_groups'] = 1
-
-
-    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
-
-    context = {
-        "user_table": user_list,
-        "maia_groups_dict": maia_groups_dict,
-        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
-        "form": user_form,
-        "user": ["admin"],
-        "project_argo_status": project_argo_status,
-        "argocd_url": argocd_url,
-        "username": request.user.username + " [ADMIN]"
-    }
-
-    html_template = loader.get_template('base_user_management.html')
-
-    return HttpResponse(html_template.render(context, request))
+    return redirect("/maia/user-management/")
 
 @login_required(login_url="/maia/login/")
 def register_user_in_group_view(request, email):
@@ -168,46 +172,12 @@ def register_user_in_group_view(request, email):
     
 
 
-    groups = get_list_of_groups_requesting_a_user(email=email, settings=settings)
+    groups = get_list_of_groups_requesting_a_user(email=email, user_model=MAIAUser)
     
     for group_id in groups:
         register_users_in_group_in_keycloak(group_id=group_id,emails=[email], settings=settings)
 
-    argocd_url = settings.ARGOCD_SERVER
-
-    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
-
-
-    user_list = user_table.to_dict('records')
-
-    for user in user_list:
-        for user in user_list:
-            if user['email'] in to_register_in_keycloak:
-                user['is_registered_in_keycloak'] = 0
-            else:
-                user['is_registered_in_keycloak'] = 1
-            if user['email'] in to_register_in_groups:
-                user['is_registered_in_groups'] = 0
-            else:
-                user['is_registered_in_groups'] = 1
-
-
-    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
-
-    context = {
-        "user_table": user_list,
-        "maia_groups_dict": maia_groups_dict,
-        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
-        "form": user_form,
-        "user": ["admin"],
-        "project_argo_status": project_argo_status,
-        "argocd_url": argocd_url,
-        "username": request.user.username + " [ADMIN]"
-    }
-
-    html_template = loader.get_template('base_user_management.html')
-
-    return HttpResponse(html_template.render(context, request))
+    return redirect("/maia/user-management/")
 
 @login_required(login_url="/maia/login/")
 def register_group_view(request, group_id):
@@ -222,40 +192,7 @@ def register_group_view(request, group_id):
 
     register_users_in_group_in_keycloak(group_id=group_id,emails=emails, settings=settings)
 
-    argocd_url = settings.ARGOCD_SERVER
-
-    user_table, to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status = get_project_argo_status_and_user_table(settings=settings, request=request)   
-
-    user_list = user_table.to_dict('records')
-
-    for user in user_list:
-        for user in user_list:
-            if user['email'] in to_register_in_keycloak:
-                user['is_registered_in_keycloak'] = 0
-            else:
-                user['is_registered_in_keycloak'] = 1
-            if user['email'] in to_register_in_groups:
-                user['is_registered_in_groups'] = 0
-            else:
-                user['is_registered_in_groups'] = 1
-
-
-    user_form = UserTableForm(users=user_list, projects=maia_groups_dict)
-
-    context = {
-        "user_table": user_list,
-        "maia_groups_dict": maia_groups_dict,
-        "minio_console_url": os.environ.get("MINIO_CONSOLE_URL",None),
-        "form": user_form,
-        "user": ["admin"],
-        "project_argo_status": project_argo_status,
-        "argocd_url": argocd_url,
-        "username": request.user.username + " [ADMIN]"
-    }
-
-    html_template = loader.get_template('base_user_management.html')
-
-    return HttpResponse(html_template.render(context, request))
+    return redirect("/maia/user-management/")
 
 
 @login_required(login_url="/maia/login/")
@@ -276,7 +213,7 @@ def deploy_view(request, group_id):
     config_path=os.environ["CONFIG_PATH"]
 
     
-    project_form_dict, cluster_id = get_project(group_id, settings=settings)
+    project_form_dict, cluster_id = get_project(group_id, settings=settings, maia_project_model=MAIAProject)
     
 
     if cluster_id is None:

@@ -4,19 +4,9 @@ import ssl
 import requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import requests
-import json
-import numpy as np
-import requests
-import json
 import os
-from kubernetes.client.rest import ApiException
 import asyncio
-import sqlite3
 from pyhelm3 import Client
-import kubernetes
-from sqlalchemy import create_engine
-import pandas as pd
 from keycloak import KeycloakAdmin
 from keycloak import KeycloakOpenIDConnection
 from pathlib import Path
@@ -26,7 +16,7 @@ from minio import Minio
 from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_toolkit
 from MAIA.kubernetes_utils import generate_kubeconfig
 from MAIA.keycloak_utils import get_groups_in_keycloak
-from datetime import datetime, timezone
+from datetime import datetime
 
 def verify_gpu_booking_policy(existing_bookings, new_booking):
     
@@ -250,44 +240,32 @@ def send_discord_message(username, namespace, url):
 
 
 
-def get_pending_projects(settings):
+def get_pending_projects(settings, maia_project_model):
     """
-    Retrieve a list of pending projects that are not in active groups.
-
+    Retrieve a list of pending projects that are not in the active groups.
+    
     Parameters
     ----------
-    settings : object
-        A settings object that contains configuration parameters.
-
+    settings : dict
+        Configuration settings required to access Keycloak.
+    maia_project_model : Django model
+        The Django model representing the MAIA projects.
+    
     Returns
     -------
     list
         A list of namespaces of pending projects.
     """
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-
     pending_projects = []
     try:
-        authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
-
         active_groups = get_groups_in_keycloak(settings)
 
-        for project in authentication_maiaproject.iterrows():
-            if project[1]['namespace'] not in active_groups.values():
-                pending_projects.append(project[1]['namespace'])
-        
+        for project in maia_project_model.objects.all():
+            if project.namespace not in active_groups.values():
+                pending_projects.append(project.namespace)
     except:
         ...
     
-    cnx.close()
     return pending_projects
 
 
@@ -333,7 +311,7 @@ def get_user_table(settings, maia_user_model, maia_project_model):
 
     maia_groups = {group['id']:group['name'][len("MAIA:"):] for group in groups if group['name'].startswith("MAIA:")}
 
-    pending_projects = get_pending_projects(settings=settings)
+    pending_projects = get_pending_projects(settings=settings, maia_project_model=maia_project_model)
 
     maia_group_dict = {}
 
@@ -462,53 +440,6 @@ def get_user_table(settings, maia_user_model, maia_project_model):
                         users_to_remove_from_group[user.email].append(user_group)
 
     return users_to_register_in_group, users_to_register_in_keycloak, maia_group_dict, users_to_remove_from_group
-
-def check_pending_projects_and_assign_id(settings):
-    """
-    Check for pending projects and assign an ID if necessary.
-   
-    Parameters
-    ----------
-    settings : object
-        An object containing configuration settings, including DEBUG and LOCAL_DB_PATH attributes.
-    
-    Returns
-    -------
-    None
-    """
-    
-    
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-
-        #try:
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-    
-    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
-    
-    id = 0 if pd.isna(authentication_maiaproject["id"].max()) else authentication_maiaproject["id"].max() + 1
-    for project in authentication_maiaproject.iterrows():
-        if pd.isna(project[1]['id']):
-            authentication_maiaproject.loc[project[0], "id"] = int(id)
-            
-            id += 1
-            
-    cnx.close()
-    
-
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-        authentication_maiaproject.to_sql("authentication_maiaproject", con=cnx, if_exists="replace", index=False)
-
-    else:
-        engine.dispose()
-        engine_2 = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        authentication_maiaproject.to_sql("authentication_maiaproject", con=engine_2, if_exists="replace", index=False)
         
 
 def register_cluster_for_project_in_db(project_model, settings, namespace, cluster):
@@ -652,51 +583,34 @@ def update_user_table(form, user_model, maia_user_model, project_model):
             )
 
 
-def get_project(group_id, settings, is_namespace_style=False):
+def get_project(group_id, settings, maia_project_model, is_namespace_style=False):
     """
-    Retrieve project information based on the provided group ID.
-
+    Retrieve project details and associated cluster ID based on the group ID.
+    
     Parameters
     ----------
     group_id : str
-        The group ID or namespace to search for.
-    settings : module
-        A settings module containing configuration values.
+        The ID of the group to search for.
+    settings : object
+        The settings object containing OIDC configuration.
+    maia_project_model : Django model
+        The Django model representing MAIA projects.
     is_namespace_style : bool, optional
-        Flag to determine if the group ID should be treated as a namespace. Defaults to False.
-
+        Flag indicating whether the group ID is in namespace style (default is False).
+    
     Returns
     -------
     tuple
-        A tuple containing the namespace form (dict) and the cluster ID (str or None). 
-        Returns None if no matching project is found.
-
-    Raises
-    ------
-    KeyError
-        If required environment variables are not set.
-    Exception
-        If there is an error connecting to the database or querying the data.
+        A tuple containing:
+        - namespace_form (dict): A dictionary with project details and resource limits.
+        - cluster_id (str or None): The ID of the associated cluster, or None if not applicable.
     """
-
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH,"db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-
-        #try:
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-
-    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
 
     cluster_id = None
 
-    for project in authentication_maiaproject.iterrows():
+    for project in maia_project_model.objects.all():
         if is_namespace_style:
-            if str(project[1]['namespace']).lower().replace("_","-") == group_id:
+            if str(project.namespace).lower().replace("_","-") == group_id:
                 keycloak_connection = KeycloakOpenIDConnection(
                     server_url=settings.OIDC_SERVER_URL,
                     username=settings.OIDC_USERNAME,
@@ -728,22 +642,22 @@ def get_project(group_id, settings, is_namespace_style=False):
                 "group_subdomain": group_id.lower().replace("_", "-"),
                 "users": group_users,
                 "resources_limits": {
-                    "memory": [str(int(int(project[1]['memory_limit'][:-len(" Gi")])/2))+" Gi", project[1]['memory_limit']],
-                    "cpu": [str(int(int(project[1]['cpu_limit'])/2)), project[1]['cpu_limit']],
+                    "memory": [str(int(int(project.memory_limit[:-len(" Gi")])/2))+" Gi", project.memory_limit],
+                    "cpu": [str(int(int(project.cpu_limit)/2)), project.cpu_limit],
                 }
                 }
-                if project[1]['gpu'] != "N/A" and project[1]['gpu'] != "NO":
+                if project.gpu != "N/A" and project.gpu != "NO":
                     namespace_form["gpu"] = "1"
 
-                if project[1]['conda'] != "N/A" and project[1]['conda'] is not None:
+                if project.conda != "N/A" and project.conda is not None:
                     namespace_form["minio_env_name"] = group_id+"_env"
                 
-                cluster_id = project[1]['cluster']
+                cluster_id = project.cluster
                 if cluster_id == "N/A":
                     cluster_id = None
                 return namespace_form, cluster_id
         else:
-            if project[1]['namespace'] == group_id:
+            if project.namespace == group_id:
                 keycloak_connection = KeycloakOpenIDConnection(
                     server_url=settings.OIDC_SERVER_URL,
                     username=settings.OIDC_USERNAME,
@@ -775,17 +689,17 @@ def get_project(group_id, settings, is_namespace_style=False):
                 "group_subdomain": group_id.lower().replace("_", "-"),
                 "users": group_users,
                 "resources_limits": {
-                    "memory": [str(int(int(project[1]['memory_limit'][:-len(" Gi")])/2))+" Gi", project[1]['memory_limit']],
-                    "cpu": [str(int(int(project[1]['cpu_limit'])/2)), project[1]['cpu_limit']],
+                    "memory": [str(int(int(project.memory_limit[:-len(" Gi")])/2))+" Gi", project.memory_limit],
+                    "cpu": [str(int(int(project.cpu_limit)/2)), project.cpu_limit],
                 }
                 }
-                if project[1]['gpu'] != "N/A" and project[1]['gpu'] != "NO":
+                if project.gpu != "N/A" and project.gpu != "NO":
                     namespace_form["gpu_request"] = "1"
 
-                if project[1]['conda'] != "N/A" and project[1]['conda'] is not None:
+                if project.conda != "N/A" and project.conda is not None:
                     namespace_form["minio_env_name"] = group_id+"_env"
                 
-                cluster_id = project[1]['cluster']
+                cluster_id = project.cluster
                 if cluster_id == "N/A":
                     cluster_id = None
                 return namespace_form, cluster_id
@@ -796,43 +710,33 @@ def get_argocd_project_status(argocd_namespace, project_id):
     return verify_installed_maia_toolkit(project_id=project_id, namespace=argocd_namespace, get_chart_metadata=False)
 
 
-def get_allocation_date_for_project(settings, group_id, is_namespace_style=False):
+def get_allocation_date_for_project(maia_project_model, group_id, is_namespace_style=False):
     """
-    Retrieves the allocation date for a project based on the provided group ID.
+    Retrieves the allocation date for a project based on the given group ID.
 
     Parameters
     ----------
-    settings : object
-        The settings object containing configuration details.
+    maia_project_model : Model
+        The Django model representing the MAIA project.
     group_id : str
-        The group ID or namespace to search for.
+        The group ID to match against the project's namespace.
     is_namespace_style : bool, optional
-        Flag to indicate if the group ID should be treated as a namespace. Defaults to False.
+        If True, the group ID comparison will be done in a namespace style 
+        (lowercase and underscores replaced with hyphens). Default is False.
 
     Returns
     -------
-    datetime or None
-        The allocation date of the project if found, otherwise None.
+    date or None
+        The allocation date of the project if a match is found, otherwise None.
     """
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH, "db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
 
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
-
-    authentication_maiaproject = pd.read_sql_query("SELECT * FROM authentication_maiaproject", con=cnx)
-
-    for project in authentication_maiaproject.iterrows():
+    for project in maia_project_model.objects.all():
         if is_namespace_style:
-            if str(project[1]['namespace']).lower().replace("_", "-") == group_id:
-                return project[1]['date']
+            if str(project.namespace).lower().replace("_", "-") == group_id:
+                return project.date
         else:
-            if project[1]['namespace'] == group_id:
-                return project[1]['date']
+            if project.namespace == group_id:
+                return project.date
 
     return None
 

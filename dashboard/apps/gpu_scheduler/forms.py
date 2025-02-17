@@ -2,6 +2,7 @@ from django import forms
 
 from .models import GPUBooking
 from django.conf import settings
+from apps.models import MAIAProject
 from MAIA.keycloak_utils import get_groups_in_keycloak
 from MAIA.dashboard_utils import get_pending_projects, verify_gpu_booking_policy
 
@@ -9,7 +10,7 @@ class GPUBookingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(GPUBookingForm, self).__init__(*args, **kwargs)
         maia_groups = get_groups_in_keycloak(settings= settings)
-        pending_projects = get_pending_projects(settings=settings)
+        pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
 
         for pending_project in pending_projects:
             maia_groups[pending_project] = pending_project + " (Pending)"

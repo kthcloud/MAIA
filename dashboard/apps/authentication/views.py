@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm, SignUpForm, RegisterProjectForm, MAIAInfoForm
 from minio import Minio
-from MAIA.dashboard_utils import send_discord_message, verify_minio_availability, check_pending_projects_and_assign_id, send_maia_info_email
+from MAIA.dashboard_utils import send_discord_message, verify_minio_availability, send_maia_info_email
 from core.settings import GITHUB_AUTH
 from django.conf import settings
 
@@ -142,7 +142,7 @@ def register_project(request):
             msg = 'Request for Project Registration submitted successfully.'
             success = True
             
-            check_pending_projects_and_assign_id(settings=settings)
+            #check_pending_projects_and_assign_id(settings=settings)
 
             # return redirect("/login/")
 

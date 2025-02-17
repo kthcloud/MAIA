@@ -55,7 +55,7 @@ class SignUpForm(UserCreationForm):
 
         
         maia_groups = get_groups_in_keycloak(settings= settings)
-        pending_projects = get_pending_projects(settings=settings)
+        pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
 
         for pending_project in pending_projects:
             maia_groups[pending_project] = pending_project + " (Pending)"

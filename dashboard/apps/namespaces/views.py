@@ -96,9 +96,9 @@ def namespace_view(request,namespace_id):
                 if str(group) != "MAIA:users":
                     namespaces.append(str(group).split(":")[-1].lower().replace("_","-"))
 
-        allocation_date = get_allocation_date_for_project(settings=settings, group_id=namespace_id, is_namespace_style=True)
+        allocation_date = get_allocation_date_for_project(maia_project_model=MAIAProject, group_id=namespace_id, is_namespace_style=True)
 
-        _, cluster_id = get_project(namespace_id, settings=settings, is_namespace_style=True)
+        _, cluster_id = get_project(namespace_id, settings=settings, maia_project_model=MAIAProject, is_namespace_style=True)
 
         cluster_config_path = os.environ["CLUSTER_CONFIG_PATH"]
         

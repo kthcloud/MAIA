@@ -19,6 +19,7 @@ from MAIA.kubernetes_utils import generate_kubeconfig
 from pathlib import Path
 import os
 import yaml
+from apps.models import MAIAProject
 
 @method_decorator(csrf_exempt, name='dispatch')  # 🚀 This disables CSRF for this API
 class GPUSchedulabilityAPIView(APIView):
@@ -97,7 +98,7 @@ def delete_booking(request, id):
     booking.delete()
     pod_name = "jupyter-"+convert_username_to_jupyterhub_username(booking.user_email)
     
-    _, cluster_id = get_project(booking.namespace, settings=settings)
+    _, cluster_id = get_project(booking.namespace, settings=settings,maia_project_model=MAIAProject)
     local_kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
 
     with open(Path("/tmp").joinpath("kubeconfig-project-local"), "w") as f:
