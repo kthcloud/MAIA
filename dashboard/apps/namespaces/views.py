@@ -7,6 +7,7 @@ from django.template.defaulttags import register
 from MAIA.kubernetes_utils import get_namespaces
 import os
 from pathlib import Path
+from apps.models import MAIAProject
 from django.http import HttpResponse, HttpResponseRedirect
 # Create your views here.
 from MAIA.kubernetes_utils import get_namespace_details
@@ -104,7 +105,7 @@ def namespace_view(request,namespace_id):
         if cluster_id is not None:
             cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(cluster_id+".yaml").read_text())
         else:
-            register_cluster_for_project_in_db(settings, namespace_id, deployed_clusters[0])
+            register_cluster_for_project_in_db(MAIAProject, settings, namespace_id, deployed_clusters[0])
             cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(deployed_clusters[0]+".yaml").read_text())
 
         context = { "maia_workspace_ingress": maia_workspace_apps,"namespace":namespace_id,

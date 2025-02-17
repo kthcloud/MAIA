@@ -143,7 +143,8 @@ def book_gpu(request):
             msg = 'Form is not valid'
     else:
         form = GPUBookingForm(request.POST or None, request.FILES or None, initial=initial_data)
-        form.fields['namespace'].choices = [(ns, ns) for ns in namespaces]
+        if not request.user.is_superuser:
+            form.fields['namespace'].choices = [(ns, ns) for ns in namespaces]
         form.fields['user_email'] = forms.EmailField(
             widget=forms.EmailInput(
             attrs={
