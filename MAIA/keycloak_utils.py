@@ -3,8 +3,6 @@ from keycloak import KeycloakOpenIDConnection
 import json
 import os
 import pandas as pd
-import sqlite3
-from sqlalchemy import create_engine
 
 
 
@@ -431,7 +429,7 @@ def get_list_of_groups_requesting_a_user(email, user_model):
         return []
 
 
-def get_list_of_users_requesting_a_group(group_id, settings):
+def get_list_of_users_requesting_a_group(maia_user_model, group_id):
     """
     Retrieves a list of email addresses of users who have requested access to a specific group.
 
@@ -459,25 +457,14 @@ def get_list_of_users_requesting_a_group(group_id, settings):
     When settings.DEBUG is True, a local SQLite database is used.
     When settings.DEBUG is False, a MySQL database is used with connection parameters from environment variables.
     """
-    if settings.DEBUG:
-        cnx = sqlite3.connect(os.path.join(settings.LOCAL_DB_PATH, "db.sqlite3"))
-    else:
-        db_host = os.environ["DB_HOST"]
-        db_user = os.environ["DB_USERNAME"]
-        dp_password = os.environ["DB_PASS"]
-        engine = create_engine(f"mysql+pymysql://{db_user}:{dp_password}@{db_host}:3306/mysql")
-        cnx = engine.raw_connection()
+  
 
-    auth_user = pd.read_sql_query("SELECT * FROM auth_user", con=cnx)
-    authentication_maiauser = pd.read_sql_query("SELECT * FROM authentication_maiauser", con=cnx)
+    
 
     users = []
-    for user in auth_user.iterrows():
-        uid = user[1]['id']
-        if uid in authentication_maiauser['user_ptr_id'].values:
-            requested_namespaces = authentication_maiauser[authentication_maiauser['user_ptr_id'] == uid][
-                'namespace'].values[0].split(",")
-            if group_id in requested_namespaces:
-                users.append(user[1]['email'])
+    for user in maia_user_model.objects.all():
+        requested_namespaces = user.namespace.split(",")
+        if group_id in requested_namespaces:
+            users.append(user.email)
 
     return users
