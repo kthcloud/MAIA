@@ -560,7 +560,7 @@ def update_user_table(form, user_model, maia_user_model, project_model):
                 namespace_list.append(namespace)
     
     for namespace in namespace_list:
-        print(form.cleaned_data)
+        print(form)
         namespaced_entries = [entry for entry in form.cleaned_data if entry.endswith(namespace)]
         if project_model.objects.filter(namespace=namespace).exists():
             project_model.objects.filter(namespace=namespace).update(
