@@ -62,8 +62,8 @@ class UserTableForm(forms.Form):
                                                        choices=cpu_limit,
                                                        )
                 elif k.startswith("date"):
-                    self.fields[k] = forms.DateField(label='date',widget=forms.DateInput(format="%d-%m-%Y", attrs={"type": "date"}),
-        input_formats=["%d-%m-%Y"])
+                    self.fields[k] = forms.DateField(label='date',widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+        input_formats=["%Y-%m-%d"])
                 elif k.startswith("conda"):
                      self.fields[k] = forms.FileField(label='conda')
                 elif k.startswith("cluster"):
@@ -96,7 +96,7 @@ class UserTableForm(forms.Form):
                 self.fields[f"cpu_limit_{project_name}"] = forms.ChoiceField(label='cpu_limit', choices=cpu_limit,
                                                                             initial=kwargs["projects"][i]["cpu_limit"])
                 self.fields[f"date_{project_name}"] = forms.DateField(label='date',initial=kwargs["projects"][i]["date"],widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-                input_formats=["%d-%m-%Y"])
+                input_formats=["%Y-%m-%d"])
 
                 self.fields[f"conda_{project_name}"] = forms.FileField(label='conda',initial=kwargs["projects"][i]["conda"])
                 self.fields[f"cluster_{project_name}"] = forms.ChoiceField(choices=clusters, label='cluster',initial=kwargs["projects"][i]["cluster"])
