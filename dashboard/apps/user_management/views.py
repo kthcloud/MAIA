@@ -80,7 +80,8 @@ def index(request):
         if form.is_valid():
             update_user_table(form, User, MAIAUser, MAIAProject)
         else:
-            update_user_table(form, User, MAIAUser, MAIAProject)
+            ...
+            #update_user_table(form, User, MAIAUser, MAIAProject)
 
         return HttpResponse(html_template.render(context, request))
 
