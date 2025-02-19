@@ -131,7 +131,7 @@ def register_project(request):
                 client = Minio(settings.MINIO_URL,
                             access_key=settings.MINIO_ACCESS_KEY,
                             secret_key=settings.MINIO_SECRET_KEY,
-                            secure=True)
+                            secure=settings.MINIO_SECURE)
                 with open(f"/tmp/{namespace}_env",'wb+') as destination:
                     for chunk in request.FILES['conda'].chunks():
                         destination.write(chunk)

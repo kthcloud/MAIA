@@ -122,7 +122,7 @@ def verify_minio_availability(settings):
         client = Minio(settings.MINIO_URL,
                             access_key=settings.MINIO_ACCESS_KEY,
                             secret_key=settings.MINIO_SECRET_KEY,
-                            secure=True)
+                            secure=settings.MINIO_SECURE)
         client.bucket_exists(settings.BUCKET_NAME)
         minio_available = True
     except Exception as e:
