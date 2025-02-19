@@ -30,25 +30,27 @@ class UserTableForm(forms.Form):
 
         minimal_envs = (("Minimal","Minimal"),("Full","Full"))
         
-        maia_groups = get_groups_in_keycloak(settings= settings)
-        pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
+        #maia_groups = get_groups_in_keycloak(settings= settings)
+        #pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
 
-        for pending_project in pending_projects:
-            maia_groups[pending_project] = pending_project + " (Pending)"
+        #for pending_project in pending_projects:
+        #    maia_groups[pending_project] = pending_project + " (Pending)"
         
-        maia_groups = [(group, group) for group in maia_groups.values()]
+        #maia_groups = [(group, group) for group in maia_groups.values()]
         if "users" in kwargs:
             for i in kwargs["users"]:
                 username = i["username"]
-                self.fields[f"namespace_{username}"] = forms.MultipleChoiceField(
-                    label='namespace', 
-                    initial=i['namespace'].split(","), 
-                    choices=maia_groups,
-                )
+                #self.fields[f"namespace_{username}"] = forms.MultipleChoiceField(
+                #    label='namespace', 
+                #    initial=i['namespace'].split(","), 
+                #    choices=maia_groups,
+                #)
+                self.fields[f"namespace_{username}"] = forms.CharField(max_length=100, label='namespace',initial=i["namespace"])
         else:
             for k in args[0]:
                 if k.startswith("namespace"):
-                    self.fields[k] = forms.MultipleChoiceField(label='namespace', choices=maia_groups)
+                    #self.fields[k] = forms.MultipleChoiceField(label='namespace', choices=maia_groups)
+                    self.fields[k] = forms.CharField(max_length=100, label='namespace')
                 elif k.startswith("memory_limit"):
 
                     self.fields[k] = forms.ChoiceField(label='memory_limit',

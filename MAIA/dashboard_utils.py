@@ -527,33 +527,33 @@ def update_user_table(form, user_model, maia_user_model, project_model):
                 user_id = user.id
                 if maia_user_model.objects.filter(id=user_id).exists():
                     namespace_list = form.cleaned_data[entry]
-                    namespaces = []
-                    for namespace in namespace_list:
-                        if namespace.endswith(" (Pending)"):
-                            namespaces.append(namespace[:-len(" (Pending)")])
-                        else:
-                            namespaces.append(namespace)
-                    maia_user_model.objects.filter(id=user_id).update(namespace=",".join(namespaces))
+                    #namespaces = []
+                    #for namespace in namespace_list:
+                    #    if namespace.endswith(" (Pending)"):
+                    #        namespaces.append(namespace[:-len(" (Pending)")])
+                    #    else:
+                    #        namespaces.append(namespace)
+                    maia_user_model.objects.filter(id=user_id).update(namespace=namespace_list)
                 else:
                     if user_id is not None:
                         if user_model.objects.filter(id=user_id).exists():
                             namespace_list = form.cleaned_data[entry]
-                            namespaces = []
-                            for namespace in namespace_list:
-                                if namespace.endswith(" (Pending)"):
-                                    namespaces.append(namespace[:-len(" (Pending)")])
-                                else:
-                                    namespaces.append(namespace)
-                            maia_user_model.objects.create(id=user_id, namespace=",".join(namespaces))
+                            #namespaces = []
+                            #for namespace in namespace_list:
+                            #    if namespace.endswith(" (Pending)"):
+                            #        namespaces.append(namespace[:-len(" (Pending)")])
+                            #    else:
+                            #        namespaces.append(namespace)
+                            maia_user_model.objects.create(id=user_id, namespace=namespace_list)
                         else:
                             namespace_list = form.cleaned_data[entry]
-                            namespaces = []
-                            for namespace in namespace_list:
-                                if namespace.endswith(" (Pending)"):
-                                    namespaces.append(namespace[:-len(" (Pending)")])
-                                else:
-                                    namespaces.append(namespace)
-                            maia_user_model.objects.create(id=user_id, namespace=",".join(namespaces))
+                            #namespaces = []
+                            #for namespace in namespace_list:
+                            #    if namespace.endswith(" (Pending)"):
+                            #        namespaces.append(namespace[:-len(" (Pending)")])
+                            #    else:
+                            #        namespaces.append(namespace)
+                            maia_user_model.objects.create(id=user_id, namespace=namespace_list)
         for project_entry in project_entries:
             if entry.startswith(project_entry+"_"):
                 namespace = entry[len(project_entry+"_"):]

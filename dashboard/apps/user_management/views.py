@@ -248,7 +248,9 @@ def deploy_view(request, group_id):
                                 config_folder="/config", #config_path,
                                 redeploy_enabled=True)
     
-
+        ## Send User and Project Registration email, ONLY IF THE PROJECT IS NEWLY CREATED
+        
+        
         namespace = project_form_dict["group_ID"].lower().replace("_", "-")
 
         create_namespace(request=request, cluster_id=cluster_id, namespace_id=namespace, settings=settings)
