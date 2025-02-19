@@ -65,7 +65,6 @@ def send_maia_info_email(receiver_email, register_project_url, register_user_url
     <html>
         <head></head>
         <body>
-            <p>Hello</p>
             <p>Thank you for your interest in the MAIA platform. Below are the steps to register:</p>
             <p><b>Project Registration:</b><br>
             If you are starting a research work and you want to have it hosted in MAIA, please first register your project here:<br>
