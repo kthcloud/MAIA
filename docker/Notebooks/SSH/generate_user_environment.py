@@ -60,23 +60,28 @@ def main():
             subprocess.run(["touch", "/home/{}/.ssh/authorized_keys".format(user)])
             subprocess.run(["chown", "{}".format(user), "/home/{}/.ssh/authorized_keys".format(user)])
             subprocess.run(["chmod", "600", "/home/{}/.ssh/authorized_keys".format(user)])
-            with open("/home/{}/.ssh/authorized_keys".format(user), "a+") as f:
-                subprocess.run(["echo", '{}'.format(AUTHORIZED_KEYS)], stdout=f)
+            if AUTHORIZED_KEYS != "NOKEY":
+                with open("/home/{}/.ssh/authorized_keys".format(user), "a+") as f:
+                    subprocess.run(["echo", '{}'.format(AUTHORIZED_KEYS)], stdout=f)
 
     if "CONDA_ENV" in os.environ:
         env_name = yaml.safe_load(os.environ["CONDA_ENV"])['name']
+        if Path(f"/home/{user}/.conda/envs/{env_name}").exists():
+            print(f"Conda environment {env_name} already exists.")
+            return
+           
         with open(f"{env_name}_conda_env.yaml", "w") as f:
             f.write(os.environ["CONDA_ENV"])
-        subprocess.run(["/opt/conda/bin/conda", "env", "create", "--name", env_name, f"--file={env_name}_conda_env.yaml"])
-        with open("/home/{}/.bashrc".format(user), "a+") as f:
-            subprocess.run(["echo", "conda","activate","{}".format(env_name)], stdout=f)
-        subprocess.run(["/opt/conda/bin/conda", "install", "--prefix", f"/opt/conda/envs/{env_name}", "-c", "anaconda", "ipykernel", "-y"])
-        subprocess.run([f"/opt/conda/envs/{env_name}/bin/python","-m","ipykernel","install","--user",f"--name={env_name}"])
+        subprocess.run(["/opt/conda/bin/conda", "env", "create", "--prefix", f"/home/{user}/.conda/envs/{env_name}", f"--file={env_name}_conda_env.yaml"])
+    #    with open("/home/{}/.bashrc".format(user), "a+") as f:
+    #        subprocess.run(["echo", "conda","activate","{}".format(env_name)], stdout=f)
+        subprocess.run(["/opt/conda/bin/conda", "install", "--prefix", f"/home/{user}/.conda/envs/{env_name}", "-c", "anaconda", "ipykernel", "-y"])
+        subprocess.run([f"/home/{user}/.conda/envs/{env_name}/bin/python","-m","ipykernel","install","--user",f"--name={env_name}"])
     if "PIP_ENV" in os.environ:
         with open("pip_env.txt", "w") as f:
             f.write(os.environ["PIP_ENV"])
         subprocess.run(
-            ["pip", "install","-r","pip_env.txt"])
+            ["python", "-m", "pip", "install", "-r", "pip_env.txt"])
 
 if __name__ == "__main__":
     main()
