@@ -46,7 +46,7 @@ read COMMAND
 ## Create the job configuration file
 cat > ~/.maia-hpc/experiments/$JOB_NAME.json <<EOF
 {
-    "job-name": "$JOB_NAME",
+    "job_name": "$JOB_NAME",
     "wall_time": "$WALL_TIME",
     "nodes": $NODES,
     "$SERVER_NAME": {
