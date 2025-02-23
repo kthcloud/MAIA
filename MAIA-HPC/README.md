@@ -32,6 +32,21 @@ To mount a remote directory, use the `mount_remote` script. This script will mou
 ```bash
 mount_remote.sh <server_name> <remote_directory> <local_directory>
 ```
+If you are trying to mount the remote directory into your local machine,remember to copy the SSH configuration file to your local machine, and add the `ProxyJump` configuration to it for the remote server.
+
+```config
+Host maia
+    HostName <maia_server>
+    User maia-user
+    Port <port>
+    IdentityFile <path_to_ssh_key>
+
+Host <server_name>
+    HostName <server_ip>
+    User <username>
+    IdentityFile <path_to_ssh_key>
+    ProxyJump maia
+```
 
 ## SFTP File Transfer
 To transfer files between the local machine and the remote server, use the `sftp` command. This command will open an sftp session to the remote server.
