@@ -189,7 +189,7 @@ def register_group_view(request, group_id):
 
 
     register_group_in_keycloak(group_id=group_id, settings=settings)
-    emails = get_list_of_users_requesting_a_group(group_id=group_id, settings=settings)
+    emails = get_list_of_users_requesting_a_group(maia_user_model=MAIAUser, group_id=group_id)
 
     register_users_in_group_in_keycloak(group_id=group_id,emails=emails, settings=settings)
 
