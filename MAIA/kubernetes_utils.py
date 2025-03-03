@@ -99,8 +99,9 @@ def get_namespaces(id_token, api_urls, private_clusters = []):
             except:
                 continue
         namespaces = json.loads(response.text)
-        for namespace in namespaces['items']:
-            namespace_list.append(namespace['metadata']['name'])
+        if 'items' in namespaces:
+            for namespace in namespaces['items']:
+                namespace_list.append(namespace['metadata']['name'])
     return list(set(namespace_list))
 
 def get_cluster_status(id_token, api_urls, cluster_names, private_clusters = []):
@@ -538,47 +539,49 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
             if services['code'] == 403:
                 ...
 
-        if len(ingresses['items']) > 0 or len(services['items']) > 0:
-            deployed_clusters.append(settings.CLUSTER_NAMES[API_URL])
+        if 'items' in ingresses:
+            if 'items' in services:
+                if len(ingresses['items']) > 0 or len(services['items']) > 0:
+                    deployed_clusters.append(settings.CLUSTER_NAMES[API_URL])
             
-        for ingress in ingresses['items']:
-            for rule in ingress['spec']['rules']:
-                if 'host' not in rule:
-                    rule['host'] = settings.DEFAULT_INGRESS_HOST
-                for path in rule['http']['paths']:
-                    if path['backend']['service']['name'] == 'proxy-public':
-                        ## JupyterHub
-                        maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
-                    if path['backend']['service']['name'] == 'maia-xnat':
-                        ## XNAT
-                        maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
-                        ## Orthanc
-                    if path['backend']['service']['name'] == namespace + "-svc":
-                        
-                        maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
-                        maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path']+ "/ohif/"
-                    
-                    if 'port' in path['backend']['service'] and 'name' in path['backend']['service']['port']:
-                        if path['backend']['service']['port']['name'] == 'orthanc':
-                            orthanc_list.append({
-                                "name": ingress['metadata']['name'],
-                                "internal_url": "",
-                                "url": "https://" + rule['host'] + path['path']+"/dicom-web/"
-                            })
+                for ingress in ingresses['items']:
+                    for rule in ingress['spec']['rules']:
+                        if 'host' not in rule:
+                            rule['host'] = settings.DEFAULT_INGRESS_HOST
+                        for path in rule['http']['paths']:
+                            if path['backend']['service']['name'] == 'proxy-public':
+                                ## JupyterHub
+                                maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
+                            if path['backend']['service']['name'] == 'maia-xnat':
+                                ## XNAT
+                                maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
+                                ## Orthanc
+                            if path['backend']['service']['name'] == namespace + "-svc":
+                                
+                                maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
+                                maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path'] + "/ohif/"
+                            
+                            if 'port' in path['backend']['service'] and 'name' in path['backend']['service']['port']:
+                                if path['backend']['service']['port']['name'] == 'orthanc':
+                                    orthanc_list.append({
+                                        "name": ingress['metadata']['name'],
+                                        "internal_url": "",
+                                        "url": "https://" + rule['host'] + path['path'] + "/dicom-web/"
+                                    })
 
-        for service in services['items']:
-            for port in service['spec']['ports']:
-                if 'name' in port and port['name'] == 'remote-desktop-port':
-                    hub_url = maia_workspace_apps['hub']
-                    user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
-                    url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
-                    if user_id == user or is_admin:
-                        remote_desktop_dict[user] = url
+                for service in services['items']:
+                    for port in service['spec']['ports']:
+                        if 'name' in port and port['name'] == 'remote-desktop-port':
+                            hub_url = maia_workspace_apps['hub']
+                            user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                            url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
+                            if user_id == user or is_admin:
+                                remote_desktop_dict[user] = url
 
-                if 'name' in port and port['name'] == 'ssh':
-                    user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
-                    if user_id == user or is_admin:
-                        ssh_ports[user] = port['port']
+                        if 'name' in port and port['name'] == 'ssh':
+                            user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                            if user_id == user or is_admin:
+                                ssh_ports[user] = port['port']
 
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"
