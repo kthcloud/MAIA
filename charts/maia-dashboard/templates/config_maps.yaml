@@ -18,6 +18,7 @@ data:
         SERVER={{ .Values.dashboard.host }}
         DISCORD_SIGNUP_URL={{ default "None" .Values.dashboard.discord_signup_url }}
         DISCORD_URL={{ default "None" .Values.dashboard.discord_url }}
+        DISCORD_SUPPORT_URL={{ default "None" .Values.dashboard.discord_support_url }}
         OIDC_RP_CLIENT_ID={{ .Values.dashboard.keycloak.client_id }}
         OIDC_SERVER_URL={{ .Values.dashboard.keycloak.url }}
         OIDC_REALM_NAME={{ .Values.dashboard.keycloak.realm }}
@@ -35,6 +36,13 @@ data:
         {{- if .Values.dashboard.local_db_path }}
         LOCAL_DB_PATH={{ .Values.dashboard.local_db_path }}
         {{- end }}
+        {{- if .Values.dashboard.minio }}
+        MINIO_URL={{ .Values.dashboard.minio.url }}
+        MINIO_ACCESS_KEY={{ .Values.dashboard.minio.access_key }}
+        MINIO_SECRET_KEY={{ .Values.dashboard.minio.secret_key }}
+        MINIO_SECURE={{ .Values.dashboard.minio.secure }}
+        BUCKET_NAME={{ .Values.dashboard.minio.bucket_name }}
+        {{- end }}  
         {{- if .Values.mysql.enabled }}
         DB_ENGINE=mysql
         DB_NAME={{ .Values.mysql.mysqlDatabase }}
@@ -58,7 +66,10 @@ data:
         maia_workspace_version: {{ .Values.maia_workspace_version }}
         maia_workspace_image: {{ .Values.maia_workspace_image }}
         maia_monai_toolkit_image: {{ .Values.maia_monai_toolkit_image }}
-        gpu_list: {{ .Values.gpuList }}
+        gpu_specs:
+        {{- range $index, $gpu := $.Values.gpuList }}
+          - "{{ $gpu }}"
+        {{- end }}
     
     
     {{- range $index, $cluster := .Values.clusters }}
