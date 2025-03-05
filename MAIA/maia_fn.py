@@ -13,7 +13,18 @@ import yaml
 from MAIA.helm_values import read_config_dict_and_generate_helm_values_dict
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
+import random
+import string
+import nltk
+from nltk.corpus import words
 
+
+def generate_human_memorable_password(length=12):
+    nltk.download('words')
+    word_list = words.words()
+    password = '-'.join(random.choice(word_list) for _ in range(length // 6))
+    password += ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length - len(password)))
+    return password
 
 def create_config_map_from_data(data: str, config_map_name: str, namespace: str, kubeconfig_dict: Dict,
                                 data_key: str = "values.yaml"):

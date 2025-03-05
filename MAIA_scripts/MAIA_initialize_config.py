@@ -11,6 +11,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import MAIA
+from MAIA.maia_fn import generate_human_memorable_password
 import random
 import string
 import importlib.resources as pkg_resources
@@ -137,6 +138,7 @@ def create_configuration(cluster_config, config_folder):
     with pkg_resources.path(MAIA, 'configs') as config_file:
         with open(Path(config_file).joinpath("maia_config_template.yaml"), "r") as f:
             maia_config = yaml.safe_load(f)
+            maia_config["mysql_dashboard_password"] = generate_human_memorable_password()
             maia_config["dashboard_image"] = f"registry.{cluster_config_dict['domain']}/maia/maia-dashboard"
             maia_config["maia_workspace_image"] = f"registry.{cluster_config_dict['domain']}/maia/maia-workspace-notebook-ssh-addons"
             maia_config["maia_monai_toolkit_image"] = f"registry.{cluster_config_dict['domain']}/maia/monai-toolkit:1.0"

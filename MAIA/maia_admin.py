@@ -9,10 +9,7 @@ import os
 import yaml
 from secrets import token_urlsafe
 import base64
-import random
-import string
-import nltk
-from nltk.corpus import words
+from MAIA.maia_fn import generate_human_memorable_password
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
@@ -972,7 +969,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         "namespace": "maia-dashboard",
         "repo_url": "https://kthcloud.github.io/MAIA/",
         "chart_name": "maia-dashboard",
-        "chart_version": "0.1.5",
+        "chart_version": "0.1.6",
     }
     
 
@@ -1087,14 +1084,11 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         ]
         maia_dashboard_values["dashboard"]["local_config_path"] = "/etc/MAIA-Dashboard/config"
     else:
-        def generate_human_memorable_password(length=12):
-            nltk.download('words')
-            word_list = words.words()
-            password = '-'.join(random.choice(word_list) for _ in range(length // 6))
-            password += ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length - len(password)))
-            return password
 
-        db_password = generate_human_memorable_password()
+        if 'mysql_dashboard_password' in maia_config_dict:
+            db_password = maia_config_dict['mysql_dashboard_password']
+        else:
+            db_password = generate_human_memorable_password()
         maia_dashboard_values["dashboard"]["local_config_path"] = "/mnt/dashboard-config"
         maia_dashboard_values["env"] = [
             { "name": "DEBUG", "value": "False" },
