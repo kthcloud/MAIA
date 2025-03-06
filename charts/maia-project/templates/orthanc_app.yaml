@@ -1,0 +1,20 @@
+{{- if .Values.jupyterhub_values }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-orthanc
+  namespace: {{ .Values.argo_namespace }}
+spec:
+  project: {{ .Release.Name }}
+  source:
+    chart: {{ .Values.orthanc_chart_info.chart_name }}
+    repoURL: {{.Values.orthanc_chart_info.repo_url}}
+    targetRevision: {{ .Values.orthanc_chart_info.chart_version }}
+    helm:
+      releaseName: {{ .Release.Name }}-orthanc
+      valuesObject:
+      {{ .Values.orthanc_values | toYaml | nindent 8 }}
+  destination:
+    server: {{ .Values.destination_server }}
+    namespace: {{ .Release.Name }}
+{{- end }}

@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  orthanc:
+    image: orthanc
+    ports:
+      - "8042:8042"
+      - "4242:4242"
+    environment:
+      - MONAI_LABEL_INGRESS_PATH=/monai-label
+      - INGRESS_PATH=/orthanc
