@@ -3,7 +3,7 @@ entries:
   maia-addons:
   - apiVersion: v2
     appVersion: 0.1.5
-    created: "2025-03-06T11:41:50.500820266+01:00"
+    created: "2025-03-06T11:47:10.016933615+01:00"
     description: A Helm chart for enabling MAIA Addons [ SSH, Remote Desktop ] for
       MAIA Workspace
     digest: 6ab5131dbd3f8edd4a1e981bb612f234cd33a9ac06a5ae0c6123f1b3db57f8ae
@@ -15,7 +15,7 @@ entries:
   maia-admin-project:
   - apiVersion: v2
     appVersion: 0.1.3
-    created: "2025-03-06T11:41:50.502326945+01:00"
+    created: "2025-03-06T11:47:10.01953655+01:00"
     description: A Helm chart for deploying the MAIA Admin Project
     digest: 87915558178f86b485e67fdc18d573b0eb59538b7873ec15c5f7fa88fddfd04c
     name: maia-admin-project
@@ -25,7 +25,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 0.1.2
-    created: "2025-03-06T11:41:50.501952684+01:00"
+    created: "2025-03-06T11:47:10.019119441+01:00"
     description: A Helm chart for deploying the MAIA Admin Project
     digest: bda1cd29636a542f5e808fa158f74944998688c4f087562787b03e74077e4a09
     name: maia-admin-project
@@ -35,7 +35,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.1.1
-    created: "2025-03-06T11:41:50.501576599+01:00"
+    created: "2025-03-06T11:47:10.018692768+01:00"
     description: A Helm chart for deploying the MAIA Admin Project
     digest: eaf7ad9212cc1f7008e6b81fc04915670926ace45168c94cc99b99391b6454b3
     name: maia-admin-project
@@ -45,7 +45,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-03-06T11:41:50.501186531+01:00"
+    created: "2025-03-06T11:47:10.018281417+01:00"
     description: A Helm chart for deploying the MAIA Admin Project
     digest: 3d206e4624b9bd9371891e048c972ecda2048e8b76903473402a4b5fe271a165
     name: maia-admin-project
@@ -56,7 +56,7 @@ entries:
   maia-admin-toolkit:
   - apiVersion: v2
     appVersion: 1.2.5
-    created: "2025-03-06T11:41:50.508458502+01:00"
+    created: "2025-03-06T11:47:10.022568959+01:00"
     description: A Helm chart for deploying the MAIA Admin Toolkit
     digest: 380e06a5fa026c2b000ab11a144448235fcb0f61679892160e1a4826e4bc88fb
     name: maia-admin-toolkit
@@ -66,7 +66,7 @@ entries:
     version: 1.2.5
   - apiVersion: v2
     appVersion: 1.2.4
-    created: "2025-03-06T11:41:50.507710913+01:00"
+    created: "2025-03-06T11:47:10.022144565+01:00"
     description: A Helm chart for deploying the MAIA Admin Toolkit
     digest: bac2602085327dcf2ad7552f5490e31de82396680f51eafd67b26f5a74c7748d
     name: maia-admin-toolkit
@@ -76,7 +76,7 @@ entries:
     version: 1.2.4
   - apiVersion: v2
     appVersion: 1.2.3
-    created: "2025-03-06T11:41:50.506725754+01:00"
+    created: "2025-03-06T11:47:10.02172204+01:00"
     description: A Helm chart for deploying the MAIA Admin Toolkit
     digest: e152f33d344a8ac9f5748de2d13e4abcf5f40b9f2ff0877301ce87008ecc44cd
     name: maia-admin-toolkit
@@ -86,7 +86,7 @@ entries:
     version: 1.2.3
   - apiVersion: v2
     appVersion: 1.2.2
-    created: "2025-03-06T11:41:50.505919657+01:00"
+    created: "2025-03-06T11:47:10.021304475+01:00"
     description: A Helm chart for deploying the MAIA Admin Toolkit
     digest: bb28b03aac7f2a6a7d686ef57e2cd0fd2621dd9050348a54f0a634faa0b41c8d
     name: maia-admin-toolkit
@@ -96,7 +96,7 @@ entries:
     version: 1.2.2
   - apiVersion: v2
     appVersion: 1.2.1
-    created: "2025-03-06T11:41:50.505126576+01:00"
+    created: "2025-03-06T11:47:10.020859898+01:00"
     description: A Helm chart for deploying the MAIA Admin Toolkit
     digest: e2cd61943ef1f31baba51132eb7f7f0cb3daf15514f692e4045d72fcf7c751ac
     name: maia-admin-toolkit
@@ -106,7 +106,7 @@ entries:
     version: 1.2.1
   - apiVersion: v2
     appVersion: 1.2.0
-    created: "2025-03-06T11:41:50.504301661+01:00"
+    created: "2025-03-06T11:47:10.020431008+01:00"
     description: A Helm chart for deploying the MAIA Admin Toolkit
     digest: bdcb20e73a918a9dab4419154f77c794504751ca18646165a8ee32d3b9a3e747
     name: maia-admin-toolkit
@@ -116,7 +116,7 @@ entries:
     version: 1.2.0
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-03-06T11:41:50.502782611+01:00"
+    created: "2025-03-06T11:47:10.019979615+01:00"
     description: A Helm chart for Kubernetes
     digest: 17755fd9a988b93d84579e13d43836f51d2ee44a3bdf1f93a5834b967a50eadc
     name: maia-admin-toolkit
@@ -127,7 +127,7 @@ entries:
   maia-core-project:
   - apiVersion: v2
     appVersion: 0.1.5
-    created: "2025-03-06T11:41:50.512291599+01:00"
+    created: "2025-03-06T11:47:10.024837325+01:00"
     description: A Helm chart for deploying the MAIA Core Project
     digest: 177ef91438f70984401dc50a40fd1e238d4c3e96b1f02ce9a307575a5624bea9
     name: maia-core-project
@@ -137,7 +137,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: 0.1.4
-    created: "2025-03-06T11:41:50.511636613+01:00"
+    created: "2025-03-06T11:47:10.024451152+01:00"
     description: A Helm chart for deploying the MAIA Core Project
     digest: 85ad9c1fde3cede00e240752b2c7dad2c1e76358475197d6dd6451e54f263887
     name: maia-core-project
@@ -147,7 +147,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 0.1.3
-    created: "2025-03-06T11:41:50.511018149+01:00"
+    created: "2025-03-06T11:47:10.024056306+01:00"
     description: A Helm chart for deploying the MAIA Core Project
     digest: ad259772234cc0ae8ad027b06737f77c55b1efb0bd783e80b2968f0d3914aa9d
     name: maia-core-project
@@ -157,7 +157,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 0.1.2
-    created: "2025-03-06T11:41:50.510404806+01:00"
+    created: "2025-03-06T11:47:10.023690622+01:00"
     description: A Helm chart for deploying the MAIA Core Project
     digest: 556a31ecc340a0fe9cbce86f5aae55c23a1e39e08ef5e9c24bdc556a7901563e
     name: maia-core-project
@@ -167,7 +167,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.1.1
-    created: "2025-03-06T11:41:50.509767043+01:00"
+    created: "2025-03-06T11:47:10.023321465+01:00"
     description: A Helm chart for deploying the MAIA Core Project
     digest: 88b7d3fa185b00a4019be41e2063a2b95febf267fc3f3ae852c0afd2b437967b
     name: maia-core-project
@@ -177,7 +177,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-03-06T11:41:50.50909514+01:00"
+    created: "2025-03-06T11:47:10.022932411+01:00"
     description: A Helm chart for deploying the MAIA Core Project
     digest: b56992018ffb0064cafee36ffd2ea67f9cf7823ae680439c02fa1074a7485926
     name: maia-core-project
@@ -188,7 +188,7 @@ entries:
   maia-core-toolkit:
   - apiVersion: v2
     appVersion: 0.1.7
-    created: "2025-03-06T11:41:50.513620301+01:00"
+    created: "2025-03-06T11:47:10.025658392+01:00"
     description: A Helm chart to deploy the Maia Core Toolkit, including Metrics Server,
       a Cert Manager Cluster Issuer and Kubernetes Dashboard
     digest: 5bd68c004d83f800fc5fc179fe3a836c964bae65e1beb49490be23e790d0f68e
@@ -199,7 +199,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: 0.1.6
-    created: "2025-03-06T11:41:50.512915438+01:00"
+    created: "2025-03-06T11:47:10.025234792+01:00"
     description: A Helm chart to deploy the Maia Core Toolkit, including Metrics Server
       and Kubernetes Dashboard
     digest: c38e8b72d8bb1d7aa6812c45e349b4acaac39a34ffe1d51d6c3dc4ae171ee5a7
@@ -211,7 +211,7 @@ entries:
   maia-dashboard:
   - apiVersion: v2
     appVersion: 0.1.6
-    created: "2025-03-06T11:41:50.525681124+01:00"
+    created: "2025-03-06T11:47:10.032375756+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: 89a5229cdb17138cc0d85ff9957ee4512a7b82c087b548421a1766ad6f9eb2b0
     name: maia-dashboard
@@ -221,7 +221,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: 0.1.5
-    created: "2025-03-06T11:41:50.523853954+01:00"
+    created: "2025-03-06T11:47:10.031523011+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: 7be7f299d4eeb4ade5f45b13ec12917c0bcdc405c7ff0b542977c75383de2b99
     name: maia-dashboard
@@ -231,7 +231,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: 0.1.4
-    created: "2025-03-06T11:41:50.522383547+01:00"
+    created: "2025-03-06T11:47:10.02975896+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: 5b078dc04cda83bb66ab62c57b9c2d40afee998f30de4212e8e5245066d1cf58
     name: maia-dashboard
@@ -241,7 +241,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 0.1.3
-    created: "2025-03-06T11:41:50.520977334+01:00"
+    created: "2025-03-06T11:47:10.028932404+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: d48588f14b95ac564b05a1266b93d4ff22189d25f7495d8e9f93adc1919ea7ee
     name: maia-dashboard
@@ -251,7 +251,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 0.1.2
-    created: "2025-03-06T11:41:50.518833327+01:00"
+    created: "2025-03-06T11:47:10.028091857+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: bb461f37e412d3cdf4ca2f501295105654dd409ebd9d7688c7c1ea3e4d6631d5
     name: maia-dashboard
@@ -261,7 +261,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.1.1
-    created: "2025-03-06T11:41:50.516473895+01:00"
+    created: "2025-03-06T11:47:10.027293082+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: 7db2c6b463bf47663c4f4c1b41a1cc71495366a2d1ad86247182c526422e99fa
     name: maia-dashboard
@@ -271,7 +271,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-03-06T11:41:50.514887394+01:00"
+    created: "2025-03-06T11:47:10.026444869+01:00"
     description: A Helm chart for deploying the MAIA Dashboard
     digest: f9aa40623d8f0e4188cbb1185cd0e6721fc3ae0088924133fe562518389f16e4
     name: maia-dashboard
@@ -282,7 +282,7 @@ entries:
   maia-namespace:
   - apiVersion: v2
     appVersion: 0.1.8
-    created: "2025-03-06T11:41:50.529374814+01:00"
+    created: "2025-03-06T11:47:10.034100056+01:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: 8a3b251c078db8757ec2650979d707be61f23838010c8725d9e4a6bf0bd9e385
     name: maia-namespace
@@ -292,7 +292,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: 0.1.7
-    created: "2025-03-06T11:41:50.528790809+01:00"
+    created: "2025-03-06T11:47:10.033418419+01:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: 40edc4b0e8b05c727f70e889ff5afdb67bf92154400aec652350a83a19229eb8
     name: maia-namespace
@@ -302,7 +302,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-03-06T11:41:50.526715185+01:00"
+    created: "2025-03-06T11:47:10.032893066+01:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: 0030e07e8a8d3c256194f8a08f1863c76de657dd6a03b6394c9c7ce39d53a259
     name: maia-namespace
@@ -313,7 +313,16 @@ entries:
   maia-orthanc:
   - apiVersion: v1
     appVersion: 5.6.2
-    created: "2025-03-06T11:41:50.52981248+01:00"
+    created: "2025-03-06T11:47:10.034907193+01:00"
+    description: Chart for MAIA Orthanc, including OHIF and MONAI Label
+    digest: 0a1080e2fab100cba2f625c9037a71940f9671bb3a1c75fbd0b8a36687a4329c
+    name: maia-orthanc
+    urls:
+    - helm-charts/maia-orthanc-0.0.2.tgz
+    version: 0.0.2
+  - apiVersion: v1
+    appVersion: 5.6.2
+    created: "2025-03-06T11:47:10.0345309+01:00"
     description: Chart for MAIA Orthanc, including OHIF and MONAI Label
     digest: 0df7baf8674e9de3220ccd8a7da519f5d18ea152787ec85fd7424e5b5dd491cf
     name: maia-orthanc
@@ -323,7 +332,7 @@ entries:
   maia-project:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-03-06T11:41:50.531205844+01:00"
+    created: "2025-03-06T11:47:10.036177813+01:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: d3cf20ebf33ce4c7a607973df5f003f765bf3c4ea13d81055b8120b89c30ad5c
     name: maia-project
@@ -333,7 +342,7 @@ entries:
     version: 1.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-03-06T11:41:50.530861747+01:00"
+    created: "2025-03-06T11:47:10.03586471+01:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: 798706d66fdc37b397e95a812dac1e349a8d70e871e157b39dce60f110e9aa65
     name: maia-project
@@ -343,7 +352,7 @@ entries:
     version: 1.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-03-06T11:41:50.530518436+01:00"
+    created: "2025-03-06T11:47:10.035547551+01:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: 3101f970ae6b9038e957d871bfd03fbb2823578ada829a985d90b426b0a72c99
     name: maia-project
@@ -353,7 +362,7 @@ entries:
     version: 1.1.0
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-03-06T11:41:50.530167558+01:00"
+    created: "2025-03-06T11:47:10.035229161+01:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: 1bcf1c68d2acfd66eaa23fbf45c245c09eb839fedec52acb586816ea82c19454
     name: maia-project
@@ -364,7 +373,7 @@ entries:
   maia-workspace:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-03-06T11:41:50.531522834+01:00"
+    created: "2025-03-06T11:47:10.036472254+01:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: c4cb352e116203eb938a55220eab0159ea0114f8ac9ad99739715e91d12f52a2
     name: maia-workspace
@@ -375,7 +384,7 @@ entries:
   mkg:
   - apiVersion: v2
     appVersion: 1.0.2
-    created: "2025-03-06T11:41:50.531986434+01:00"
+    created: "2025-03-06T11:47:10.036915365+01:00"
     description: A Helm chart to deploy environments (pods, services, ingresses) and
       run experiments and applications in MAIA cluster
     digest: a68950f3b91fadd60ca91561dfe7d8f0c7acca1dc611b2b3e5ea11231ce96570
@@ -387,7 +396,7 @@ entries:
   mkg-kaniko:
   - apiVersion: v2
     appVersion: 1.0.3
-    created: "2025-03-06T11:41:50.532430326+01:00"
+    created: "2025-03-06T11:47:10.037355021+01:00"
     description: A Helm chart to deploy Kaniko Pod in MAIA cluster, used to build
       Docker Images and deploy to the private Docker Registry
     digest: aa4a54c1d1cfbf047b89074b8968ead380aab1bb35c15f5ed4eaaeb680c49e83
@@ -399,7 +408,7 @@ entries:
   monai-label-ohif-maia:
   - apiVersion: v1
     appVersion: 5.6.2
-    created: "2025-03-06T11:41:50.533136384+01:00"
+    created: "2025-03-06T11:47:10.038054246+01:00"
     description: Chart for MONAI Label OHIF App
     digest: e5d67bc353f4b4d44eb2bef6032ab5e6be599d26f7b9cb70ce8166348e506219
     name: monai-label-ohif-maia
@@ -408,11 +417,11 @@ entries:
     version: 0.0.5
   - apiVersion: v1
     appVersion: 5.6.2
-    created: "2025-03-06T11:41:50.532764131+01:00"
+    created: "2025-03-06T11:47:10.037694381+01:00"
     description: Chart for MONAI Label OHIF App
     digest: bf6e3f6c7f4cdf83c34f6d29075ce994b93903d3266fd9ce46632a29e347661f
     name: monai-label-ohif-maia
     urls:
     - helm-charts/monai-label-ohif-maia-0.0.4.tgz
     version: 0.0.4
-generated: "2025-03-06T11:41:50.500189971+01:00"
+generated: "2025-03-06T11:47:10.016322947+01:00"

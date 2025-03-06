@@ -5,6 +5,7 @@ pvc:
 
 imagePullSecret: ""
 
+# 	registry.maia-cloud.com/maia/monai-label-ohif-maia:1.2
 image:
   repository: ""
   tag: ""

@@ -34,7 +34,7 @@ spec:
   {{- end }}
   ports:
     - protocol: TCP
-      {{- if .Values.orthanc_node_port.loadBalancer }}
+      {{- if .Values.serviceType == "LoadBalancer" }}
       port: {{ .Values.orthanc_node_port.loadBalancer }}
       {{- else }}
       port: 4242
@@ -44,7 +44,7 @@ spec:
       nodePort: {{ .Values.orthanc_node_port }}
       {{- end }}
       name: orthanc-dicom
-  {{- if .Values.orthanc_node_port.loadBalancer }}
+  {{- if .Values.serviceType == "LoadBalancer" }}
   type: LoadBalancer
   {{- else }}
   type: NodePort
