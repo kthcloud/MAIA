@@ -18,7 +18,8 @@ singularity run python-3.8.sif <COMMAND>
 
 ## Singularity Definition File
  To create a Singularity image, you need a Singularity definition file, which is a text file that describes the environment that you want to create.
-[HPPCM](https://github.com/NVIDIA/hpc-container-maker), a tool to create container images for HPC applications from given recipes.
+ 
+[HPPCM](https://github.com/NVIDIA/hpc-container-maker) is a tool to create container images for HPC applications from given recipes.
 You only need to provide a recipe file that describes the environment you want to create, and HPC Container Maker will generate the Singularity definition file for you.
 
 To install HPPCM, you can run the following command:
