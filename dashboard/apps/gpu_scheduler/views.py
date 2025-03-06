@@ -171,8 +171,11 @@ def gpu_booking_info(request):
         for group in groups:
             if str(group) != "MAIA:users":
                 namespaces.append(str(group).split(":")[-1].lower().replace("_","-"))
-                
-    bookings = GPUBooking.objects.filter(user_email=request.user.email)
+
+    if request.user.is_superuser:
+        bookings = GPUBooking.objects.all()
+    else:
+        bookings = GPUBooking.objects.filter(user_email=request.user.email)
     
     
     bookings_dict = []
