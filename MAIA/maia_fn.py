@@ -18,6 +18,9 @@ import string
 import nltk
 from nltk.corpus import words
 
+def generate_random_password(length=12):
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for i in range(length))
 
 def generate_human_memorable_password(length=12):
     nltk.download('words')
@@ -111,7 +114,7 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
                 if svc.status.load_balancer.ingress is not None:
                     if svc.spec.type == 'LoadBalancer' and svc.status.load_balancer.ingress[0].ip == maia_metallb_ip:
                         for port in svc.spec.ports:
-                            if port.name == 'ssh' and svc.metadata.namespace == namespace:  # TODO: or port.name == 'pt-orthanc'
+                            if port.name == 'ssh' and svc.metadata.namespace == namespace or port.name == 'orthanc-dicom' and svc.metadata.namespace == namespace:
                                 used_port.append({svc.metadata.name:int(port.port)})
             elif port_type == "NodePort":
                 if svc.spec.type == 'NodePort' and svc.metadata.namespace == namespace:
@@ -161,7 +164,7 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
                 if svc.status.load_balancer.ingress is not None:
                     if svc.spec.type == 'LoadBalancer' and svc.status.load_balancer.ingress[0].ip == maia_metallb_ip:
                         for port in svc.spec.ports:
-                            if port.name == 'ssh':  # TODO: or port.name == 'pt-orthanc'
+                            if port.name == 'ssh' or port.name == 'orthanc-dicom':
                                 used_port.append(int(port.port))
             elif port_type == "NodePort":
                 if svc.spec.type == 'NodePort':
@@ -519,6 +522,103 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         "version": mlflow_values["chart_version"],
         "values": str(Path(config_folder).joinpath(user_config["group_ID"], "mlflow_values", "mlflow_values.yaml"))
     }
+
+
+def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder):
+    """
+    Deploys Orthanc using the provided configuration.
+    Parameters
+    ----------
+    cluster_config : dict
+        Dictionary containing the cluster configuration.
+    user_config : dict
+        Dictionary containing the user configuration.
+    maia_config_dict : dict
+        Dictionary containing the MAIA configuration.
+    config_folder : str or Path
+        Path to the configuration folder.
+    Returns
+    -------
+    dict
+        A dictionary containing deployment details such as namespace, release, chart, repo, version, and values file path.
+    """
+
+    with open(Path(config_folder).joinpath(user_config["group_ID"], "maia_namespace_values", "namespace_values.yaml"), "r") as f:
+        namespace_values = yaml.safe_load(f)
+        orthanc_port = namespace_values["orthanc"]["port"]
+
+    random_path = generate_random_password(16)
+    orthanc_config = {
+        "pvc": {
+            "pvc_type": cluster_config["storage_class"],
+            "access_mode": "ReadWriteMany",
+            "size": "10Gi"
+        },
+        "imagePullSecret": cluster_config["imagePullSecrets"],
+        "image": {
+            "repository": maia_config_dict["maia_orthanc_image"],
+            "tag": maia_config_dict["maia_orthanc_version"],
+        },
+        "cpu": "1000m",
+        "memory": "1Gi",
+        "gpu": False,
+        "orthanc_dicom_service_annotations": {},
+        "ingress_annotations": {},
+        "ingress_tls": {
+            "host": ""
+        },
+        "monai_label_path": f"monai-label-{random_path}",
+        "orthanc_path": f"orthanc-{random_path}",
+        "orthanc_node_port": orthanc_port,
+        "serviceType": "NodePort"
+    }
+
+    domain = cluster_config["domain"]
+    group_subdomain = user_config["group_subdomain"]
+
+    if "url_type" in cluster_config:
+        if cluster_config["url_type"] == "subdomain":
+            orthanc_address = f"{group_subdomain}.{domain}"
+        elif cluster_config["url_type"] == "subpath":
+            orthanc_address = domain
+        else:
+            orthanc_address = None
+
+    if orthanc_address is not None:
+        orthanc_config["ingress_tls"]["host"] = orthanc_address
+
+    if cluster_config["ssh_port_type"] == "LoadBalancer":
+        orthanc_config["orthanc_dicom_service_annotations"]["metallb.universe.tf/allow-shared-ip"] = cluster_config.get("metallb_shared_ip", False) 
+        orthanc_config["orthanc_dicom_service_annotations"]["metallb.universe.tf/ip-allocated-from-pool"] = cluster_config.get("metallb_ip_pool", False)
+        orthanc_config["orthanc_node_port"] =  {"loadBalancer": orthanc_port}
+        orthanc_config["loadBalancerIp"] = cluster_config.get("maia_metallb_ip", False)
+
+    if cluster_config["ingress_class"] == "maia-core-traefik":
+        orthanc_config["ingress_annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
+        orthanc_config["ingress_annotations"]["traefik.ingress.kubernetes.io/router.tls"] = 'true'
+        orthanc_config["ingress_annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config["traefik_resolver"]
+    elif cluster_config["ingress_class"] == "nginx":
+        orthanc_config["ingress_annotations"]["cert-manager.io/cluster-issuer"] = "cluster-issuer"
+
+
+    orthanc_config["chart_name"] = "maia-orthanc"
+    orthanc_config["chart_version"] = "0.0.1"
+    orthanc_config["repo_url"] = "https://kthcloud.github.io/MAIA/"
+
+    Path(config_folder).joinpath(user_config["group_ID"], "orthanc_values").mkdir(parents=True, exist_ok=True)
+
+    with open(Path(config_folder).joinpath(user_config["group_ID"], "orthanc_values", "orthanc_values.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(orthanc_config))
+
+    return {
+        "namespace": user_config["group_ID"].lower().replace("_", "-"),
+        "release": user_config["group_ID"].lower().replace("_", "-") + "-oauth2-proxy",
+        "chart": orthanc_config["chart_name"],
+        "repo": orthanc_config["repo_url"],
+        "version": orthanc_config["chart_version"],
+        "values": str(Path(config_folder).joinpath(user_config["group_ID"], "orthanc_values", "orthanc_values.yaml"))
+    }
+
 
 
 def gpu_list_from_nodes():
