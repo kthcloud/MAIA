@@ -225,8 +225,8 @@
                     <thead>
                         <tr>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Orthanc Name</th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Internal URL</th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">External URL</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">DICOM Port</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">DicomWeb</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -239,7 +239,7 @@
                             </td>
                             <td>
                                 <div class="d-flex flex-column justify-content-center">
-                                    <h6 class="mb-0 text-sm"><a href="{{ orthanc.internal_url }}" target="_blank">{{ orthanc.internal_url }}</a></h6>
+                                    <h6 class="mb-0 text-sm">{{ssh_hostname}}:{{ orthanc.dicom_port }}</h6>
                                 </div>
                             </td>
                             <td>

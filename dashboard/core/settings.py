@@ -262,6 +262,8 @@ PRIVATE_CLUSTERS = {}
 API_URL = []
 GPU_LIST = ["NO"]
 
+GPU_SPECS = []
+
 
 for root, dirs, files in os.walk(MOUNT_DIR):
     for file in files:
@@ -288,7 +290,7 @@ for root, dirs, files in os.walk(MOUNT_DIR):
         if file.endswith(".yaml"):
             with open(os.path.join(root, file)) as v_file:
                 v_file = yaml.safe_load(v_file)
-                if "gpu_list" in v_file:
-                    for gpu in v_file["gpu_list"]:
-                        if gpu not in GPU_LIST:
-                            GPU_LIST.append(gpu)
+                if "gpu_specs" in v_file:
+                    for gpu in v_file["gpu_specs"]:
+                        if gpu not in GPU_SPECS:
+                            GPU_SPECS.append(gpu)

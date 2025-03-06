@@ -25,7 +25,7 @@ class UserTableForm(forms.Form):
         clusters = ([(cluster, cluster) for cluster in settings.CLUSTER_NAMES.values()])
         clusters.append(("N/A","N/A"))
 
-        gpus = ([(gpu, gpu) for gpu in settings.GPU_LIST])
+        gpus = ([(gpu['name'],gpu['name']) for gpu in settings.GPU_SPECS])
         gpus.append(("N/A", "N/A"))
 
         minimal_envs = (("Minimal","Minimal"),("Full","Full"))

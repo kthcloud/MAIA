@@ -550,13 +550,10 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                             rule['host'] = settings.DEFAULT_INGRESS_HOST
                         for path in rule['http']['paths']:
                             if path['backend']['service']['name'] == 'proxy-public':
-                                ## JupyterHub
                                 maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
-                            if path['backend']['service']['name'] == 'maia-xnat':
-                                ## XNAT
+                            if path['backend']['service']['name'] == 'maia-xnat':                               
                                 maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
-                                ## Orthanc
-                            if path['backend']['service']['name'] == namespace + "-svc":
+                            if path['backend']['service']['name'] ==  "orthanc-svc":
                                 
                                 maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
                                 maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path'] + "/ohif/"
@@ -565,7 +562,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                 if path['backend']['service']['port']['name'] == 'orthanc':
                                     orthanc_list.append({
                                         "name": ingress['metadata']['name'],
-                                        "internal_url": "",
+                                        "dicom_port": "",
                                         "url": "https://" + rule['host'] + path['path'] + "/dicom-web/"
                                     })
 
@@ -582,6 +579,14 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                             user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
                             if user_id == user or is_admin:
                                 ssh_ports[user] = port['port']
+                        if 'name' in port and port['name'] == 'orthanc-dicom':
+                            for orthanc in orthanc_list:
+                                if orthanc["name"] == service["metadata"]["labels"]["app"]+"-orthanc":
+                                    if service["spec"]["type"] == "NodePort":
+                                        orthanc["dicom_port"] = port['nodePort']
+                                    elif service["spec"]["type"] == "LoadBalancer":
+                                        orthanc["dicom_port"] = port['port']
+                                    
 
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"

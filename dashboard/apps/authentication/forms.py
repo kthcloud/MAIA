@@ -111,7 +111,7 @@ class RegisterProjectForm(forms.ModelForm):
         ))
     
     gpu = forms.ChoiceField(
-        choices=[(gpu,gpu) for gpu in settings.GPU_LIST],
+        choices=[(gpu['name'],gpu['name']) for gpu in settings.GPU_SPECS],
         widget=forms.Select(attrs={
             'class': "form-select text-center fw-bold",
             'style': 'max-width: auto;',
