@@ -1,4 +1,4 @@
-{{- if .Values.jupyterhub_values }}
+{{- if .Values.orthanc_values }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -7,9 +7,9 @@ metadata:
 spec:
   project: {{ .Release.Name }}
   source:
-    chart: {{ .Values.orthanc_chart_info.chart_name }}
-    repoURL: {{.Values.orthanc_chart_info.repo_url}}
-    targetRevision: {{ .Values.orthanc_chart_info.chart_version }}
+    chart: {{ .Values.orthanc_values.chart_name }}
+    repoURL: {{.Values.orthanc_values.repo_url}}
+    targetRevision: {{ .Values.orthanc_values.chart_version }}
     helm:
       releaseName: {{ .Release.Name }}-orthanc
       valuesObject:
