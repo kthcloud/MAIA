@@ -553,7 +553,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                 maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
                             if path['backend']['service']['name'] == 'maia-xnat':                               
                                 maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
-                            if path['backend']['service']['name'] ==  "orthanc-svc":
+                            if path['backend']['service']['name'] ==  namespace+"-orthanc-svc":
                                 
                                 maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
                                 maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path'] + "/ohif/"
