@@ -14,3 +14,4 @@ toml
 click
 nltk
 hydra-core
+python-dotenv
