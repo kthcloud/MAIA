@@ -18,6 +18,93 @@ from MAIA.kubernetes_utils import generate_kubeconfig
 from MAIA.keycloak_utils import get_groups_in_keycloak
 from datetime import datetime
 
+def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
+    """
+    Verify GPU availability for a new booking.
+    
+    Parameters
+    ----------
+    global_existing_bookings : list of dict
+        A list of existing bookings where each booking is represented as a dictionary 
+        with keys "gpu", "start_date", and "end_date".
+    new_booking : dict
+        A dictionary representing the new booking with keys "gpu", "start_date", and "end_date".
+    gpu_specs : list of dict
+        A list of GPU specifications where each specification is represented as a dictionary 
+        with keys "name", "replicas", and "count".
+    
+    Returns
+    -------
+    overlapping_time_points : list of datetime
+        A list of time points where bookings overlap.
+    gpu_availability_per_slot : list of int
+        A list of available GPU counts for each overlapping time slot.
+    total_gpus : int
+        The total number of GPUs available for the specified GPU type.
+    """
+
+    gpu_name = new_booking["gpu"]
+
+    gpu_count = 0
+    gpu_replicas = 0
+
+    for gpu_spec in gpu_specs:
+        if gpu_spec["name"] == gpu_name:
+
+            gpu_replicas = gpu_spec["replicas"]
+            gpu_count = gpu_spec["count"]
+
+    overlapping_allocations = []
+    for existing_booking in global_existing_bookings:
+        if existing_booking["gpu"] == gpu_name:
+            existing_booking_start = datetime.strptime(existing_booking["start_date"], "%Y-%m-%d %H:%M:%S")
+            existing_booking_end = datetime.strptime(existing_booking["end_date"], "%Y-%m-%d %H:%M:%S")
+            new_booking_start = datetime.strptime(new_booking["start_date"], "%Y-%m-%d %H:%M:%S")
+            new_booking_end = datetime.strptime(new_booking["end_date"], "%Y-%m-%d %H:%M:%S")
+
+            if new_booking_start >= existing_booking_end or new_booking_end <= existing_booking_start:
+                continue
+            if (new_booking_start <= existing_booking_start and new_booking_end >= existing_booking_start):
+                overlapping_allocations.append([existing_booking_start, existing_booking_end])
+            elif (new_booking_start <= existing_booking_start and new_booking_end <= existing_booking_end):
+                overlapping_allocations.append([existing_booking_start, new_booking_end])
+            elif (new_booking_start >= existing_booking_start and new_booking_end >= existing_booking_end):
+                overlapping_allocations.append([new_booking_start, existing_booking_end])
+            elif (new_booking_start >= existing_booking_start and new_booking_end <= existing_booking_end):
+                overlapping_allocations.append([new_booking_start, new_booking_end])
+
+    overlapping_time_points = []
+    gpu_availability_per_slot = []
+    for overlapping_allocation in overlapping_allocations:
+        overlapping_time_points.append(overlapping_allocation[0])
+        overlapping_time_points.append(overlapping_allocation[1])
+
+    overlapping_time_points.append(datetime.strptime(new_booking["start_date"], "%Y-%m-%d %H:%M:%S"))
+    overlapping_time_points.append(datetime.strptime(new_booking["end_date"], "%Y-%m-%d %H:%M:%S"))
+    overlapping_time_points = sorted(set(overlapping_time_points))
+
+    for overlapping_time_point in overlapping_time_points[:-1]:
+        overlapping_window = [overlapping_time_point, overlapping_time_points[overlapping_time_points.index(overlapping_time_point)+1]]
+        overlapping_window_start = overlapping_window[0]
+        overlapping_window_end = overlapping_window[1]
+
+        
+        
+        available_gpus = gpu_replicas * gpu_count
+        gpu_availability_per_slot.append(available_gpus)
+        for existing_booking in global_existing_bookings:
+            existing_booking_start = datetime.strptime(existing_booking["start_date"], "%Y-%m-%d %H:%M:%S")
+            existing_booking_end = datetime.strptime(existing_booking["end_date"], "%Y-%m-%d %H:%M:%S")
+
+            if (existing_booking_start < overlapping_window_end and existing_booking_end > overlapping_window_start):
+                available_gpus -= 1
+        gpu_availability_per_slot[-1] = available_gpus
+    
+    return overlapping_time_points, gpu_availability_per_slot, gpu_replicas * gpu_count
+
+            
+
+
 def verify_gpu_booking_policy(existing_bookings, new_booking):
     
     total_days = sum(
