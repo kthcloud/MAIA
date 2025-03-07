@@ -43,20 +43,25 @@ def label_pod_for_deletion(namespace, pod_name):
     
     # Load Kubernetes configuration
     #config.load_incluster_config()  # Use in-cluster config
-    config.load_kube_config()  # Uncomment for local testing
+    if not "KUBECONFIG_LOCAL" in os.environ:
+        os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
+    kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
+    config.load_kube_config_from_dict(kubeconfig)
 
+    
     # Label the pod for deletion
     body = {
         "metadata": {
             "annotations": {
-                "terminate-at": (datetime.now(timezone.utc) + timedelta(seconds=30)).isoformat()
+                "terminate-at": (datetime.now(timezone.utc) + timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
             }
-            
         }
     }
     try:
-        client.patch_namespaced_pod(name=pod_name, namespace=namespace, body=body)
-        logger.info(f"Pod {pod_name} labeled for deletion")
+        with kubernetes.client.ApiClient() as api_client:
+            api_instance = kubernetes.client.CoreV1Api(api_client)
+            api_instance.patch_namespaced_pod(name=pod_name, namespace=namespace, body=body)
+            logger.info(f"Pod {pod_name} labeled for deletion")
     except Exception as e:
         logger.error(f"Error labeling pod {pod_name} for deletion: {e}")
         
@@ -94,8 +99,9 @@ def get_namespaces(id_token, api_urls, private_clusters = []):
             except:
                 continue
         namespaces = json.loads(response.text)
-        for namespace in namespaces['items']:
-            namespace_list.append(namespace['metadata']['name'])
+        if 'items' in namespaces:
+            for namespace in namespaces['items']:
+                namespace_list.append(namespace['metadata']['name'])
     return list(set(namespace_list))
 
 def get_cluster_status(id_token, api_urls, cluster_names, private_clusters = []):
@@ -533,47 +539,54 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
             if services['code'] == 403:
                 ...
 
-        if len(ingresses['items']) > 0 or len(services['items']) > 0:
-            deployed_clusters.append(settings.CLUSTER_NAMES[API_URL])
+        if 'items' in ingresses:
+            if 'items' in services:
+                if len(ingresses['items']) > 0 or len(services['items']) > 0:
+                    deployed_clusters.append(settings.CLUSTER_NAMES[API_URL])
             
-        for ingress in ingresses['items']:
-            for rule in ingress['spec']['rules']:
-                if 'host' not in rule:
-                    rule['host'] = settings.DEFAULT_INGRESS_HOST
-                for path in rule['http']['paths']:
-                    if path['backend']['service']['name'] == 'proxy-public':
-                        ## JupyterHub
-                        maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
-                    if path['backend']['service']['name'] == 'maia-xnat':
-                        ## XNAT
-                        maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
-                        ## Orthanc
-                    if path['backend']['service']['name'] == namespace + "-svc":
-                        
-                        maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
-                        maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path']+ "/ohif/"
-                    
-                    if 'port' in path['backend']['service'] and 'name' in path['backend']['service']['port']:
-                        if path['backend']['service']['port']['name'] == 'orthanc':
-                            orthanc_list.append({
-                                "name": ingress['metadata']['name'],
-                                "internal_url": "",
-                                "url": "https://" + rule['host'] + path['path']+"/dicom-web/"
-                            })
+                for ingress in ingresses['items']:
+                    for rule in ingress['spec']['rules']:
+                        if 'host' not in rule:
+                            rule['host'] = settings.DEFAULT_INGRESS_HOST
+                        for path in rule['http']['paths']:
+                            if path['backend']['service']['name'] == 'proxy-public':
+                                maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
+                            if path['backend']['service']['name'] == 'maia-xnat':                               
+                                maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
+                            if path['backend']['service']['name'] ==  namespace+"-orthanc-svc":
+                                
+                                maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
+                                maia_workspace_apps['ohif'] = "https://" + rule['host'] + path['path'] + "/ohif/"
+                            
+                            if 'port' in path['backend']['service'] and 'name' in path['backend']['service']['port']:
+                                if path['backend']['service']['port']['name'] == 'orthanc':
+                                    orthanc_list.append({
+                                        "name": ingress['metadata']['name'],
+                                        "dicom_port": "",
+                                        "url": "https://" + rule['host'] + path['path'] + "/dicom-web/"
+                                    })
 
-        for service in services['items']:
-            for port in service['spec']['ports']:
-                if 'name' in port and port['name'] == 'remote-desktop-port':
-                    hub_url = maia_workspace_apps['hub']
-                    user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
-                    url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
-                    if user_id == user or is_admin:
-                        remote_desktop_dict[user] = url
+                for service in services['items']:
+                    for port in service['spec']['ports']:
+                        if 'name' in port and port['name'] == 'remote-desktop-port':
+                            hub_url = maia_workspace_apps['hub']
+                            user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                            url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
+                            if user_id == user or is_admin:
+                                remote_desktop_dict[user] = url
 
-                if 'name' in port and port['name'] == 'ssh':
-                    user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
-                    if user_id == user or is_admin:
-                        ssh_ports[user] = port['port']
+                        if 'name' in port and port['name'] == 'ssh':
+                            user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                            if user_id == user or is_admin:
+                                ssh_ports[user] = port['port']
+                        if 'name' in port and port['name'] == 'orthanc-dicom':
+                            for orthanc in orthanc_list:
+                                if orthanc["name"] == service["metadata"]["labels"]["app"]+"-orthanc":
+                                    if service["spec"]["type"] == "NodePort":
+                                        orthanc["dicom_port"] = port['nodePort']
+                                    elif service["spec"]["type"] == "LoadBalancer":
+                                        orthanc["dicom_port"] = port['port']
+                                    
 
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"

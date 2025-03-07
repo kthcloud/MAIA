@@ -6,6 +6,9 @@ Copyright (c) 2019 - present AppSeed.us
 from django import forms
 from django.conf import settings
 import datetime
+from MAIA.dashboard_utils import get_pending_projects
+from apps.models import MAIAProject
+from MAIA.keycloak_utils import get_groups_in_keycloak
 
 class UserTableForm(forms.Form):
 
@@ -22,18 +25,31 @@ class UserTableForm(forms.Form):
         clusters = ([(cluster, cluster) for cluster in settings.CLUSTER_NAMES.values()])
         clusters.append(("N/A","N/A"))
 
-        gpus = ([(gpu, gpu) for gpu in settings.GPU_LIST])
+        gpus = ([(gpu['name'],gpu['name']) for gpu in settings.GPU_SPECS])
         gpus.append(("N/A", "N/A"))
 
         minimal_envs = (("Minimal","Minimal"),("Full","Full"))
         
+        #maia_groups = get_groups_in_keycloak(settings= settings)
+        #pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
+
+        #for pending_project in pending_projects:
+        #    maia_groups[pending_project] = pending_project + " (Pending)"
+        
+        #maia_groups = [(group, group) for group in maia_groups.values()]
         if "users" in kwargs:
             for i in kwargs["users"]:
                 username = i["username"]
+                #self.fields[f"namespace_{username}"] = forms.MultipleChoiceField(
+                #    label='namespace', 
+                #    initial=i['namespace'].split(","), 
+                #    choices=maia_groups,
+                #)
                 self.fields[f"namespace_{username}"] = forms.CharField(max_length=100, label='namespace',initial=i["namespace"])
         else:
             for k in args[0]:
                 if k.startswith("namespace"):
+                    #self.fields[k] = forms.MultipleChoiceField(label='namespace', choices=maia_groups)
                     self.fields[k] = forms.CharField(max_length=100, label='namespace')
                 elif k.startswith("memory_limit"):
 
@@ -46,8 +62,8 @@ class UserTableForm(forms.Form):
                                                        choices=cpu_limit,
                                                        )
                 elif k.startswith("date"):
-                    self.fields[k] = forms.DateField(label='date',widget=forms.DateInput(format="%d-%m-%Y", attrs={"type": "date"}),
-        input_formats=["%d-%m-%Y"])
+                    self.fields[k] = forms.DateField(label='date',widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+        input_formats=["%Y-%m-%d"])
                 elif k.startswith("conda"):
                      self.fields[k] = forms.FileField(label='conda')
                 elif k.startswith("cluster"):
@@ -80,7 +96,7 @@ class UserTableForm(forms.Form):
                 self.fields[f"cpu_limit_{project_name}"] = forms.ChoiceField(label='cpu_limit', choices=cpu_limit,
                                                                             initial=kwargs["projects"][i]["cpu_limit"])
                 self.fields[f"date_{project_name}"] = forms.DateField(label='date',initial=kwargs["projects"][i]["date"],widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
-                input_formats=["%d-%m-%Y"])
+                input_formats=["%Y-%m-%d"])
 
                 self.fields[f"conda_{project_name}"] = forms.FileField(label='conda',initial=kwargs["projects"][i]["conda"])
                 self.fields[f"cluster_{project_name}"] = forms.ChoiceField(choices=clusters, label='cluster',initial=kwargs["projects"][i]["cluster"])

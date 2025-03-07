@@ -50,7 +50,7 @@
                                                         <td>{{ booking.gpu }}</td>
                                                         <td>{{ booking.start_date }}</td>
                                                         <td>{{ booking.end_date }}</td>
-                                                        <td><a href="/maia/namespaces/{{ booking.namespace }}">{{ booking.namespace }}</a></td>
+                                                        <td><a href="/maia/namespaces/{{ booking.namespace|lower|to_hyphen }}">{{ booking.namespace }}</a></td>
                                                         <td>
                                                             
                                                             {% if booking.status == 'Active' %}

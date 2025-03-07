@@ -1,6 +1,0 @@
----
-apiVersion: v1
-appVersion: 5.6.2
-description: Chart for MONAI Label OHIF App
-name: monai-label-ohif-maia
-version: "0.0.4"

@@ -6,11 +6,9 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from MAIA.dashboard_utils import (
-    get_maia_users_from_keycloak,
     send_maia_message_email,
-    send_approved_registration_email,
-    send_maia_info_email,
 )
+from MAIA.keycloak_utils import get_maia_users_from_keycloak
 
 # load env variables
 from dotenv import load_dotenv
@@ -48,7 +46,6 @@ def send_all_users_reminder_email(settings_dict, email_list=None):
         user_emails = [user["email"] for user in maia_users]
     else:
         user_emails = email_list
-    print(user_emails)
 
     # Required environment variables for sending emails
     required_env_vars = ["email_account", "email_password", "email_smtp_server"]
@@ -76,24 +73,11 @@ def send_all_users_reminder_email(settings_dict, email_list=None):
 
 if __name__ == "__main__":
     # This allows the script to be run directly for testing
-    # from django.conf import settings
+    # load settings
+    with open("settings.json") as f:
+        settings_dict = json.load(f)
 
-    settings_dict = {
-        "OIDC_SERVER_URL": "https://iam.cloud.cbh.kth.se",
-        "OIDC_USERNAME": "admin",
-        "OIDC_REALM_NAME": "cloud",
-        "OIDC_RP_CLIENT_ID": "maia",
-        "OIDC_RP_CLIENT_SECRET": "XV3N3YTwjqZrjMpLJtX8cqEAOQP3iJFa",
-    }
-
-    # send_maia_info_email(
-    #    receiver_email="sanna.persson@live.com",
-    #    register_project_url="https://maia.app.cloud.cbh.kth.se/maia/register_project/",
-    #    register_user_url="https://maia.app.cloud.cbh.kth.se/maia/register/",
-    #    discord_support_link="https://discord.gg/ZSe2dDzt",
-    # )
-
-    email_list = ["sanna.persson@live.com"]
+    email_list = ["xxx@live.com"]
     num_sent, failed = send_all_users_reminder_email(settings_dict, email_list)
     print(f"Successfully sent {num_sent} emails")
     if failed:

@@ -7,6 +7,7 @@ from django.template.defaulttags import register
 from MAIA.kubernetes_utils import get_namespaces
 import os
 from pathlib import Path
+from apps.models import MAIAProject
 from django.http import HttpResponse, HttpResponseRedirect
 # Create your views here.
 from MAIA.kubernetes_utils import get_namespace_details
@@ -88,23 +89,23 @@ def namespace_view(request,namespace_id):
 
         namespaces = []
         if request.user.is_superuser:
-            namespaces = get_namespaces(id_token)
+            namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
         else:
             for group in groups:
                 if str(group) != "MAIA:users":
                     namespaces.append(str(group).split(":")[-1].lower().replace("_","-"))
 
-        allocation_date = get_allocation_date_for_project(settings=settings, group_id=namespace_id, is_namespace_style=True)
+        allocation_date = get_allocation_date_for_project(maia_project_model=MAIAProject, group_id=namespace_id, is_namespace_style=True)
 
-        _, cluster_id = get_project(namespace_id, settings=settings, is_namespace_style=True)
+        _, cluster_id = get_project(namespace_id, settings=settings, maia_project_model=MAIAProject, is_namespace_style=True)
 
         cluster_config_path = os.environ["CLUSTER_CONFIG_PATH"]
         
         if cluster_id is not None:
             cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(cluster_id+".yaml").read_text())
         else:
-            register_cluster_for_project_in_db(settings, namespace_id, deployed_clusters[0])
+            register_cluster_for_project_in_db(MAIAProject, settings, namespace_id, deployed_clusters[0])
             cluster_config_dict = yaml.safe_load(Path(cluster_config_path).joinpath(deployed_clusters[0]+".yaml").read_text())
 
         context = { "maia_workspace_ingress": maia_workspace_apps,"namespace":namespace_id,

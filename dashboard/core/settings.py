@@ -40,6 +40,7 @@ BUCKET_NAME = env('BUCKET_NAME')
 
 DISCORD_URL = env('DISCORD_URL', default=None)
 DISCORD_SIGNUP_URL = env('DISCORD_SIGNUP_URL', default=None)
+DISCORD_SUPPORT_URL = env('DISCORD_SUPPORT_URL', default=None)
 
 os.environ["DISCORD_SIGNUP_URL"] = DISCORD_SIGNUP_URL if DISCORD_SIGNUP_URL else "None"
 
@@ -52,8 +53,8 @@ ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/maia/static/assets')
 
 HOSTNAME = env('SERVER', default='localhost')
 # load production server from .env
-ALLOWED_HOSTS        = ['localhost', 'localhost:85', '127.0.0.1',               env('SERVER', default='127.0.0.1'), 'dev.'+ env('SERVER', default='127.0.0.1') ]
-CSRF_TRUSTED_ORIGINS = ['http://localhost:85', 'http://127.0.0.1', 'https://' + env('SERVER', default='127.0.0.1'), 'dev.'+ env('SERVER', default='127.0.0.1')]
+ALLOWED_HOSTS        = ['localhost', 'localhost:85', '127.0.0.1',               env('SERVER', default='http://127.0.0.1'), 'http://dev.'+ env('SERVER', default='127.0.0.1') ]
+CSRF_TRUSTED_ORIGINS = ['http://localhost:85', 'http://127.0.0.1', 'https://' + env('SERVER', default='http://127.0.0.1'), 'http://dev.'+ env('SERVER', default='127.0.0.1')]
 
 # Application definition
 
@@ -88,6 +89,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'mozilla_django_oidc.middleware.SessionRefresh',
 ]
@@ -260,6 +262,8 @@ PRIVATE_CLUSTERS = {}
 API_URL = []
 GPU_LIST = ["NO"]
 
+GPU_SPECS = []
+
 
 for root, dirs, files in os.walk(MOUNT_DIR):
     for file in files:
@@ -286,7 +290,7 @@ for root, dirs, files in os.walk(MOUNT_DIR):
         if file.endswith(".yaml"):
             with open(os.path.join(root, file)) as v_file:
                 v_file = yaml.safe_load(v_file)
-                if "gpu_list" in v_file:
-                    for gpu in v_file["gpu_list"]:
-                        if gpu not in GPU_LIST:
-                            GPU_LIST.append(gpu)
+                if "gpu_specs" in v_file:
+                    for gpu in v_file["gpu_specs"]:
+                        if gpu not in GPU_SPECS:
+                            GPU_SPECS.append(gpu)

@@ -2,13 +2,15 @@ from django import forms
 
 from .models import GPUBooking
 from django.conf import settings
-from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects, verify_gpu_booking_policy
+from apps.models import MAIAProject
+from MAIA.keycloak_utils import get_groups_in_keycloak
+from MAIA.dashboard_utils import get_pending_projects, verify_gpu_booking_policy
 
 class GPUBookingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(GPUBookingForm, self).__init__(*args, **kwargs)
         maia_groups = get_groups_in_keycloak(settings= settings)
-        pending_projects = get_pending_projects(settings=settings)
+        pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
 
         for pending_project in pending_projects:
             maia_groups[pending_project] = pending_project + " (Pending)"
@@ -31,7 +33,7 @@ class GPUBookingForm(forms.ModelForm):
             ))
         
         self.fields['gpu'] = forms.ChoiceField(
-            choices=[(gpu,gpu) for gpu in settings.GPU_LIST],
+            choices=[(gpu['name'],gpu['name']) for gpu in settings.GPU_SPECS],
             widget=forms.Select(attrs={
                 'class': "form-select text-center fw-bold",
                 'style': 'max-width: auto;',
@@ -54,8 +56,8 @@ class GPUBookingForm(forms.ModelForm):
             else:
                 existing_bookings = GPUBooking.objects.filter(user_email=user_email)
                 booking_data = {
-                    "starting_time": start_date,
-                    "ending_time": end_date
+                    "starting_time": start_date.strftime('%Y-%m-%d  %H:%M:%S'),
+                    "ending_time": end_date.strftime('%Y-%m-%d  %H:%M:%S')
                 }
                 is_bookable = verify_gpu_booking_policy(existing_bookings, booking_data)
                 # Check existing bookings for the same user

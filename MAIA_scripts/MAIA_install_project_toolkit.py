@@ -7,7 +7,7 @@ import click
 import hydra
 import yaml
 from omegaconf import OmegaConf
-from MAIA.maia_fn import deploy_oauth2_proxy, deploy_mysql, deploy_mlflow
+from MAIA.maia_fn import deploy_oauth2_proxy, deploy_mysql, deploy_mlflow, deploy_orthanc
 from MAIA.maia_admin import create_maia_namespace_values, install_maia_project, get_maia_toolkit_apps, generate_minio_configs, generate_mlflow_configs, generate_mysql_configs
 from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
 import datetime
@@ -134,7 +134,7 @@ def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, c
 
     deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal)
 
-def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder,minimal=False, redeploy_enabled = False):
+def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder,minimal=False, redeploy_enabled = True):
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
 
@@ -181,6 +181,7 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
     helm_commands.append(deploy_mysql(cluster_config_dict, project_form_dict, config_folder, mysql_configs=mysql_configs))
     helm_commands.append(deploy_mlflow(cluster_config_dict, project_form_dict, config_folder,mysql_config=mysql_configs, minio_config=minio_configs))
 
+    helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
 
 
     for helm_command in helm_commands:
@@ -213,6 +214,7 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
             {"mysql_values": "mysql_values"},
             {"mlflow_values": "mlflow_values"},
             {"jupyterhub_chart_info": "jupyterhub_chart_info"},
+            {"orthanc_values": "orthanc_values"}
          ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "group_ID": f"MAIA:{group_id}",

@@ -63,8 +63,17 @@
                                 <td>
                                     <div class="d-flex flex-column justify-content-center">
                                         {% if maia_groups_dict|get_item:namespace|get_item:"pending" == True %}
+                                        <h6 class="mb-0 text-sm ">
+                                        <p>
                                         <a href="/maia/user-management/register-group/{{ namespace }}" class="fa fa-users"></a>
+                                        </p>
+                                        </h6>
                                         {% endif %}
+                                        <h6 class="mb-0 text-sm ">
+                                        <p>
+                                        <a href="/maia/user-management/delete-group/{{ namespace }}" class="fa fa-trash"></a>
+                                        </p>
+                                        </h6>
                                     </div>
                                 </td>
                                 <td>
@@ -198,6 +207,17 @@
                                             {% else %}
                                             <p class="text-sm mb-0">
                                                 <a class="fa fa-users" aria-hidden="true" href="/maia/user-management/register-user-in-group/{{ user.email }}"></a>
+                                            </p>
+                                            {% endif %}
+                                        </h6>
+                                        <h6 class="mb-0 text-sm ">
+                                            {% if user.remove_from_group == 0 %}
+                                            <p class="text-sm mb-0">
+                                                <i class="fa fa-check text-success" aria-hidden="true"></i>
+                                            </p>
+                                            {% else %}
+                                            <p class="text-sm mb-0">
+                                                <a class="fa fa-trash" aria-hidden="true" href="/maia/user-management/remove-user-from-group/{{ user.email }}"></a>
                                             </p>
                                             {% endif %}
                                         </h6>

@@ -32,38 +32,18 @@ spec:
             {{- end}}
         env:
           - name: INGRESS_PATH
-            value: /{{ .Release.Name }}
+            value: /{{ .Values.orthanc_path }}
           - name: MONAI_LABEL_INGRESS_PATH
-            value: /{{ .Release.Name }}-monai-label
+            value: /{{ .Values.monai_label_path }}
           - name: ORTHANC_DICOMWEB_ADDRESS
             value: "http://localhost:8042/dicom-web"
-          {{- if .Values.bundle_model_name }}
-          - name: BUNDLE_MODEL_NAME
-            value: {{.Values.bundle_model_name}}
-          {{- end}}
-          - name: MLFLOW_MODEL_PATH
-            value: {{.Values.mlflow_model_path }}
-          #{{- if .Values.mlflow_tracking_uri }}
-          #- name: MLFLOW_TRACKING_URI
-          #  value: {{.Values.mlflow_tracking_uri}}
-          #{{- end}}
-          #{{- if .Values.mlflow_model }}
-          #- name: MLFLOW_MODEL
-          #  value: {{.Values.mlflow_model}}
-          #  {{- end}}
-          #  {{- if .Values.mlflow_tracking_token }}
-          #- name: MLFLOW_TRACKING_TOKEN
-          #  value: {{.Values.mlflow_tracking_token}}
-          #  {{- end}}
-          - name: MONAI_BUNDLE_PATH
-            value: "/workspace/MONAILabel/monaibundle/model"
         volumeMounts:
         - mountPath: /dev/shm
           name: cache-volume
         - mountPath: /var/lib/orthanc/db
           name: orthanc
-        - mountPath: /workspace/mlflow
-          name: mlflow-model
+        #- mountPath: /workspace/mlflow
+        #  name: mlflow-model
       volumes:
         - emptyDir:
             medium: Memory
@@ -71,9 +51,9 @@ spec:
         - name: orthanc
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-pvc
-        - name: mlflow-model
-          persistentVolumeClaim:
-            claimName: {{ .Values.mlflow_pvc_name }}
+        #- name: mlflow-model
+        #  persistentVolumeClaim:
+        #    claimName: {{ .Values.mlflow_pvc_name }}
       imagePullSecrets:
       - name: {{ .Values.imagePullSecret }}
       {{- if .Values.nodeSelector }}

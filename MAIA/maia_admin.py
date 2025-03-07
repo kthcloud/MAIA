@@ -9,10 +9,7 @@ import os
 import yaml
 from secrets import token_urlsafe
 import base64
-import random
-import string
-import nltk
-from nltk.corpus import words
+from MAIA.maia_fn import generate_human_memorable_password
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
@@ -267,10 +264,8 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     """
     
     maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
-    ssh_ports = get_ssh_ports(len(namespace_config["users"]),cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
-    print(ssh_ports)
+    ssh_ports = get_ssh_ports(len(namespace_config["users"])+1,cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
     ssh_port_list = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
-    
     
     ssh_port_dict = {list(entry.keys())[0]: list(entry.values())[0] for entry in ssh_port_list}
     
@@ -289,7 +284,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
                     "sshPort": ssh_ports.pop(0)
                 })
     else:
-        for ssh_port, user in zip(ssh_ports, namespace_config["users"]):
+        for ssh_port, user in zip(ssh_ports[:-1], namespace_config["users"]):
             if "jupyter-"+convert_username_to_jupyterhub_username(user) in ssh_port_dict:
                 users.append({
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
@@ -300,7 +295,20 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
                     "jupyterhub_username": convert_username_to_jupyterhub_username(user),
                     "sshPort": ssh_port
                 })
-    print(users)
+    
+    namespace = namespace_config["group_ID"].lower().replace("_", "-")
+    
+    if cluster_config["ssh_port_type"] == "LoadBalancer":
+        if f"{namespace}-orthanc-svc-orthanc" in ssh_port_dict:
+            orthanc_ssh_port = ssh_port_dict["-svc-orthanc"]
+        else:
+            orthanc_ssh_port = ssh_ports.pop(0)
+    else:
+        if f"{namespace}-orthanc-svc-orthanc" in ssh_port_dict:
+            orthanc_ssh_port = ssh_port_dict["-svc-orthanc"]
+        else:
+            orthanc_ssh_port = ssh_ports.pop(0)
+    
     maia_namespace_values = {
         "pvc": {
             "pvc_type": cluster_config["shared_storage_class"],
@@ -308,11 +316,14 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "size": "10Gi"
         },
         "chart_name": "maia-namespace", 
-        "chart_version": "0.1.7", 
+        "chart_version": "0.1.8", 
         "repo_url": "https://kthcloud.github.io/MAIA/", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
         "users": users,
+        "orthanc": {
+            "port": orthanc_ssh_port
+        },
         "metallbSharedIp": cluster_config.get("metallb_shared_ip", False),
         "metallbIpPool": cluster_config.get("metallb_ip_pool", False),
         "loadBalancerIp": cluster_config.get("maia_metallb_ip", False),
@@ -972,7 +983,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         "namespace": "maia-dashboard",
         "repo_url": "https://kthcloud.github.io/MAIA/",
         "chart_name": "maia-dashboard",
-        "chart_version": "0.1.5",
+        "chart_version": "0.1.6",
     }
     
 
@@ -1072,6 +1083,8 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         maia_dashboard_values["dashboard"]["discord_url"] = maia_config_dict["discord_url"]
     if "discord_signup_url" in maia_config_dict:
         maia_dashboard_values["dashboard"]["discord_signup_url"] = maia_config_dict["discord_signup_url"]
+    if "discord_support_url" in maia_config_dict:
+        maia_dashboard_values["dashboard"]["discord_support_url"] = maia_config_dict["discord_support_url"]
     
     debug = False
     
@@ -1085,14 +1098,11 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         ]
         maia_dashboard_values["dashboard"]["local_config_path"] = "/etc/MAIA-Dashboard/config"
     else:
-        def generate_human_memorable_password(length=12):
-            nltk.download('words')
-            word_list = words.words()
-            password = '-'.join(random.choice(word_list) for _ in range(length // 6))
-            password += ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length - len(password)))
-            return password
 
-        db_password = generate_human_memorable_password()
+        if 'mysql_dashboard_password' in maia_config_dict:
+            db_password = maia_config_dict['mysql_dashboard_password']
+        else:
+            db_password = generate_human_memorable_password()
         maia_dashboard_values["dashboard"]["local_config_path"] = "/mnt/dashboard-config"
         maia_dashboard_values["env"] = [
             { "name": "DEBUG", "value": "False" },
@@ -1120,7 +1130,15 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             { "name": "email_password", "value": maia_config_dict["email_server_credentials"]["email_password"] },
             { "name": "email_smtp_server", "value": maia_config_dict["email_server_credentials"]["email_smtp_server"] }
         ])
-        
+
+    if "minio" in maia_config_dict:
+        maia_dashboard_values["dashboard"]["minio"] = {
+            "url": maia_config_dict["minio"]["url"],
+            "access_key": maia_config_dict["minio"]["access_key"],
+            "secret_key": maia_config_dict["minio"]["secret_key"],
+            "secure": maia_config_dict["minio"]["secure"],
+            "bucket_name": maia_config_dict["minio"]["bucket_name"]
+        }
     Path(config_folder).joinpath(project_id, "maia_dashboard_values").mkdir(parents=True, exist_ok=True)
     with open(Path(config_folder).joinpath(project_id, "maia_dashboard_values", "maia_dashboard_values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(maia_dashboard_values))

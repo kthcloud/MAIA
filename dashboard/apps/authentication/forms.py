@@ -6,9 +6,24 @@ Copyright (c) 2019 - present AppSeed.us
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from apps.models import MAIAUser, MAIAProject
+from .models import MAIAInfo
 from django.conf import settings
-from MAIA.dashboard_utils import get_groups_in_keycloak, get_pending_projects
+from MAIA.dashboard_utils import get_pending_projects
+from MAIA.keycloak_utils import get_groups_in_keycloak
 
+
+class MAIAInfoForm(forms.Form):
+    email = forms.EmailField(
+            widget=forms.EmailInput(
+                attrs={
+                    "placeholder": "Your Email",
+                    "class": "form-control"
+                }
+            ))
+    
+    class Meta:
+        model = MAIAInfo
+        fields = ('email')
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -40,7 +55,7 @@ class SignUpForm(UserCreationForm):
 
         
         maia_groups = get_groups_in_keycloak(settings= settings)
-        pending_projects = get_pending_projects(settings=settings)
+        pending_projects = get_pending_projects(settings=settings, maia_project_model=MAIAProject)
 
         for pending_project in pending_projects:
             maia_groups[pending_project] = pending_project + " (Pending)"
@@ -96,7 +111,7 @@ class RegisterProjectForm(forms.ModelForm):
         ))
     
     gpu = forms.ChoiceField(
-        choices=[(gpu,gpu) for gpu in settings.GPU_LIST],
+        choices=[(gpu['name'],gpu['name']) for gpu in settings.GPU_SPECS],
         widget=forms.Select(attrs={
             'class': "form-select text-center fw-bold",
             'style': 'max-width: auto;',
