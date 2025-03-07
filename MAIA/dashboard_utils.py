@@ -2270,10 +2270,6 @@ def send_maia_message_email(receiver_emails, subject, message_body):
         message["Date"] = email.utils.formatdate(localtime=True)
         message["Message-ID"] = email.utils.make_msgid(domain=sender_email.split("@")[1])
 
-        # Add DKIM-Signature header if available
-        if "DKIM_PRIVATE_KEY" in os.environ:
-            # Implementation would go here - requires additional setup
-            pass
 
         html = f"""\
         <html>
