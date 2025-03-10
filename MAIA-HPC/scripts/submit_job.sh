@@ -15,7 +15,7 @@ source read_config.sh $SERVER_NAME
 
 
 # Strip out the suffix if SERVER_NAME ends with -NUMBER, where NUMBER can be anything
-SERVER_NAME=$(echo $SERVER_NAME | sed 's/-[^-]*$//')
+SERVER_NAME=$(echo $SERVER_NAME | sed 's/-.*$//')
 echo "Server Name: $SERVER_NAME"
 echo "Experiment Name: $EXPERIMENT_NAME"
 echo "Remote Path: $REMOTE_PATH"
