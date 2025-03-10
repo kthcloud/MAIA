@@ -10,8 +10,8 @@ export SSH_SERVER=$1
 
 source read_config.sh $SSH_SERVER
 
-# Strip out the number if SERVER_NAME ends with -NUMBER
-SSH_SERVER=$(echo $SSH_SERVER | sed 's/-[0-9]*$//')
+# Strip out the suffix if SERVER_NAME ends with -NUMBER, where NUMBER can be anything
+SSH_SERVER=$(echo $SSH_SERVER | sed 's/-[^-]*$//')
 echo "Server Name: $SSH_SERVER"
 echo "Experiment Name: $EXPERIMENT_NAME"
 

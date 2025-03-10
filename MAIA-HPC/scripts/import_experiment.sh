@@ -6,4 +6,5 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-cp ${1} $HOME/.maia-hpc/experiments/${1}
+filename=$(basename "$1")
+cp "$1" "$HOME/.maia-hpc/experiments/$filename"
