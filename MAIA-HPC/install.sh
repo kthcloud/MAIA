@@ -4,7 +4,7 @@
 chmod +x scripts/*
 # Install the scripts in the /usr/local/bin directory
 
-cp scripts/* /usr/local/bin/
+sudo cp scripts/* /usr/local/bin/
 
 # Create MAIA-HPC directory
 mkdir -p ~/.maia-hpc
