@@ -32,6 +32,9 @@ RUN chmod a+x /etc/change_desktop_wallpaper.sh
 COPY 70-maia /etc/update-motd.d/70-maia
 RUN chmod +x /etc/update-motd.d/70-maia && chmod 777 /etc/update-motd.d/70-maia
 
+COPY 90-qotd /etc/update-motd.d/90-qotd
+RUN chmod +x /etc/update-motd.d/90-qotd && chmod 777 /etc/update-motd.d/90-qotd
+
 
 COPY Tools/Slicer/Slicer.desktop /etc/Slicer.desktop
 COPY Tools/Slicer/300px-3DSlicerLogo-app-icon512.svg.png /etc/300px-3DSlicerLogo-app-icon512.svg.png
