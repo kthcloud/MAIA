@@ -6,4 +6,4 @@ maia-workspace-notebook-ssh: 1.0
 maia-workspace-notebook-ssh-addons: 1.0
 monai-toolkit: 1.0
 maia-xnat: 1.0
-monai-label-ohif-maia: 1.0
+maia-orthanc: 1.0
