@@ -1,7 +1,6 @@
 #!/bin/bash
 
 /opt/conda/bin/conda init bash
-/opt/conda/bin/conda init zsh
 
 exec "$@" &
 /usr/bin/supervisord &
@@ -19,4 +18,5 @@ fi
   cp /etc/.tmux.conf "$HOME/"
 #fi
 
+/opt/conda/bin/conda init zsh
 sleep infinity

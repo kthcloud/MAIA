@@ -1,7 +1,6 @@
 #!/bin/bash
 
 /opt/conda/bin/conda init bash
-/opt/conda/bin/conda init zsh
 
 python3 /opt/generate_user_environment.py --authorized-keys "$ssh_publickey"
 
@@ -22,5 +21,6 @@ fi
   cp /etc/.tmux.conf "$HOME/"
 #fi
 
+/opt/conda/bin/conda init zsh
 sleep infinity
 
