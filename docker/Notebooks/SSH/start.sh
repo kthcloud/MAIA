@@ -8,25 +8,19 @@ python3 /opt/generate_user_environment.py --authorized-keys "$ssh_publickey"
 exec "$@" &
 /usr/bin/supervisord &
 
-sleep 30
-
-until [ -d "$HOME/Desktop" ]; do
-  sleep 1
-done
-
 
 if [ "$INSTALL_ZSH" = "1" ]; then
     /etc/install_zsh.sh
 fi
 
 
-if [ ! -f "$HOME/.zshrc" ]; then
+#if [ ! -f "$HOME/.zshrc" ]; then
   cp /etc/.zshrc "$HOME/"
-fi
+#fi
 
-if [ ! -f "$HOME/.tmux.conf" ]; then
+#if [ ! -f "$HOME/.tmux.conf" ]; then
   cp /etc/.tmux.conf "$HOME/"
-fi
+#fi
 
 sleep infinity
 
