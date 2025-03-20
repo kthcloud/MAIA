@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  maia-project:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-03-20T11:07:49.283621484+01:00"
+    description: A Helm chart for Deploying a MAIA Workspace
+    digest: d3cf20ebf33ce4c7a607973df5f003f765bf3c4ea13d81055b8120b89c30ad5c
+    name: maia-project
+    type: application
+    urls:
+    - helm_charts/maia-project-1.1.2.tgz
+    version: 1.1.2
+  maia-workspace:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-03-20T11:07:49.283989058+01:00"
+    description: A Helm chart for Deploying a MAIA Workspace
+    digest: c4cb352e116203eb938a55220eab0159ea0114f8ac9ad99739715e91d12f52a2
+    name: maia-workspace
+    type: application
+    urls:
+    - helm_charts/maia-workspace-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-03-20T11:07:49.283035838+01:00"
