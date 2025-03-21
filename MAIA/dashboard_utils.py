@@ -63,18 +63,19 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
 
     overlapping_allocations = []
     for existing_booking in global_existing_bookings:
-        if existing_booking.gpu == gpu_name:
-            if isinstance(existing_booking.start_date, str):
-                existing_booking_start = datetime.strptime(existing_booking.start_date, "%Y-%m-%d %H:%M:%S")
+        if existing_booking['gpu'] == gpu_name:
+            if isinstance(existing_booking['start_date'], str):
+                existing_booking_start = datetime.strptime(existing_booking['start_date'], "%Y-%m-%d %H:%M:%S")
             else:
-                existing_booking_start = existing_booking.start_date
+                existing_booking_start = existing_booking['start_date']
             
-            if isinstance(existing_booking.end_date, str):
-                existing_booking_end = datetime.strptime(existing_booking.end_date, "%Y-%m-%d %H:%M:%S")
+            if isinstance(existing_booking['end_date'], str):
+                existing_booking_end = datetime.strptime(existing_booking['end_date'], "%Y-%m-%d %H:%M:%S")
             else:
-                existing_booking_end = existing_booking.end_date
-            new_booking_start = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S")
-            new_booking_end = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S")
+                existing_booking_end = existing_booking['end_date']
+
+            new_booking_start = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=existing_booking_start.tzinfo)
+            new_booking_end = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=existing_booking_end.tzinfo)
 
             if new_booking_start >= existing_booking_end or new_booking_end <= existing_booking_start:
                 continue
@@ -93,8 +94,8 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
         overlapping_time_points.append(overlapping_allocation[0])
         overlapping_time_points.append(overlapping_allocation[1])
 
-    overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S"))
-    overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S"))
+    overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo))
+    overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo))
     overlapping_time_points = sorted(set(overlapping_time_points))
 
     for overlapping_time_point in overlapping_time_points[:-1]:
@@ -108,14 +109,15 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
         available_gpus = gpu_replicas * gpu_count
         gpu_availability_per_slot.append(available_gpus)
         for existing_booking in global_existing_bookings:
-            if isinstance(existing_booking.start_date, str):
-                existing_booking_start = datetime.strptime(existing_booking.start_date, "%Y-%m-%d %H:%M:%S")
+            if isinstance(existing_booking['start_date'], str):
+                existing_booking_start = datetime.strptime(existing_booking['start_date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo)
             else:
-                existing_booking_start = existing_booking.start_date
-            if isinstance(existing_booking.end_date, str):
-                existing_booking_end = datetime.strptime(existing_booking.end_date, "%Y-%m-%d %H:%M:%S")
+                existing_booking_start = existing_booking['start_date']
+                
+            if isinstance(existing_booking['end_date'], str):
+                existing_booking_end = datetime.strptime(existing_booking['end_date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo)
             else:
-                existing_booking_end = existing_booking.end_date
+                existing_booking_end = existing_booking['end_date']
 
             if existing_booking_start < overlapping_window_end and existing_booking_end > overlapping_window_start:
                 available_gpus -= 1
