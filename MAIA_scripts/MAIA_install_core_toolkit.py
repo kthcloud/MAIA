@@ -12,7 +12,7 @@ import os
 import asyncio
 from pyhelm3 import Client
 from MAIA.maia_admin import create_loginapp_values, create_minio_operator_values
-from MAIA.maia_core import create_prometheus_values, create_tempo_values, create_loki_values, create_core_toolkit_values, create_traefik_values, create_metallb_values, create_cert_manager_values, create_rancher_values, create_gpu_operator_values, create_ingress_nginx_values, create_nfs_server_provisioner_values
+from MAIA.maia_core import create_prometheus_values, create_tempo_values, create_loki_values, create_core_toolkit_values, create_traefik_values, create_metallb_values, create_cert_manager_values, create_gpu_booking_values, create_gpu_operator_values, create_ingress_nginx_values, create_nfs_server_provisioner_values
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent

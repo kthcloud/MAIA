@@ -14,9 +14,8 @@ from pathlib import Path
 import yaml
 from kubernetes import config
 from minio import Minio
-
-
-
+import base64
+from kubernetes import client, config
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
@@ -39,7 +38,7 @@ def label_pod_for_deletion(namespace, pod_name):
         If there is an error labeling the pod for deletion.
     """
     
-    from kubernetes import client, config
+
     
     # Load Kubernetes configuration
     #config.load_incluster_config()  # Use in-cluster config
@@ -607,6 +606,35 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
 
     return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters
 
+
+def create_namespace_from_context(namespace_id):
+    """
+    Create a Kubernetes namespace using the provided namespace ID.
+
+    Parameters
+    ----------
+    namespace_id : str
+        The ID of the namespace to be created.
+
+    Returns
+    -------
+    None
+        This function does not return any value. It prints the API response or an exception message.
+
+    Raises
+    ------
+    ApiException
+        If there is an error when calling the Kubernetes CoreV1Api to create the namespace.
+    """
+    with kubernetes.client.ApiClient() as api_client:
+        api_instance = kubernetes.client.CoreV1Api(api_client)
+        body = kubernetes.client.V1Namespace(metadata=kubernetes.client.V1ObjectMeta(name=namespace_id))
+        try:
+            api_response = api_instance.create_namespace(body)
+            print(api_response)
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->create_namespace: %s\n" % e)
+
 def create_namespace(request, settings, namespace_id, cluster_id):
     """
     Creates a Kubernetes namespace using the provided request, settings, namespace ID, and cluster ID.
@@ -637,12 +665,151 @@ def create_namespace(request, settings, namespace_id, cluster_id):
     with open(Path("/tmp").joinpath("kubeconfig-ns"), "w") as f:
         yaml.dump(kubeconfig_dict, f)
         os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-ns"))
+        
+        create_namespace_from_context(namespace_id)
 
-        with kubernetes.client.ApiClient() as api_client:
-            api_instance = kubernetes.client.CoreV1Api(api_client)
-            body = kubernetes.client.V1Namespace(metadata=kubernetes.client.V1ObjectMeta(name=namespace_id))
-            try:
-                api_response = api_instance.create_namespace(body)
-                print(api_response)
-            except ApiException as e:
-                print("Exception when calling CoreV1Api->create_namespace: %s\n" % e)
+
+def create_cifs_secret_from_context(namespace, user_id, username, password, public_key):
+    """
+    Create a CIFS secret in the specified Kubernetes namespace.
+    
+    Parameters
+    ----------
+    namespace : str
+        The Kubernetes namespace where the secret will be created.
+    user_id : str
+        The user ID to be used in the secret name.
+    username : str
+        The CIFS username to be encrypted and stored in the secret.
+    password : str
+        The CIFS password to be encrypted and stored in the secret.
+    public_key : str
+        The public key used to encrypt the username and password.
+    
+    Returns
+    -------
+    None
+    
+    Raises
+    ------
+    ApiException
+        If there is an error when calling the Kubernetes API to create the secret.
+    """
+    from MAIA.dashboard_utils import encrypt_string
+    
+    with kubernetes.client.ApiClient() as api_client:
+        api_instance = kubernetes.client.CoreV1Api(api_client)
+        secret = kubernetes.client.V1Secret()
+        secret.metadata = kubernetes.client.V1ObjectMeta(name=f"{user_id}-cifs", namespace=namespace)
+        
+        encrypted_username = encrypt_string(public_key, username)
+        encrypted_password = encrypt_string(public_key, password)
+        
+        secret.type = "fstab/cifs"
+        secret.data = {
+            "username": base64.b64encode(encrypted_username.encode()).decode(),
+            "password": base64.b64encode(encrypted_password.encode()).decode()
+        }
+
+        try:
+            api_response = api_instance.create_namespaced_secret(namespace, secret)
+            print(api_response)
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
+
+
+def create_cifs_secret(request, cluster_id, settings, namespace, user_id, username, password, public_key):
+    """
+    Create a CIFS secret in the specified Kubernetes namespace.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        The HTTP request object containing session and user information.
+    cluster_id : str
+        The ID of the Kubernetes cluster.
+    settings : dict
+        The settings dictionary containing configuration details.
+    namespace : str
+        The Kubernetes namespace where the secret will be created.
+    user_id : str
+        The user ID for the CIFS secret.
+    username : str
+        The username for the CIFS secret.
+    password : str
+        The password for the CIFS secret.
+    public_key : str
+        The public key for the CIFS secret.
+
+    Returns
+    -------
+    None
+    """
+    id_token = request.session.get('oidc_id_token')
+    kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
+    config.load_kube_config_from_dict(kubeconfig_dict)
+    with open(Path("/tmp").joinpath("kubeconfig-ns"), "w") as f:
+        yaml.dump(kubeconfig_dict, f)
+        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-ns"))
+
+        create_cifs_secret_from_context(namespace, user_id, username, password, public_key)
+        
+
+def create_helm_repo_secret_from_context(repo_name, helm_repo_config, argocd_namespace="argocd"):
+    """
+    Create a Helm repository secret in the specified Argo CD namespace using the provided Helm repository configuration.
+    
+    Parameters
+    ----------
+    repo_name : str
+        The name of the Helm repository.
+    helm_repo_config : dict
+        A dictionary containing the Helm repository configuration with the following keys:
+        - "username" (str): The username for the Helm repository.
+        - "password" (str): The password for the Helm repository.
+        - "project" (str): The project associated with the Helm repository.
+        - "url" (str): The URL of the Helm repository.
+        - "type" (str): The type of the Helm repository.
+        - "name" (str): The name of the Helm repository.
+        - "enableOCI" (str): A flag indicating whether OCI is enabled for the Helm repository.
+    argocd_namespace : str, optional
+        The namespace in which to create the secret (default is "argocd").
+    
+    Returns
+    -------
+    None
+    
+    Raises
+    ------
+    ApiException
+        If there is an error when calling the Kubernetes API to create the secret.
+    """
+    
+    config.load_kube_config()
+    username = helm_repo_config["username"]
+    password = helm_repo_config["password"]
+    project = helm_repo_config["project"]
+    url = helm_repo_config["url"]
+    type = helm_repo_config["type"]
+    name = helm_repo_config["name"]
+    enableOCI = helm_repo_config["enableOCI"]
+    
+    with kubernetes.client.ApiClient() as api_client:
+        api_instance = kubernetes.client.CoreV1Api(api_client)
+        secret = kubernetes.client.V1Secret()
+        secret.metadata = kubernetes.client.V1ObjectMeta(name=f"repo-{repo_name}", namespace=argocd_namespace)
+        secret.data = {
+            "username": base64.b64encode(username.encode()).decode(),
+            "password": base64.b64encode(password.encode()).decode(),
+            "project": base64.b64encode(project.encode()).decode(),
+            "url": base64.b64encode(url.encode()).decode(),
+            "type": base64.b64encode(type.encode()).decode(),
+            "name": base64.b64encode(name.encode()).decode(),
+            "enableOCI": base64.b64encode(enableOCI.encode()).decode()
+        }
+
+        try:
+            api_response = api_instance.create_namespaced_secret(argocd_namespace, secret)
+            print(api_response)
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)

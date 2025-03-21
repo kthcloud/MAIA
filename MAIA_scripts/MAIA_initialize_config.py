@@ -11,12 +11,11 @@ from pathlib import Path
 from textwrap import dedent
 
 import MAIA
-from MAIA.maia_fn import generate_human_memorable_password
+from MAIA.maia_fn import generate_human_memorable_password, generate_random_password
 import random
 import string
 import importlib.resources as pkg_resources
 version = MAIA.__version__
-
 
 TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
 
@@ -58,9 +57,7 @@ def get_arg_parser():
     return pars
 
 
-def generate_random_password(length=12):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for i in range(length))
+
 
 
 @click.command()
@@ -142,6 +139,14 @@ def create_configuration(cluster_config, config_folder):
             maia_config["dashboard_image"] = f"registry.{cluster_config_dict['domain']}/maia/maia-dashboard"
             maia_config["maia_workspace_image"] = f"registry.{cluster_config_dict['domain']}/maia/maia-workspace-notebook-ssh-addons"
             maia_config["maia_monai_toolkit_image"] = f"registry.{cluster_config_dict['domain']}/maia/monai-toolkit:1.0"
+            maia_config["maia_orthanc_image"] = f"registry.{cluster_config_dict['domain']}/maia/orthanc"
+            maia_config["minio"] = {
+                "url": "minio:80",
+                "access_key": "maia-admin",
+                "secret_key": generate_random_password(12),
+                "bucket_name": "maia-envs",
+                "secure": False
+            }
 
         with open(os.path.join(config_folder, "maia_config.yaml"), "w") as f:
             yaml.dump(maia_config, f)

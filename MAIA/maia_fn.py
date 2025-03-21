@@ -602,7 +602,7 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
 
 
     orthanc_config["chart_name"] = "maia-orthanc"
-    orthanc_config["chart_version"] = "0.0.1"
+    orthanc_config["chart_version"] = "0.0.3"
     orthanc_config["repo_url"] = "https://kthcloud.github.io/MAIA/"
 
     Path(config_folder).joinpath(user_config["group_ID"], "orthanc_values").mkdir(parents=True, exist_ok=True)

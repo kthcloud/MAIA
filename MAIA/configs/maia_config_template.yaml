@@ -13,7 +13,7 @@ docker_build_project_chart: "charts/maia-docker-build-project"
 
 maia_project_chart: "maia-project"
 maia_project_repo: "https://kthcloud.github.io/MAIA/"
-maia_project_version: "1.1.0"
+maia_project_version: "1.1.2"
 
 dashboard_image: "registry.<your_domain>/maia/maia-dashboard"
 dashboard_version: "1.0"
@@ -21,6 +21,9 @@ dashboard_version: "1.0"
 maia_workspace_version: "1.1"
 maia_workspace_image: "registry.<your_domain>/maia/maia-workspace-notebook-ssh-addons"
 maia_monai_toolkit_image: "registry.<your_domain>/maia/monai-toolkit:1.0"
+
+maia_orthanc_image: "registry.<your_domain>/maia/maia-orthanc"
+maia_orthanc_version: "1.1"
 
 gpu_list: []
 
@@ -31,3 +34,4 @@ email_server_credentials:
 
 discord_url: <your_discord_webhook_url>
 discord_signup_url: <your_discord_signup_url>
+discord_support_url: <your_discord_support_url>

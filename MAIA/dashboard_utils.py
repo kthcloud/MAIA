@@ -19,7 +19,11 @@ from MAIA.keycloak_utils import get_groups_in_keycloak
 from datetime import datetime
 import email
 from bs4 import BeautifulSoup
-
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
 
 def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
     """
@@ -957,3 +961,129 @@ def send_maia_message_email(receiver_emails, subject, message_body):
     except Exception as e:
         print(f"Error sending email: {str(e)}")
         return False
+
+
+def generate_encryption_keys(folder_path):
+    """
+    Generate RSA encryption keys and save them to files.
+
+    Parameters
+    ----------
+    folder_path : str
+        The path to the folder where the keys will be saved.
+
+    Returns
+    -------
+    None
+    """
+
+    # Generate RSA key pair
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+
+    # Extract public key
+    public_key = private_key.public_key()
+
+    # Save private key to a file
+    with open(Path(folder_path).joinpath("private_key.pem"), "wb") as f:
+        f.write(private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ))
+
+    # Save public key to a file
+    with open(Path(folder_path).joinpath("public_key.pem"), "wb") as f:
+        f.write(public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ))
+
+    print("Keys generated successfully!")
+
+
+def encrypt_string(public_key, string):
+    """
+    Encrypts a given string using the provided public key.
+    
+    Parameters
+    ----------
+    public_key : str
+        The file path to the public key in PEM format.
+    string : str
+        The string to be encrypted.
+    
+    Returns
+    -------
+    str
+        The encrypted string in hexadecimal format.
+    
+    Raises
+    ------
+    ValueError
+        If the public key file cannot be read or is invalid.
+    """
+
+
+    # Load public key
+    with open(public_key, "rb") as f:
+        public_key = serialization.load_pem_public_key(f.read())
+
+    def encrypt_message(message, public_key):
+        encrypted = public_key.encrypt(
+            message.encode(),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return encrypted
+
+
+    encrypted_message = encrypt_message(string, public_key)
+    
+    return encrypted_message.hex()
+
+
+def decrypt_string(private_key, string):
+    """
+    Decrypts an encrypted string using a given private key.
+    
+    Parameters
+    ----------
+    private_key : str
+        Path to the private key file in PEM format.
+    string : bytes
+        The encrypted string to be decrypted.
+    
+    Returns
+    -------
+    str
+        The decrypted string.
+   
+    Raises
+    ------
+    ValueError
+        If the decryption process fails.
+    """
+
+    with open(private_key, "rb") as f:
+        private_key = serialization.load_pem_private_key(f.read(), password=None)
+
+    def decrypt_message(encrypted, private_key):
+        decrypted = private_key.decrypt(
+            encrypted,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return decrypted.decode()
+
+    decrypted_message = decrypt_message(string, private_key)
+    
+    return decrypted_message
