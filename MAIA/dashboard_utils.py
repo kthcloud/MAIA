@@ -111,7 +111,28 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
     return overlapping_time_points, gpu_availability_per_slot, gpu_replicas * gpu_count
 
 
-def verify_gpu_booking_policy(existing_bookings, new_booking):
+def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bookings, gpu_specs):
+    """
+    Verify GPU booking policy to ensure the new booking does not exceed the allowed days and GPU availability.
+    
+    Parameters
+    ----------
+    existing_bookings : list
+        A list of existing booking objects with `start_date` and `end_date` attributes.
+    new_booking : dict
+        A dictionary containing the `starting_time` and `ending_time` of the new booking in "%Y-%m-%d %H:%M:%S" format.
+    global_existing_bookings : list
+        A list of all existing bookings globally.
+    gpu_specs : dict
+        A dictionary containing the specifications of the GPUs.
+    
+    Returns
+    -------
+    bool
+        True if the booking policy is verified, False otherwise.
+    str or None
+        An error message if the booking policy is not verified, None otherwise.
+    """
 
     total_days = sum((booking.end_date - booking.start_date).days for booking in existing_bookings)
 
@@ -123,9 +144,16 @@ def verify_gpu_booking_policy(existing_bookings, new_booking):
 
     # Verify that the sum of existing bookings and the new booking does not exceed 60 days
     if total_days + new_booking_days > 60:
-        return False
+        return False, "The total number of days for all bookings cannot exceed 60 days."
 
-    return True
+    overlapping_time_slots, gpu_availability_per_slot, total_replicas = verify_gpu_availability(global_existing_bookings=global_existing_bookings, new_booking=new_booking, gpu_specs=gpu_specs)
+    
+    for idx, gpu_availability in enumerate(gpu_availability_per_slot):
+        if gpu_availability == 0:
+            error_msg = "GPU not available between the selected time slots: {} - {}".format(overlapping_time_slots[idx], overlapping_time_slots[idx+1]))
+            return False, error_msg
+   
+    return True, None
 
 
 def send_maia_info_email(receiver_email, register_project_url, register_user_url, discord_support_link):
