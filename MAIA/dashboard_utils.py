@@ -150,7 +150,7 @@ def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bo
     
     for idx, gpu_availability in enumerate(gpu_availability_per_slot):
         if gpu_availability == 0:
-            error_msg = "GPU not available between the selected time slots: {} - {}".format(overlapping_time_slots[idx], overlapping_time_slots[idx+1]))
+            error_msg = "GPU not available between the selected time slots: {} - {}".format(overlapping_time_slots[idx], overlapping_time_slots[idx+1])
             return False, error_msg
    
     return True, None
