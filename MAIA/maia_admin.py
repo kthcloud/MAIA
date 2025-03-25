@@ -265,7 +265,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     
     maia_metallb_ip = cluster_config.get("maia_metallb_ip", None)
     ssh_ports = get_ssh_ports(len(namespace_config["users"])+1,cluster_config["ssh_port_type"],cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip)
-    ssh_port_list = get_ssh_port_dict(cluster_config["ssh_port_type"],namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
+    ssh_port_list = get_ssh_port_dict(cluster_config["ssh_port_type"], namespace_config["group_ID"].lower().replace("_", "-"), cluster_config["port_range"], maia_metallb_ip=maia_metallb_ip )
     
     ssh_port_dict = {list(entry.keys())[0]: list(entry.values())[0] for entry in ssh_port_list}
     
@@ -1035,6 +1035,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         "host": cluster_config_dict["domain"],
         "keycloak": {
             "client_id": "maia",
+            "api_secret_key": maia_config_dict["dashboard_api_secret"],
             "client_secret": cluster_config_dict["keycloak_maia_client_secret"],
             "url": "https://iam." + cluster_config_dict["domain"]+"/",
             "realm": "maia",

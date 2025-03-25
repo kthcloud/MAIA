@@ -115,12 +115,18 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
                     if svc.spec.type == 'LoadBalancer' and svc.status.load_balancer.ingress[0].ip == maia_metallb_ip:
                         for port in svc.spec.ports:
                             if port.name == 'ssh' and svc.metadata.namespace == namespace or port.name == 'orthanc-dicom' and svc.metadata.namespace == namespace:
-                                used_port.append({svc.metadata.name:int(port.port)})
+                                if svc.metadata.name.endswith('-ssh'):
+                                    used_port.append({svc.metadata.name[:-len('-ssh')]:int(port.port)})
+                                else:
+                                    used_port.append({svc.metadata.name:int(port.port)})
             elif port_type == "NodePort":
                 if svc.spec.type == 'NodePort' and svc.metadata.namespace == namespace:
                     for port in svc.spec.ports:
                         if port.port >= port_range[0] and port.port <= port_range[1]:
-                            used_port.append({svc.metadata.name:int(port.port)})
+                            if svc.metadata.name.endswith('-ssh'):
+                                used_port.append({svc.metadata.name[:-len('-ssh')]:int(port.port)})
+                            else:
+                                used_port.append({svc.metadata.name:int(port.port)})
         return used_port
     except:
         return None

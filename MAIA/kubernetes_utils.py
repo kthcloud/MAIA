@@ -575,9 +575,17 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                 remote_desktop_dict[user] = url
 
                         if 'name' in port and port['name'] == 'ssh':
-                            user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
-                            if user_id == user or is_admin:
-                                ssh_ports[user] = port['port']
+                            ## Backward compatibility
+                            if service["metadata"]["name"].endswith("-ssh"):
+                                user = service["metadata"]["name"][len("jupyter-"):-len("-ssh")].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                                if user_id == user or is_admin:
+                                    ssh_ports[user] = port['port']
+                            else:
+                                user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                                if user_id == user or is_admin:
+                                    ssh_ports[user] = port['port']
+                            
+                           
                         if 'name' in port and port['name'] == 'orthanc-dicom':
                             for orthanc in orthanc_list:
                                 if orthanc["name"] == service["metadata"]["labels"]["app"]+"-orthanc":
