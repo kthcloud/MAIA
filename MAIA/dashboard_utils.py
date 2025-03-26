@@ -94,8 +94,12 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
         overlapping_time_points.append(overlapping_allocation[0])
         overlapping_time_points.append(overlapping_allocation[1])
 
-    overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo))
-    overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo))
+    if len(global_existing_bookings) == 0:
+        overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S"))
+        overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S"))
+    else:
+        overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo))
+        overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo))
     overlapping_time_points = sorted(set(overlapping_time_points))
 
     for overlapping_time_point in overlapping_time_points[:-1]:
