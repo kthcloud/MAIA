@@ -82,6 +82,12 @@ def get_arg_parser():
         required=False,
         help="Optional flag to only deploy JupyterHub in the MAIA namespace.",
     )
+    
+    pars.add_argument(
+        "--no-argocd",
+        action="store_true",
+        help="Do not deploy with ArgoCD."
+    )
 
     pars.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
 
@@ -123,18 +129,19 @@ async def verify_installed_maia_toolkit(project_id, namespace, get_chart_metadat
 @click.option("--cluster-config", type=str)
 @click.option('--minimal', is_flag=True)
 @click.option("--config-folder", type=str)
-def main(project_config_file,maia_config_file, cluster_config, config_folder, minimal=False):
-    deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, minimal)
+@click.option("--no-argocd", is_flag=True)
+def main(project_config_file,maia_config_file, cluster_config, config_folder, minimal=False, no_argocd=False):
+    deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, minimal, no_argocd)
 
-def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, minimal=False):
+def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, minimal=False, no_argocd=False):
     project_form_dict = yaml.safe_load(Path(project_config_file).read_text())
     
     cluster_config_dict = yaml.safe_load(Path(cluster_config).read_text())
     maia_config_dict = yaml.safe_load(Path(maia_config_file).read_text())
 
-    deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal)
+    deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal, no_argocd)
 
-def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder,minimal=False, redeploy_enabled = True):
+def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder,minimal=False, no_argocd=False, redeploy_enabled = True):
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
 
@@ -240,7 +247,8 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
     project_id = namespace
     
     
-
+    if no_argocd:
+        return
     revision = asyncio.run(verify_installed_maia_toolkit(project_id, maia_config_dict["argocd_namespace"]))
 
     if revision == -1 or redeploy_enabled:
@@ -256,5 +264,9 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
         token = maia_config_dict["argocd_token"]
         print("MAIA Workspace already installed")
         asyncio.run(get_maia_toolkit_apps(group_id, token, argocd_host))
+
+# The `if __name__ == "__main__":` block in Python is used to check whether the current script is
+# being run directly by the Python interpreter or if it is being imported as a module into another
+# script.
 if __name__ == "__main__":
     main()

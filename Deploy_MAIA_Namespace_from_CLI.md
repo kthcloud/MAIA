@@ -94,6 +94,8 @@ export KUBECONFIG=~/path/to/your/kubeconfig/where/argocd/is/installed
 MAIA_install_project_toolkit --project-config-file maia-namespace.yaml --cluster-config maia-cluster.yaml  --config-folder /PATH/TO/config_folder --maia-config-file maia-config.yaml
 ```
 
+If the target cluster is not available from ArgoCD, the command will fail. You can still deploy the MAIA Namespace by using the `--no-argocd` flag. The command will then print to stdout the Helm commands to run to deploy the different components of the MAIA Namespace. You can then run these commands in the target cluster to deploy the MAIA Namespace.
+
 
 
 
