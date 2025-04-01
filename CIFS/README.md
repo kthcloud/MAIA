@@ -16,6 +16,8 @@ curl -L -O https://raw.githubusercontent.com/kthcloud/maia/master/CIFS/decrypt_s
 chmod 755 cifs
 ```
 
+Remember to save the private key in the same location, with the name `private_key.pem`. The private key is used to decrypt the credentials for the CIFS share. 
+
 To check if the installation was successful, run the following command:
 
 ```bash
