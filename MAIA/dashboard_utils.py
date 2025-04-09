@@ -335,7 +335,7 @@ def send_approved_registration_email(receiver_email, login_url, temp_password):
         server.sendmail(sender_email, receiver_email, message.as_string())
 
 
-def send_discord_message(username, namespace, url):
+def send_discord_message(username, namespace, url, project_registration=False):
     """
     Sends a message to a Discord webhook to request a MAIA account.
 
@@ -347,6 +347,8 @@ def send_discord_message(username, namespace, url):
         The project namespace for which the account is being requested.
     url : str
         The Discord webhook URL to which the message will be sent.
+    project_registration : bool, optional
+        If True, indicates that a project registration is also being requested (default is False).
 
     Raises
     ------
@@ -368,6 +370,10 @@ def send_discord_message(username, namespace, url):
             "title": "MAIA Account Request",
         }
     ]
+    if project_registration:
+        data["embeds"][0]["description"] = "MAIA Project Registration Request"
+        data["embeds"][0]["title"] = "MAIA Project Registration Request"
+        data["content"] = f"{username} is requesting a MAIA account and a new project registration for {namespace}."
 
     result = requests.post(url, json=data)
 
