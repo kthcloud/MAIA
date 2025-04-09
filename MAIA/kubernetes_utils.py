@@ -305,7 +305,7 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters 
                             pod_name = pod['metadata']['name']
                             if pod_name.startswith("jupyter"):
                                 pod_name = pod_name.replace("-2d", "-").replace("-40", "@").replace("-2e", ".")[len("jupyter-"):]
-                            gpu_allocations[pod_name] = {
+                            gpu_allocations[pod_name+"-"+pod['metadata']['namespace']] = {
                                 'node': node_name.split("/")[1],
                                 'cluster': cluster_name,
                                 'namespace': pod['metadata']['namespace'],
@@ -793,7 +793,6 @@ def create_helm_repo_secret_from_context(repo_name, helm_repo_config, argocd_nam
         If there is an error when calling the Kubernetes API to create the secret.
     """
     
-    config.load_kube_config()
     username = helm_repo_config["username"]
     password = helm_repo_config["password"]
     project = helm_repo_config["project"]
@@ -818,6 +817,64 @@ def create_helm_repo_secret_from_context(repo_name, helm_repo_config, argocd_nam
 
         try:
             api_response = api_instance.create_namespaced_secret(argocd_namespace, secret)
+            print(api_response)
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
+
+     
+def create_docker_registry_secret_from_context(docker_credentials, namespace, secret_name):
+    """
+    Creates a Kubernetes secret of type `kubernetes.io/dockerconfigjson` in the specified namespace
+    using the provided Docker registry credentials.
+
+    Parameters
+    ----------
+    docker_credentials : dict
+        A dictionary containing Docker registry credentials with the following keys:
+        - "registry" : str
+            The Docker registry URL (e.g., "https://index.docker.io/v1/").
+        - "username" : str
+            The username for the Docker registry.
+        - "password" : str
+            The password for the Docker registry.
+    namespace : str
+        The Kubernetes namespace where the secret will be created.
+    secret_name : str
+        The name of the Kubernetes secret to be created.
+
+    Raises
+    ------
+    ApiException
+        If there is an error while creating the Kubernetes secret, an exception is raised
+        with details about the failure.
+
+    Notes
+    -----
+    This function uses the Kubernetes Python client to create the secret. Ensure that the
+    Kubernetes client is properly configured to interact with the desired cluster.
+
+    """
+
+    docker_credentials_dict = {
+        "auths": {
+            docker_credentials["registry"]: {
+                "username": docker_credentials["username"],
+                "password": docker_credentials["password"],
+                "auth": base64.b64encode(f"{docker_credentials['username']}:{docker_credentials['password']}".encode()).decode()
+            }
+        }
+    }
+    with kubernetes.client.ApiClient() as api_client:
+        api_instance = kubernetes.client.CoreV1Api(api_client)
+        secret = kubernetes.client.V1Secret()
+        secret.metadata = kubernetes.client.V1ObjectMeta(name=secret_name, namespace=namespace)
+        secret.data = {
+            ".dockerconfigjson": base64.b64encode(json.dumps(docker_credentials_dict).encode()).decode()
+        }
+        secret.type = "kubernetes.io/dockerconfigjson"
+
+        try:
+            api_response = api_instance.create_namespaced_secret(namespace, secret)
             print(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
