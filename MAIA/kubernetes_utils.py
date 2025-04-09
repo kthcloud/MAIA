@@ -305,7 +305,7 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters 
                             pod_name = pod['metadata']['name']
                             if pod_name.startswith("jupyter"):
                                 pod_name = pod_name.replace("-2d", "-").replace("-40", "@").replace("-2e", ".")[len("jupyter-"):]
-                            gpu_allocations[pod_name+"-"+pod['metadata']['namespace']] = {
+                            gpu_allocations[pod_name+", "+pod['metadata']['namespace']] = {
                                 'node': node_name.split("/")[1],
                                 'cluster': cluster_name,
                                 'namespace': pod['metadata']['namespace'],
