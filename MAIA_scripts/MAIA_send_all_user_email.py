@@ -1,20 +1,21 @@
+from __future__ import annotations
+
+import json
 import os
 import sys
 from pathlib import Path
 
-# Add the parent directory to Python path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from MAIA.dashboard_utils import (
-    send_maia_message_email,
-)
-from MAIA.keycloak_utils import get_maia_users_from_keycloak
-
 # load env variables
 from dotenv import load_dotenv
 
+from MAIA.dashboard_utils import send_maia_message_email
+from MAIA.keycloak_utils import get_maia_users_from_keycloak
+
+# Add the parent directory to Python path
+sys.path.append(str(Path(__file__).parent.parent))
+
+
 load_dotenv()
-import json
 
 
 class Settings:
@@ -59,7 +60,7 @@ def send_all_users_reminder_email(settings_dict, email_list=None):
         with open(email_template_path, "r") as f:
             email_content = f.read()
     except FileNotFoundError:
-        raise FileNotFoundError(f"Email template not found at {email_template_path}")
+        raise FileNotFoundError(f"Email template not found at {email_template_path}") from FileNotFoundError
     # Send the email to all users
     success = send_maia_message_email(receiver_emails=user_emails, subject="MAIA Platform Updates", message_body=email_content)
 

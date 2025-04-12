@@ -1,10 +1,13 @@
-import os
-import sys
+from __future__ import annotations
+
 import argparse
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import os
 import smtplib
 import ssl
+import sys
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 import dotenv
 
 dotenv.load_dotenv()
@@ -33,10 +36,10 @@ def send_welcome_user_email(receiver_email, maia_url):
         <head></head>
         <body>
             <p>Welcome to MAIA!</p>
-            <p>We're excited to have you join our platform. Your login details are your KTH credentials (unless otherwise provided), and you need to setup multifactor authentication to use the platform. 
+            <p>We're excited to have you join our platform. Your login details are your KTH credentials (unless otherwise provided), and you need to setup multifactor authentication to use the platform.
             Your MAIA account has been created and you can now access the platform at:<br>
             <a href="{}">{}</a></p>
-            You can also setup the ssh connection here. 
+            You can also setup the ssh connection here.
 
             <p>To see you workspace details and find the ssh connection and jupyterhub details, please visit the MAIA Dashboard at:<br>
             <a href="https://maia.app.cloud.cbh.kth.se/maia/">https://maia.app.cloud.cbh.kth.se/maia/</a></p>
@@ -65,7 +68,7 @@ def send_welcome_user_email(receiver_email, maia_url):
             <p>The MAIA Admin Team</p>
         </body>
     </html>
-    """.format(
+    """.format(  # noqa: E501, B950
         maia_url, maia_url
     )
 

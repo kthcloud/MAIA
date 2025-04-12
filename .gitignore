@@ -132,5 +132,7 @@ dmypy.json
 /Forms/
 /tutorials/
 .vscode/
-dashboard/config 
 configs/
+configs_dev/
+maia-medium_config/
+playground/

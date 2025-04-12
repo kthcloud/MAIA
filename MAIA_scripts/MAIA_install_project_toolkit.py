@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import subprocess
+
 from pathlib import Path
-from hydra import initialize, initialize_config_dir
+from hydra import initialize_config_dir
 from hydra import compose as hydra_compose
 import click
 import hydra
@@ -11,14 +11,10 @@ from MAIA.maia_fn import deploy_oauth2_proxy, deploy_mysql, deploy_mlflow, deplo
 from MAIA.maia_admin import create_maia_namespace_values, install_maia_project, get_maia_toolkit_apps, generate_minio_configs, generate_mlflow_configs, generate_mysql_configs
 from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
 import datetime
-import argparse
-import json
 import os
 import asyncio
 from pyhelm3 import Client
-import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
-from pathlib import Path
 from textwrap import dedent
 
 import MAIA
@@ -102,7 +98,8 @@ async def verify_installed_maia_toolkit(project_id, namespace, get_chart_metadat
 
     try:
         revision = await client.get_current_revision(project_id, namespace = namespace)
-    except:
+    except Exception as e:
+        print(f"An error occurred: {e}")
         print("Project not found")
         return -1
     if get_chart_metadata:
@@ -238,7 +235,8 @@ def deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_
 
     try:
         initialize_config_dir(config_dir=str(Path(config_folder).joinpath(group_id)), job_name=group_id)
-    except:
+    except Exception as e:
+        print(f"An error occurred: {e}")
         hydra.core.global_hydra.GlobalHydra.instance().clear()
         initialize_config_dir(config_dir=str(Path(config_folder).joinpath(group_id)), job_name=group_id)
     cfg = hydra_compose("values.yaml")
