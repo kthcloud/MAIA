@@ -14,9 +14,16 @@ cd "$VOLUME_PLUGIN_DIR/fstab~cifs"
 curl -L -O https://raw.githubusercontent.com/kthcloud/maia/master/CIFS/cifs
 curl -L -O https://raw.githubusercontent.com/kthcloud/maia/master/CIFS/decrypt_string.py
 chmod 755 cifs
+chmod 700 decrypt_string.py
 ```
 
 Remember to save the private key in the same location, with the name `private_key.pem`. The private key is used to decrypt the credentials for the CIFS share. 
+
+The private key should be set with permissions `644` to ensure that only the owner can read it. You can set the permissions with the following command:
+
+```bash
+chmod 644 private_key.pem
+```
 
 To check if the installation was successful, run the following command:
 
