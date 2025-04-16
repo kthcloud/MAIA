@@ -2,8 +2,18 @@ apiVersion: v1
 entries:
   maia-namespace:
   - apiVersion: v2
+    appVersion: 0.1.9
+    created: "2025-04-16T14:23:29.925897217+02:00"
+    description: A Helm chart to create and configure a MAIA Namespace
+    digest: 1463ffd7f59286c3fd63ad23ceb1797a4a20c02e77def23b02fc42a47e81ce5c
+    name: maia-namespace
+    type: application
+    urls:
+    - helm_charts/maia-namespace-0.1.9.tgz
+    version: 0.1.9
+  - apiVersion: v2
     appVersion: 0.1.8
-    created: "2025-04-16T14:01:28.515198664+02:00"
+    created: "2025-04-16T14:23:29.925315338+02:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: af8dc628ff0d270f55e319700c8191c4da59a216d1ef93cefcb30da40126d96e
     name: maia-namespace
@@ -14,7 +24,7 @@ entries:
   maia-project:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-04-16T14:01:28.515789807+02:00"
+    created: "2025-04-16T14:23:29.926391628+02:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: d3cf20ebf33ce4c7a607973df5f003f765bf3c4ea13d81055b8120b89c30ad5c
     name: maia-project
@@ -22,4 +32,4 @@ entries:
     urls:
     - helm_charts/maia-project-1.1.2.tgz
     version: 1.1.2
-generated: "2025-04-16T14:01:28.514245107+02:00"
+generated: "2025-04-16T14:23:29.924448569+02:00"
