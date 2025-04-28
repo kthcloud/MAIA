@@ -217,7 +217,7 @@ def get_mysql_config_if_exists(project_id):
     variable "KUBECONFIG" and that the MySQL deployment name starts with the project ID followed
     by "-mysql-mkg".
     """
-    if not "KUBECONFIG_LOCAL" in os.environ:
+    if "KUBECONFIG_LOCAL" not in os.environ:
         os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
@@ -316,7 +316,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "size": "10Gi"
         },
         "chart_name": "maia-namespace", 
-        "chart_version": "0.1.8", 
+        "chart_version": "0.1.9", 
         "repo_url": "https://kthcloud.github.io/MAIA/", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
@@ -881,7 +881,7 @@ def create_loginapp_values(config_folder, project_id, cluster_config_dict):
             },
             "issuerInsecureSkipVerify": True,
             "refreshToken": True,
-            "clientRedirectURL": f"https://login." + cluster_config_dict["domain"] + "/callback",
+            "clientRedirectURL": "https://login." + cluster_config_dict["domain"] + "/callback",
             "secret": secret,
             "clientID": client_id,
             "clientSecret": client_secret,
@@ -1095,7 +1095,8 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             { "name": "DEBUG", "value": "True" },
             { "name": "CLUSTER_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config" },
             { "name": "CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config" },
-            { "name": "MAIA_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config/maia_config.yaml" }
+            { "name": "MAIA_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config/maia_config.yaml" },
+            {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow"},
         ]
         maia_dashboard_values["dashboard"]["local_config_path"] = "/etc/MAIA-Dashboard/config"
     else:
@@ -1116,6 +1117,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             { "name": "DB_PORT", "value": "3306" },
             { "name": "DB_USERNAME", "value": "maia-admin" },
             { "name": "DB_PASS", "value": db_password },
+            {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow"}
         ]
         maia_dashboard_values["mysql"] = {
             "enabled": True,
