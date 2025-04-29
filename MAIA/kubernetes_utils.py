@@ -570,11 +570,12 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                 for service in services['items']:
                     for port in service['spec']['ports']:
                         if 'name' in port and port['name'] == 'remote-desktop-port':
-                            hub_url = maia_workspace_apps['hub']
-                            user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
-                            url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
-                            if user_id == user or is_admin:
-                                remote_desktop_dict[user] = url
+                            if "hub" in maia_workspace_apps:
+                                hub_url = maia_workspace_apps['hub']
+                                user = service["metadata"]["name"][len("jupyter-"):].replace("-2d", "-").replace("-40", "@").replace("-2e", ".")
+                                url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
+                                if user_id == user or is_admin:
+                                    remote_desktop_dict[user] = url
 
                         if 'name' in port and port['name'] == 'ssh':
                             ## Backward compatibility
