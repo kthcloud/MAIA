@@ -550,8 +550,6 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                         for path in rule['http']['paths']:
                             if path['backend']['service']['name'] == 'proxy-public':
                                 maia_workspace_apps['hub'] = "https://" + rule['host'] + path['path']
-                            if path['backend']['service']['name'] == 'maia-xnat':                               
-                                maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
                             if path['backend']['service']['name'] ==  namespace+"-orthanc-svc":
                                 
                                 maia_workspace_apps['orthanc'] = "https://" + rule['host'] + path['path']
@@ -564,6 +562,10 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                         "dicom_port": "",
                                         "url": "https://" + rule['host'] + path['path'] + "/dicom-web/"
                                     })
+                            if path['backend']['service']['name'] == namespace+ '-mlflow-mkg':
+                                maia_workspace_apps['mlflow'] = "https://" + rule['host'] + path['path']
+                            if path['backend']['service']['name'] == namespace + '-console':
+                                maia_workspace_apps['minio_console'] = "https://" + rule['host'] + path['path']
 
                 for service in services['items']:
                     for port in service['spec']['ports']:
@@ -593,8 +595,42 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                         orthanc["dicom_port"] = port['nodePort']
                                     elif service["spec"]["type"] == "LoadBalancer":
                                         orthanc["dicom_port"] = port['port']
-                                    
+        
+        for global_namespace in settings.GLOBAL_NAMESPACES:
+            if API_URL in settings.PRIVATE_CLUSTERS:
+                token = settings.PRIVATE_CLUSTERS[API_URL]
+                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(namespace),
+                                        headers={"Authorization": "Bearer {}".format(token)}, verify=False)
+            else:
+                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(namespace),
+                                        headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
+            ingresses = json.loads(response.text)
 
+            if API_URL in settings.PRIVATE_CLUSTERS:
+                token = settings.PRIVATE_CLUSTERS[API_URL]
+                try:
+                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
+                                            headers={"Authorization": "Bearer {}".format(token)}, verify=False)
+                except:
+                    continue
+            else:
+                try:
+                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
+                                            headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
+                except:
+                    continue
+            services = json.loads(response.text)
+            
+            if 'items' in ingresses:
+                if 'items' in services:
+                    for ingress in ingresses['items']:
+                        for rule in ingress['spec']['rules']:
+                            if 'host' not in rule:
+                                rule['host'] = settings.DEFAULT_INGRESS_HOST
+                            for path in rule['http']['paths']:
+                                if path['backend']['service']['name'] == 'maia-xnat':                               
+                                    maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
+                                    
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"
     if "orthanc" not in maia_workspace_apps:
@@ -795,7 +831,10 @@ def create_helm_repo_secret_from_context(repo_name, helm_repo_config, argocd_nam
     
     username = helm_repo_config["username"]
     password = helm_repo_config["password"]
-    project = helm_repo_config["project"]
+    if "project" not in helm_repo_config:
+        project = None
+    else:
+        project = helm_repo_config["project"]
     url = helm_repo_config["url"]
     type = helm_repo_config["type"]
     name = helm_repo_config["name"]
@@ -804,16 +843,29 @@ def create_helm_repo_secret_from_context(repo_name, helm_repo_config, argocd_nam
     with kubernetes.client.ApiClient() as api_client:
         api_instance = kubernetes.client.CoreV1Api(api_client)
         secret = kubernetes.client.V1Secret()
-        secret.metadata = kubernetes.client.V1ObjectMeta(name=f"repo-{repo_name}", namespace=argocd_namespace)
-        secret.data = {
-            "username": base64.b64encode(username.encode()).decode(),
-            "password": base64.b64encode(password.encode()).decode(),
-            "project": base64.b64encode(project.encode()).decode(),
-            "url": base64.b64encode(url.encode()).decode(),
-            "type": base64.b64encode(type.encode()).decode(),
-            "name": base64.b64encode(name.encode()).decode(),
-            "enableOCI": base64.b64encode(enableOCI.encode()).decode()
-        }
+        secret.metadata = kubernetes.client.V1ObjectMeta(name=f"repo-{repo_name}", labels = {
+            "argocd.argoproj.io/secret-type": "repository"
+            },
+     namespace=argocd_namespace)
+        if project is not None:
+            secret.data = {
+                "username": base64.b64encode(username.encode()).decode(),
+                "password": base64.b64encode(password.encode()).decode(),
+                "project": base64.b64encode(project.encode()).decode(),
+                "url": base64.b64encode(url.encode()).decode(),
+                "type": base64.b64encode(type.encode()).decode(),
+                "name": base64.b64encode(name.encode()).decode(),
+                "enableOCI": base64.b64encode(enableOCI.encode()).decode()
+            }
+        else:
+            secret.data = {
+                "username": base64.b64encode(username.encode()).decode(),
+                "password": base64.b64encode(password.encode()).decode(),
+                "url": base64.b64encode(url.encode()).decode(),
+                "type": base64.b64encode(type.encode()).decode(),
+                "name": base64.b64encode(name.encode()).decode(),
+                "enableOCI": base64.b64encode(enableOCI.encode()).decode()
+            }
 
         try:
             api_response = api_instance.create_namespaced_secret(argocd_namespace, secret)
@@ -869,7 +921,8 @@ def create_docker_registry_secret_from_context(docker_credentials, namespace, se
         secret = kubernetes.client.V1Secret()
         secret.metadata = kubernetes.client.V1ObjectMeta(name=secret_name, namespace=namespace)
         secret.data = {
-            ".dockerconfigjson": base64.b64encode(json.dumps(docker_credentials_dict).encode()).decode()
+            ".dockerconfigjson": base64.b64encode(json.dumps(docker_credentials_dict).encode()).decode(),
+            "config.json": base64.b64encode(json.dumps(docker_credentials_dict).encode()).decode() # Needed for KubeFlow to mount the secret with Kaniko
         }
         secret.type = "kubernetes.io/dockerconfigjson"
 

@@ -1,5 +1,6 @@
 from pathlib import Path
 import yaml
+import os
 
 def deploy_maia_kaniko(namespace, config_folder, cluster_config_dict, release_name, project_id, registry_url, registry_secret_name, image_name, image_tag, subpath, build_args=None):
     """
@@ -36,12 +37,24 @@ def deploy_maia_kaniko(namespace, config_folder, cluster_config_dict, release_na
         A dictionary containing deployment details including namespace, release name, chart name, repo URL, chart version, and values file path.
     """
     
+    if "MAIA_HELM_REPO_URL" not in os.environ:
+        raise ValueError("MAIA_HELM_REPO_URL environment variable not set. Please set this variable to the URL of the MAIA Helm repository. Example: https://kthcloud.github.io/MAIA/")
+    
     kaniko_values = {
         "chart_name": "mkg-kaniko",
-        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "repo_url": os.environ["MAIA_HELM_REPO_URL"],
         "chart_version": "1.0.3",
         "namespace": "mkg-kaniko",
     }
+    
+    if 'MAIA_GIT_REPO_URL' not in os.environ:
+        raise ValueError("MAIA_GIT_REPO_URL environment variable not set. Please set this variable to the URL of the MAIA Git repository with the Docker Image to build. Example: git://github.com/kthcloud/MAIA.git")
+    
+    if 'GIT_USERNAME' not in os.environ:
+        raise ValueError("GIT_USERNAME environment variable not set. Please set this variable to the username for accessing the Git repository with the Docker Image to build.")
+    
+    if 'GIT_TOKEN' not in os.environ:
+        raise ValueError("GIT_TOKEN environment variable not set. Please set this variable to the personal access token for accessing the Git repository with the Docker Image to build.")
     
     
     kaniko_values.update(
@@ -51,9 +64,11 @@ def deploy_maia_kaniko(namespace, config_folder, cluster_config_dict, release_na
                 "pvc_type": cluster_config_dict["storage_class"],
                 "size": "10Gi",
             },
+            "git_username": os.environ.get("GIT_USERNAME"),
+            "git_token": os.environ.get("GIT_TOKEN"),
             "args": [
                 "--dockerfile=Dockerfile",
-                "--context=git://github.com/kthcloud/MAIA.git", #  #refs/heads/mybranch
+                f"--context={os.environ['MAIA_GIT_REPO_URL']}", #refs/heads/mybranch 
                 "--context-sub-path="+subpath,
                 "--destination={}/{}:{}".format(registry_url, image_name, image_tag),
                 "--cache=true",

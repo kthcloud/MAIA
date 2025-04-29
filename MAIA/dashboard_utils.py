@@ -627,7 +627,10 @@ def register_cluster_for_project_in_db(project_model, settings, namespace, clust
     print("Registering Existing Cluster for Group: ", group_id)
 
     if project_model.objects.filter(namespace=group_id).exists():
-        project_model.objects.filter(namespace=group_id).first().update(cluster=cluster)
+        project = project_model.objects.filter(namespace=group_id).first()
+        if project:
+            project.cluster = cluster
+            project.save()
     else:
         project_model.objects.create(namespace=group_id, cluster=cluster, memory_limit="2 Gi", cpu_limit="2")
 
