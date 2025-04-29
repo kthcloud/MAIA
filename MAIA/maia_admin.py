@@ -334,7 +334,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     }
     if minimal_deployment:
         maia_namespace_values["chart_name"] = "maia-namespace"
-        maia_namespace_values["chart_version"] = "1.7.0"
+        maia_namespace_values["chart_version"] = "1.7.1"
         maia_namespace_values["repo_url"] = "https://kthcloud.github.io/MAIA/"
 
     if "imagePullSecrets" in cluster_config:
