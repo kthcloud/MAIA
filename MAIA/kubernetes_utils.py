@@ -675,7 +675,7 @@ def create_namespace_from_context(namespace_id):
         body = kubernetes.client.V1Namespace(metadata=kubernetes.client.V1ObjectMeta(name=namespace_id))
         try:
             api_response = api_instance.create_namespace(body)
-            print(api_response)
+            #print(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespace: %s\n" % e)
 
