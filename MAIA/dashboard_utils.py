@@ -784,6 +784,7 @@ def get_project(group_id, settings, maia_project_model, is_namespace_style=False
                         "memory": [str(int(int(project.memory_limit[: -len(" Gi")]) / 2)) + " Gi", project.memory_limit],
                         "cpu": [str(int(int(project.cpu_limit) / 2)), project.cpu_limit],
                     },
+                    "environment": project.minimal_env,
                 }
                 if project.gpu != "N/A" and project.gpu != "NO":
                     namespace_form["gpu"] = "1"
@@ -831,6 +832,7 @@ def get_project(group_id, settings, maia_project_model, is_namespace_style=False
                         "memory": [str(int(int(project.memory_limit[: -len(" Gi")]) / 2)) + " Gi", project.memory_limit],
                         "cpu": [str(int(int(project.cpu_limit) / 2)), project.cpu_limit],
                     },
+                    "environment": project.minimal_env,
                 }
                 if project.gpu != "N/A" and project.gpu != "NO":
                     namespace_form["gpu_request"] = "1"
