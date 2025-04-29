@@ -90,7 +90,7 @@ doMount() {
 	if ! jq -e . > /dev/null 2>&1 <<< "$json" ; then
 		errorExit "cifs mount: syntax error. invalid json: '$json'"
 	fi
-	networkPath="$(jq --raw-output -e '.networkPath' <<< "$json" 2>/dev/null | sed 's/-40[^/]*//')"
+	networkPath="$(jq --raw-output -e '.networkPath' <<< "$json" 2>/dev/null | sed -E 's/-40[^/]*//; s/-2d/-/g')"
 	if [[ $? -ne 0 ]] ; then
 		errorExit "cifs mount: option networkPath missing in flexvolume configuration."
 	fi
