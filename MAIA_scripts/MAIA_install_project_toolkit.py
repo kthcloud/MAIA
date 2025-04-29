@@ -149,12 +149,21 @@ def deploy_maia_toolkit_api(
 
     helm_commands = []
 
-    minio_configs = generate_minio_configs(namespace=group_id.lower().replace("_", "-"))
-    mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
-    mysql_configs = generate_mysql_configs(namespace=group_id.lower().replace("_", "-"))
+    if not minimal:
+        minio_configs = generate_minio_configs(namespace=group_id.lower().replace("_", "-"))
+        mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
+        
+        mysql_configs = generate_mysql_configs(namespace=group_id.lower().replace("_", "-"))
+        
+        project_form_dict["minio_access_key"] = minio_configs["console_access_key"]
+        project_form_dict["minio_secret_key"] = minio_configs["console_secret_key"]
+    else:
+        minio_configs = None
+        mlflow_configs = None
+        mysql_configs = None
+        project_form_dict["minio_access_key"] = "N/A"
+        project_form_dict["minio_secret_key"] = "N/A"
 
-    project_form_dict["minio_access_key"] = minio_configs["console_access_key"]
-    project_form_dict["minio_secret_key"] = minio_configs["console_secret_key"]
 
     helm_commands.append(
         create_maia_namespace_values(
@@ -175,16 +184,17 @@ def deploy_maia_toolkit_api(
 
     helm_commands.append(create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder))
 
-    helm_commands.append(deploy_oauth2_proxy(cluster_config_dict, project_form_dict, config_folder))
+    if not minimal:
+        helm_commands.append(deploy_oauth2_proxy(cluster_config_dict, project_form_dict, config_folder))
 
-    helm_commands.append(deploy_mysql(cluster_config_dict, project_form_dict, config_folder, mysql_configs=mysql_configs))
-    helm_commands.append(
-        deploy_mlflow(
-            cluster_config_dict, project_form_dict, config_folder, mysql_config=mysql_configs, minio_config=minio_configs
+        helm_commands.append(deploy_mysql(cluster_config_dict, project_form_dict, config_folder, mysql_configs=mysql_configs))
+        helm_commands.append(
+            deploy_mlflow(
+                cluster_config_dict, project_form_dict, config_folder, mysql_config=mysql_configs, minio_config=minio_configs
+            )
         )
-    )
 
-    helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
+        helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
 
     for helm_command in helm_commands:
         cmd = [
@@ -212,11 +222,7 @@ def deploy_maia_toolkit_api(
             "_self_",
             {"maia_namespace_values": "namespace_values"},
             {"jupyterhub_values": "jupyterhub_values"},
-            {"oauth2_proxy_values": "oauth2_proxy_values"},
-            {"mysql_values": "mysql_values"},
-            {"mlflow_values": "mlflow_values"},
             {"jupyterhub_chart_info": "jupyterhub_chart_info"},
-            {"orthanc_values": "orthanc_values"},
         ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "group_ID": f"MAIA:{group_id}",
@@ -227,6 +233,11 @@ def deploy_maia_toolkit_api(
             "https://oauth2-proxy.github.io/manifests",
         ],
     }
+    if not minimal:
+        values["defaults"].append({"mlflow_values": "mlflow_values"})
+        values["defaults"].append({"mysql_values": "mysql_values"})
+        values["defaults"].append({"oauth2_proxy_values": "oauth2_proxy_values"})
+        values["defaults"].append({"orthanc_values": "orthanc_values"})
 
     with open(Path(config_folder).joinpath(group_id, "values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(values))
@@ -252,6 +263,10 @@ def deploy_maia_toolkit_api(
         project_chart = maia_config_dict["maia_project_chart"]
         project_repo = maia_config_dict["maia_project_repo"]
         project_version = maia_config_dict["maia_project_version"]
+        if not minimal:
+            project_chart = maia_config_dict["maia_pro_project_chart"]
+            project_repo = maia_config_dict["maia_pro_project_repo"]
+            project_version = maia_config_dict["maia_pro_project_version"]
         asyncio.run(
             install_maia_project(
                 group_id,

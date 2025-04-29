@@ -309,6 +309,10 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         else:
             orthanc_ssh_port = ssh_ports.pop(0)
     
+    minimal_deployment = False
+    if minio_configs is None and mlflow_configs is None:
+        minimal_deployment = True
+    
     maia_namespace_values = {
         "pvc": {
             "pvc_type": cluster_config["shared_storage_class"],
@@ -316,8 +320,8 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "size": "10Gi"
         },
         "chart_name": "maia-namespace", 
-        "chart_version": "0.1.9", 
-        "repo_url": "https://kthcloud.github.io/MAIA/", 
+        "chart_version": "1.7.0", 
+        "repo_url": "", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
         "users": users,
@@ -328,6 +332,10 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         "metallbIpPool": cluster_config.get("metallb_ip_pool", False),
         "loadBalancerIp": cluster_config.get("maia_metallb_ip", False),
     }
+    if minimal_deployment:
+        maia_namespace_values["chart_name"] = "maia-namespace"
+        maia_namespace_values["chart_version"] = "1.7.0"
+        maia_namespace_values["repo_url"] = "https://kthcloud.github.io/MAIA/"
 
     if "imagePullSecrets" in cluster_config:
         maia_namespace_values["dockerRegistrySecret"] = {
