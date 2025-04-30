@@ -13,6 +13,7 @@ from MAIA.maia_fn import generate_human_memorable_password
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 import subprocess
+import asyncio
 
 def generate_minio_configs(namespace):
     """
@@ -511,6 +512,7 @@ async def install_maia_project(group_id, values_file, argo_cd_namespace, project
             print("❌ Helm registry login failed.")
             print("STDOUT:", e.stdout.decode())
             print("STDERR:", e.stderr.decode())
+            await asyncio.sleep(1)
             return "Deployment failed: Helm registry login failed."
         subprocess.run(["helm", "pull", project_chart,"-d", "/tmp", "--version", project_version], check=True)
         
@@ -520,6 +522,7 @@ async def install_maia_project(group_id, values_file, argo_cd_namespace, project
                         argo_cd_namespace,
                         "--values", str(values_file),
                         "--wait"], check=True)
+        await asyncio.sleep(1)
         return ""
 
     chart = await client.get_chart(
