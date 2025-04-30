@@ -12,6 +12,7 @@ import base64
 from MAIA.maia_fn import generate_human_memorable_password
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
+import subprocess
 
 def generate_minio_configs(namespace):
     """
@@ -33,7 +34,6 @@ def generate_minio_configs(namespace):
     """
     
     existing_minio_configs = get_minio_config_if_exists(namespace)
-    print(existing_minio_configs)
     minio_configs = {
         "access_key": "admin",
         "secret_key": existing_minio_configs["secret_key"] if "secret_key" in existing_minio_configs else token_urlsafe(16).replace("-", "_"),
@@ -321,7 +321,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         },
         "chart_name": "maia-namespace", 
         "chart_version": "1.7.0", 
-        "repo_url": "", 
+        "repo_url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
         "users": users,
@@ -375,6 +375,12 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "password": mlflow_configs["mlflow_password"],
         }
 
+    enable_cifs = False
+    if enable_cifs:
+        maia_namespace_values["cifs"] = {
+            "enabled": True,
+            "encryption": {"publicKey" : ""} #base64 encoded}
+        }
     namespace_id = namespace_config["group_ID"].lower().replace("_", "-")
     Path(config_folder).joinpath(namespace_config["group_ID"], "maia_namespace_values").mkdir(parents=True, exist_ok=True)
     with open(Path(config_folder).joinpath(namespace_config["group_ID"], "maia_namespace_values", "namespace_values.yaml"), "w") as f:
@@ -439,7 +445,7 @@ async def get_maia_toolkit_apps(group_id, token, argo_cd_host):
             except ApiException as e:
                 print("Exception when calling ApplicationServiceApi->get_mixin9: %s\n" % e)
 
-async def install_maia_project(group_id, values_file, argo_cd_namespace, project_chart, project_repo=None, project_version=None):
+async def install_maia_project(group_id, values_file, argo_cd_namespace, project_chart, project_repo=None, project_version=None, json_key_path=None):
     """
     Installs or upgrades a MAIA project using the specified Helm chart and values file.
 
@@ -457,6 +463,8 @@ async def install_maia_project(group_id, values_file, argo_cd_namespace, project
         The repository URL where the Helm chart is located. Defaults to None.
     project_version : str, optional
         The version of the Helm chart to use. Defaults to None.
+    json_key_path : str, optional
+        Path to the JSON key file for authentication with the Helm registry. Defaults to None.
 
     Returns
     -------
@@ -484,6 +492,36 @@ async def install_maia_project(group_id, values_file, argo_cd_namespace, project
     """
     client = Client(kubeconfig=os.environ["KUBECONFIG"])
 
+    if not project_repo.startswith("http"):
+        chart = str("/tmp/"+ project_chart+"-"+project_version+".tgz")
+        project_chart = "oci://"+project_repo+"/"+project_chart
+        
+        try:    
+            with open(json_key_path, "rb") as key_file:
+                result = subprocess.run(
+                    ["helm", "registry", "login", project_repo, "-u", "_json_key", "--password-stdin"],
+                    input=key_file.read(),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=True
+                )
+                print("✅ Helm registry login successful.")
+                print(result.stdout.decode())
+        except subprocess.CalledProcessError as e:
+            print("❌ Helm registry login failed.")
+            print("STDOUT:", e.stdout.decode())
+            print("STDERR:", e.stderr.decode())
+            return "Deployment failed: Helm registry login failed."
+        subprocess.run(["helm", "pull", project_chart,"-d", "/tmp", "--version", project_version], check=True)
+        
+        subprocess.run(["helm", "upgrade", "--install",
+                        group_id.lower().replace("_", "-"),
+                        chart, "--namespace",
+                        argo_cd_namespace,
+                        "--values", str(values_file),
+                        "--wait"], check=True)
+        return ""
+
     chart = await client.get_chart(
         project_chart,
         repo=project_repo,
@@ -510,6 +548,8 @@ async def install_maia_project(group_id, values_file, argo_cd_namespace, project
         revision.revision,
         str(revision.status)
     )
+    
+    return ""
 
 def create_maia_admin_toolkit_values(config_folder, project_id, cluster_config_dict, maia_config_dict):
     """

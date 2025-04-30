@@ -932,3 +932,89 @@ def create_docker_registry_secret_from_context(docker_credentials, namespace, se
             print(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespaced_secret: %s\n" % e)
+
+def retrieve_json_key_for_maia_registry_authentication_from_context(namespace, secret_name, registry_url):
+    """
+    Retrieve the JSON key for MAIA registry authentication from a Kubernetes secret.
+    This function reads a Kubernetes secret in the specified namespace, decodes the `.dockerconfigjson` 
+    field, and extracts the password for the given registry URL.
+    
+    Parameters
+    ----------
+    namespace : str
+        The namespace in which the Kubernetes secret is located.
+    secret_name : str
+        The name of the Kubernetes secret containing the `.dockerconfigjson`.
+    registry_url : str
+        The URL of the container registry for which the authentication key is required.
+    
+    Returns
+    -------
+    str
+        The password associated with the specified registry URL in the `.dockerconfigjson`.
+        Returns an empty dictionary if an exception occurs.
+    
+    Raises
+    ------
+    kubernetes.client.exceptions.ApiException
+        If there is an error while reading the Kubernetes secret.
+    """
+    with kubernetes.client.ApiClient() as api_client:
+        api_instance = kubernetes.client.CoreV1Api(api_client)
+        
+        try:
+            secret = api_instance.read_namespaced_secret(name=secret_name, namespace=namespace)
+
+            # Decode the .dockerconfigjson
+            dockerconfig = base64.b64decode(secret.data[".dockerconfigjson"]).decode()
+            dockerconfig_json = json.loads(dockerconfig)
+            return dockerconfig_json["auths"][registry_url]["password"]
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->read_namespaced_secret: %s\n" % e)
+            return {}
+        
+def retrieve_json_key_for_maia_registry_authentication(request, cluster_id, settings, namespace, secret_name, registry_url):
+    """
+    Retrieves the JSON key for MAIA registry authentication.
+
+    This function generates a kubeconfig dictionary using the provided 
+    OpenID Connect (OIDC) ID token and user information, writes it to a 
+    temporary kubeconfig file, and sets the `KUBECONFIG` environment 
+    variable. It then delegates the retrieval of the JSON key to another 
+    function.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        The HTTP request object containing the session and user information.
+    cluster_id : str
+        The ID of the Kubernetes cluster.
+    settings : dict
+        The settings dictionary containing configuration details.
+    namespace : str
+        The Kubernetes namespace where the secret is located.
+    secret_name : str
+        The name of the Kubernetes secret containing the registry credentials.
+    registry_url : str
+        The URL of the container registry.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the JSON key for MAIA registry authentication.
+
+    Raises
+    ------
+    KeyError
+        If the `oidc_id_token` is not found in the session.
+    FileNotFoundError
+        If there is an issue writing the kubeconfig file to the temporary directory.
+    """
+    id_token = request.session.get('oidc_id_token')
+    kubeconfig_dict = generate_kubeconfig(id_token, request.user.username, "default", cluster_id, settings=settings)
+    config.load_kube_config_from_dict(kubeconfig_dict)
+    with open(Path("/tmp").joinpath("kubeconfig-ns"), "w") as f:
+        yaml.dump(kubeconfig_dict, f)
+        os.environ["KUBECONFIG"] = str(Path("/tmp").joinpath("kubeconfig-ns"))
+
+        return retrieve_json_key_for_maia_registry_authentication_from_context(namespace, secret_name, registry_url)

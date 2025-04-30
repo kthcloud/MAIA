@@ -231,6 +231,7 @@ def deploy_maia_toolkit_api(
             "https://kthcloud.github.io/MAIA/",
             "https://hub.jupyter.org/helm-chart/",
             "https://oauth2-proxy.github.io/manifests",
+            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
         ],
     }
     if not minimal:
@@ -263,11 +264,13 @@ def deploy_maia_toolkit_api(
         project_chart = maia_config_dict["maia_project_chart"]
         project_repo = maia_config_dict["maia_project_repo"]
         project_version = maia_config_dict["maia_project_version"]
+        json_key_path = None
         if not minimal:
             project_chart = maia_config_dict["maia_pro_project_chart"]
             project_repo = maia_config_dict["maia_pro_project_repo"]
             project_version = maia_config_dict["maia_pro_project_version"]
-        asyncio.run(
+            json_key_path = os.environ.get("JSON_KEY_PATH", None)
+        msg = asyncio.run(
             install_maia_project(
                 group_id,
                 Path(config_folder).joinpath(group_id, f"{group_id}_values.yaml"),
@@ -275,8 +278,10 @@ def deploy_maia_toolkit_api(
                 project_chart,
                 project_repo=project_repo,
                 project_version=project_version,
+                json_key_path=json_key_path,
             )
         )
+        return msg
     else:
         argocd_host = maia_config_dict["argocd_host"]
         token = maia_config_dict["argocd_token"]
