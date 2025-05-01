@@ -358,7 +358,10 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
 
     if "imagePullSecrets" in cluster_config:
         jh_template["singleuser"]["image"]["pullSecrets"] = [cluster_config["imagePullSecrets"]]
-
+    if not minimal:
+        registry_url = maia_form["maia_workspace_pro_image"].split("/")[0]
+        jh_template["singleuser"]["image"]["pullSecrets"].append(registry_url.replace(".", "-").replace("/", "-"))
+    
     maia_workspace_version = maia_form["maia_workspace_version"]
     maia_workspace_image = maia_form["maia_workspace_image"]
     if not minimal:
@@ -416,11 +419,15 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
                     "image": maia_form["maia_monai_toolkit_image"],
                     "start_timeout": 3600,
                     "http_timeout": 3600,
-                    "extra_resource_limits": {"nvidia.com/gpu": "1"},
+                    "extra_resource_limits": {},
                     "uid": 0,
                 },
             }
         )
+        if gpu_request:
+            jh_template["singleuser"]["profileList"][-1]["kubespawner_override"]["extra_resource_limits"] = {
+                "nvidia.com/gpu": "1"
+            }
 
     # TODO: Add to form
     mount_cifs = True 
