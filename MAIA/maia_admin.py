@@ -321,7 +321,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "size": "10Gi"
         },
         "chart_name": "maia-namespace", 
-        "chart_version": "1.7.1", 
+        "chart_version": "1.7.2", 
         "repo_url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
@@ -366,8 +366,8 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "ingress": {
                 "annotations": {},
                 "host": "{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
-                "path": "/minio-console",
-                "serviceName": f"{namespace}-console",
+                "path": "minio-console",
+                "serviceName": f"{namespace}-mlflow-mkg",
             }
         }
         
@@ -381,7 +381,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         if cluster_config["url_type"] == "subpath":
             maia_namespace_values["minio"]["consoleDomain"] = "https://{}/{}-minio-console".format(
                 cluster_config["domain"], namespace_config["group_ID"].lower().replace("_", "-"))
-            maia_namespace_values["minio"]["ingress"]["path"] = "/{}-minio-console".format(namespace_config["group_ID"].lower().replace("_", "-"))
+            maia_namespace_values["minio"]["ingress"]["path"] = "{}-minio-console".format(namespace_config["group_ID"].lower().replace("_", "-"))
  
     if mlflow_configs:
         maia_namespace_values["mlflow"] = {

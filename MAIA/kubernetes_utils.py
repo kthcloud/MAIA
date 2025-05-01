@@ -562,9 +562,9 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                         "dicom_port": "",
                                         "url": "https://" + rule['host'] + path['path'] + "/dicom-web/"
                                     })
-                            if path['backend']['service']['name'] == namespace+ '-mlflow-mkg':
+                            if path['backend']['service']['name'] == namespace+ '-mlflow-mkg' and path['path'].endswith("mlflow"):
                                 maia_workspace_apps['mlflow'] = "https://" + rule['host'] + path['path']
-                            if path['backend']['service']['name'] == namespace + '-console':
+                            if path['backend']['service']['name'] == namespace + '-mlflow-mkg' and path['path'].endswith("minio-console"):
                                 maia_workspace_apps['minio_console'] = "https://" + rule['host'] + path['path']
 
                 for service in services['items']:
