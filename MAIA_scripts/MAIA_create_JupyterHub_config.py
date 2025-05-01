@@ -489,7 +489,7 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
         jh_template["singleuser"]["profileList"][-1]["kubespawner_override"]["extra_resource_limits"] = {"nvidia.com/gpu": "1"}
         
     if mount_cifs:
-        for id in enumerate(jh_template["singleuser"]["profileList"]):
+        for id, profile in enumerate(jh_template["singleuser"]["profileList"]):
             jh_template["singleuser"]["profileList"][id]["kubespawner_override"]["service_account"] = "secret-writer"
         
     jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"] = [yaml.dump(jh_template)]
