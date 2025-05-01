@@ -359,7 +359,7 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     if "imagePullSecrets" in cluster_config:
         jh_template["singleuser"]["image"]["pullSecrets"] = [cluster_config["imagePullSecrets"]]
     if not minimal:
-        registry_url = maia_form["maia_workspace_pro_image"].split("/")[0]
+        registry_url = "/".join(maia_form["maia_workspace_pro_image"].split("/")[:-1])
         jh_template["singleuser"]["image"]["pullSecrets"].append(registry_url.replace(".", "-").replace("/", "-"))
     
     maia_workspace_version = maia_form["maia_workspace_version"]
