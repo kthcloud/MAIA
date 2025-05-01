@@ -481,6 +481,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         "chart_name": "mlflow-v1",
         "docker_image": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-mlflow",
         "tag": "1.0",
+        "deployment": True,
         "memory_request": "2Gi",
         "cpu_request": "500m",
         "allocationTime": "180d",
@@ -491,7 +492,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         },
         "ingress": {
             "enabled": True,
-            "path": "/mlflow",
+            "path": "mlflow",
             "host": f"{user_config['group_subdomain']}.{cluster_config['domain']}",
             "port": 5000,
             "annotations": {}
@@ -509,8 +510,8 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
             "MYSQL_USER": mysql_config.get("mysql_user", "root"),
             "BUCKET_NAME": "mlflow",
             "BUCKET_PATH": "mlflow",
-            "AWS_ACCESS_KEY_ID": minio_config.get("console_access_key", "minio"),
-            "AWS_SECRET_ACCESS_KEY": minio_config.get("console_secret_key", "minio"),
+            "AWS_ACCESS_KEY_ID": base64.b64decode(minio_config.get("console_access_key", "minio")).decode("utf-8"),
+            "AWS_SECRET_ACCESS_KEY": base64.b64decode(minio_config.get("console_secret_key", "minio")).decode("utf-8"),
             "MLFLOW_S3_ENDPOINT_URL": "http://minio:80"
         }
     }

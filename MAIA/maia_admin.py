@@ -189,7 +189,7 @@ def generate_mysql_configs(namespace):
 
     mysql_configs = {
         "mysql_user": namespace,
-        "mysql_password": existing_mysql_configs["mysql_password"] if "mysql_password" in existing_mysql_configs else token_urlsafe(16),
+        "mysql_password": ''.join(filter(str.isalnum, existing_mysql_configs["mysql_password"])) if "mysql_password" in existing_mysql_configs else ''.join(filter(str.isalnum, token_urlsafe(16))),
     }
 
     return mysql_configs
@@ -1157,6 +1157,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
         else:
             db_password = generate_human_memorable_password()
         maia_dashboard_values["dashboard"]["local_config_path"] = "/mnt/dashboard-config"
+        cifs_server = ""
         maia_dashboard_values["env"] = [
             { "name": "DEBUG", "value": "False" },
             { "name": "CLUSTER_CONFIG_PATH", "value": "/mnt/dashboard-config" },
@@ -1168,7 +1169,8 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             { "name": "DB_PORT", "value": "3306" },
             { "name": "DB_USERNAME", "value": "maia-admin" },
             { "name": "DB_PASS", "value": db_password },
-            {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow"}
+            {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow"},
+            {"name": "CIFS_SERVER", "value": cifs_server},
         ]
         maia_dashboard_values["mysql"] = {
             "enabled": True,
