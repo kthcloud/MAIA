@@ -430,7 +430,7 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
     mysql_values = read_config_dict_and_generate_helm_values_dict(mysql_config, kubeconfig)
 
     mysql_values["chart_name"] = "mkg"
-    mysql_values["chart_version"] = "1.0.3"
+    mysql_values["chart_version"] = "1.0.4"
     mysql_values["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
 
     Path(config_folder).joinpath(user_config["group_ID"], "mysql_values").mkdir(parents=True, exist_ok=True)
@@ -529,7 +529,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
     mlflow_values = read_config_dict_and_generate_helm_values_dict(mlflow_config, kubeconfig)
 
     mlflow_values["chart_name"] = "mkg"
-    mlflow_values["chart_version"] = "1.0.3"
+    mlflow_values["chart_version"] = "1.0.4"
     mlflow_values["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
 
     Path(config_folder).joinpath(user_config["group_ID"], "mlflow_values").mkdir(parents=True, exist_ok=True)
