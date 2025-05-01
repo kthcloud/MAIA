@@ -361,6 +361,10 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
 
     maia_workspace_version = maia_form["maia_workspace_version"]
     maia_workspace_image = maia_form["maia_workspace_image"]
+    if not minimal:
+        maia_workspace_image = maia_form["maia_workspace_pro_image"]
+        maia_workspace_version = maia_form["maia_workspace_pro_version"]
+        
     jh_template["singleuser"]["profileList"] = [
         {
             "display_name": f"MAIA Workspace v{maia_workspace_version}",
