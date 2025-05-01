@@ -1,7 +1,6 @@
 import base64
 import json
 import os
-import subprocess
 from pathlib import Path
 from pprint import pprint
 from secrets import token_urlsafe
@@ -53,7 +52,7 @@ def create_config_map_from_data(data: str, config_map_name: str, namespace: str,
         namespace=namespace,
     )
 
-    if type(data_key) == list and type(data) == list:
+    if isinstance(data_key, list) and isinstance(data, list):
         configmap = kubernetes.client.V1ConfigMap(
             api_version="v1",
             kind="ConfigMap",
@@ -99,7 +98,7 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
         A list of dictionaries with service names as keys and their corresponding used SSH ports as values.
         Returns None if an exception occurs.
     """
-    if not "KUBECONFIG_LOCAL" in os.environ:
+    if "KUBECONFIG_LOCAL" not in os.environ:
         os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
@@ -128,7 +127,8 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
                             else:
                                 used_port.append({svc.metadata.name:int(port.port)})
         return used_port
-    except:
+    except ApiException as e:
+        print("Exception when calling CoreV1Api->list_service_for_all_namespaces: \n")
         return None
 
 def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
@@ -153,7 +153,7 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
     None
         If an error occurs during the process.
     """
-    if not "KUBECONFIG_LOCAL" in os.environ:
+    if "KUBECONFIG_LOCAL" not in os.environ:
         os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
@@ -187,7 +187,8 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
                     break
 
         return ports
-    except:
+    except ApiException as e:
+        print("Exception when calling CoreV1Api->list_service_for_all_namespaces:\n" )
         return None
 
 
@@ -355,7 +356,7 @@ def deploy_oauth2_proxy(cluster_config, user_config, config_folder=None):
 
     oauth2_proxy_config["chart_name"] = "oauth2-proxy"
     oauth2_proxy_config["chart_version"] = "7.7.8"
-    oauth2_proxy_config["repo_url"] = "https://oauth2-proxy.github.io/manifests"  # TODO: Change this to updated values
+    oauth2_proxy_config["repo_url"] = "https://oauth2-proxy.github.io/manifests"
 
     Path(config_folder).joinpath(user_config["group_ID"], "oauth2_proxy_values").mkdir(parents=True, exist_ok=True)
 
@@ -393,7 +394,7 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
         A dictionary containing deployment details such as namespace, release name, chart name, repository URL, version, and values file path.
     """
     namespace = user_config["group_ID"].lower().replace("_", "-")
-    if not "KUBECONFIG_LOCAL" in os.environ:
+    if "KUBECONFIG_LOCAL" not in os.environ:
         os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
 
@@ -429,8 +430,8 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
     mysql_values = read_config_dict_and_generate_helm_values_dict(mysql_config, kubeconfig)
 
     mysql_values["chart_name"] = "mkg"
-    mysql_values["chart_version"] = "1.0.2"
-    mysql_values["repo_url"] = "https://kthcloud.github.io/MAIA/"  # TODO: Change this to updated values
+    mysql_values["chart_version"] = "1.0.3"
+    mysql_values["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
 
     Path(config_folder).joinpath(user_config["group_ID"], "mysql_values").mkdir(parents=True, exist_ok=True)
 
@@ -470,7 +471,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         A dictionary containing deployment details such as namespace, release name, chart name, repository URL, chart version, and path to the values file.
     """
     namespace = user_config["group_ID"].lower().replace("_", "-")
-    if not "KUBECONFIG_LOCAL" in os.environ:
+    if "KUBECONFIG_LOCAL" not in os.environ:
         os.environ["KUBECONFIG_LOCAL"] = os.environ["KUBECONFIG"]
     kubeconfig = yaml.safe_load(Path(os.environ["KUBECONFIG_LOCAL"]).read_text())
     config.load_kube_config_from_dict(kubeconfig)
@@ -478,8 +479,8 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
     mlflow_config = {
         "namespace": namespace,
         "chart_name": "mlflow-v1",
-        "docker_image": "kthcloud/mlflow",  # TODO: Make this configurable
-        "tag": "1.1",
+        "docker_image": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-mlflow",
+        "tag": "1.0",
         "memory_request": "2Gi",
         "cpu_request": "500m",
         "allocationTime": "180d",
@@ -487,6 +488,13 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
             "mlflow": [
                 5000
             ]
+        },
+        "ingress": {
+            "enabled": True,
+            "path": "/mlflow",
+            "host": f"{user_config['group_subdomain']}.{cluster_config['domain']}",
+            "port": 5000,
+            "annotations": {}
         },
         "user_secret": [
             namespace
@@ -505,15 +513,24 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
             "AWS_SECRET_ACCESS_KEY": minio_config.get("console_secret_key", "minio"),
             "MLFLOW_S3_ENDPOINT_URL": "http://minio:80"
         }
-    }  # TODO: Change this to updated values
+    }
+    
+    if "nginx_cluster_issuer" in cluster_config:
+        mlflow_config["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
+        mlflow_config["ingress"]["tlsSecretName"] = "{}.{}-tls".format(user_config["group_subdomain"], cluster_config["domain"])
+    if "traefik_resolver" in cluster_config:
+        mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
+        mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = 'true'
+        mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config["traefik_resolver"]
+
     if "imagePullSecrets" in cluster_config:
         mlflow_config["image_pull_secret"] = cluster_config["imagePullSecrets"]
 
     mlflow_values = read_config_dict_and_generate_helm_values_dict(mlflow_config, kubeconfig)
 
     mlflow_values["chart_name"] = "mkg"
-    mlflow_values["chart_version"] = "1.0.2"
-    mlflow_values["repo_url"] = "https://kthcloud.github.io/MAIA/"  # TODO: Change this to updated values
+    mlflow_values["chart_version"] = "1.0.3"
+    mlflow_values["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
 
     Path(config_folder).joinpath(user_config["group_ID"], "mlflow_values").mkdir(parents=True, exist_ok=True)
 
@@ -578,6 +595,34 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         "orthanc_node_port": orthanc_port,
         "serviceType": "NodePort"
     }
+    
+    orthanc_custom_config = edit_orthanc_configuration(
+        orthanc_config_template="/home/simben/Documents/GitHub/Private/MAIA/docker/MAIA-Orthanc/orthanc.json",
+        orthanc_edit_dict={
+            "DicomModalities" : {
+                "dcm4chee" : ["XNAT", "maia-xnat", "8104"]  # [ "DCM4CHEE", "dcm4chee-service.services", 11115 ]
+            },
+            "DicomWeb" : {
+
+            "Servers" : {
+            "dcm4chee" : {
+                "Url" : "http://maia-xnat:8104",  # http://dcm4chee-service.services:8080/dcm4chee-arc/aets/KAAPANA/rs 
+                "HasDelete" : False
+            }
+            }
+        }
+        }
+    )
+    orthanc_config.update(
+        {
+        "orthanc_config_map": {
+            "enabled": True,
+            "orthanc_config": orthanc_custom_config
+        }
+        }
+    )
+    
+    
 
     domain = cluster_config["domain"]
     group_subdomain = user_config["group_subdomain"]
@@ -658,3 +703,13 @@ def gpu_list_from_nodes():
                 if "nvidia.com/gpu.product" in node.metadata.labels:
                     gpu_dict[node.metadata.name] = [ node.metadata.labels["nvidia.com/gpu.product"], node.metadata.labels["nvidia.com/gpu.count"] ] 
     return gpu_dict
+
+
+def edit_orthanc_configuration(orthanc_config_template, orthanc_edit_dict):
+    with open(orthanc_config_template, "r") as f:
+        orthanc_config = json.load(f)
+    
+    for key, value in orthanc_edit_dict.items():
+        orthanc_config[key] = value
+        
+    return orthanc_config
