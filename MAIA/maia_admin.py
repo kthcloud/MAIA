@@ -321,7 +321,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "size": "10Gi"
         },
         "chart_name": "maia-namespace", 
-        "chart_version": "1.7.0", 
+        "chart_version": "1.7.1", 
         "repo_url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry", 
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
         "serviceType": cluster_config["ssh_port_type"],
@@ -362,12 +362,26 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             "clientSecret": cluster_config["keycloak"]["client_secret"],
             "openIdConfigUrl": cluster_config["keycloak"]["issuer_url"] + "/.well-known/openid-configuration",
             "consoleAccessKey": minio_configs["console_access_key"],
-            "consoleSecretKey": minio_configs["console_secret_key"]
+            "consoleSecretKey": minio_configs["console_secret_key"],
+            "ingress": {
+                "annotations": {},
+                "host": "{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
+                "path": "/minio-console",
+                "serviceName": f"{namespace}-console",
+            }
         }
-
+        
+        if "nginx_cluster_issuer" in cluster_config:
+            maia_namespace_values["minio"]["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
+            maia_namespace_values["minio"]["ingress"]["tlsSecretName"] = "{}.{}-tls".format(user_config["group_subdomain"], cluster_config["domain"])
+        if "traefik_resolver" in cluster_config:
+            maia_namespace_values["minio"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
+            maia_namespace_values["minio"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = 'true'
+            maia_namespace_values["minio"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config["traefik_resolver"]
         if cluster_config["url_type"] == "subpath":
             maia_namespace_values["minio"]["consoleDomain"] = "https://{}/{}-minio-console".format(
                 cluster_config["domain"], namespace_config["group_ID"].lower().replace("_", "-"))
+            maia_namespace_values["minio"]["ingress"]["path"] = "/{}-minio-console".format(namespace_config["group_ID"].lower().replace("_", "-"))
  
     if mlflow_configs:
         maia_namespace_values["mlflow"] = {
