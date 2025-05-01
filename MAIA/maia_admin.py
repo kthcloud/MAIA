@@ -373,7 +373,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         
         if "nginx_cluster_issuer" in cluster_config:
             maia_namespace_values["minio"]["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
-            maia_namespace_values["minio"]["ingress"]["tlsSecretName"] = "{}.{}-tls".format(user_config["group_subdomain"], cluster_config["domain"])
+            maia_namespace_values["minio"]["ingress"]["tlsSecretName"] = "{}.{}-tls".format(namespace_config["group_subdomain"], cluster_config["domain"])
         if "traefik_resolver" in cluster_config:
             maia_namespace_values["minio"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
             maia_namespace_values["minio"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = 'true'
