@@ -14,6 +14,8 @@ from minio import Minio
 from omegaconf import OmegaConf
 
 import MAIA
+import base64
+import os
 
 version = MAIA.__version__
 
@@ -62,11 +64,12 @@ def get_arg_parser():
 @click.option("--form", type=str)
 @click.option("--maia-config-file", type=str)
 @click.option("--cluster-config-file", type=str)
-def create_jupyterhub_config(form, maia_config_file, cluster_config_file):
-    create_jupyterhub_config_api(form, maia_config_file, cluster_config_file)
+@click.option("--no-minimal", is_flag=True, default=False)
+def create_jupyterhub_config(form, maia_config_file, cluster_config_file, no_minimal):
+    create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, minimal=not no_minimal)
 
 
-def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, config_folder=None):
+def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, config_folder=None, minimal=True):
 
     if isinstance(maia_config_file, dict):
         maia_form = maia_config_file
@@ -199,21 +202,36 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
                 "MLFLOW_TRACKING_URI": f"https://{hub_address}/mlflow",
                 "HOSTNAME": cluster_config["ssh_hostname"],
                 "NAMESPACE": namespace.lower(),
-                # "INSTALL_QUPATH": "0",
-                "INSTALL_SLICER": "1",
                 "INSTALL_ZSH": "1",
-                "INSTALL_ITKSNAP": "1",
-                # "INSTALL_FREESURFER": "0",
                 "CONDA_ENVS_PATH": "/home/maia-user/.conda/envs/",
-                # "FREESURFER_HOME": "/home/maia-user/freesurfer/freesurfer",
+                "FREESURFER_HOME": "/home/maia-user/freesurfer/freesurfer",
             },
         },
     }
+    
+    if not minimal:
+        jh_template["singleuser"]["extraEnv"]["INSTALL_QUPATH"] = "1"
+        jh_template["singleuser"]["extraEnv"]["INSTALL_SLICER"] = "1"
+        jh_template["singleuser"]["extraEnv"]["INSTALL_ITKSNAP"] = "1"
+        #jh_template["singleuser"]["extraEnv"]["INSTALL_FREESURFER"] = "1"
+        jh_template["singleuser"]["extraEnv"]["INSTALL_MITK"] = "1"
+        jh_template["singleuser"]["extraEnv"]["INSTALL_NAPARI"] = "1"
 
-    jh_template["hub"]["activeServerLimit"] = 1
-    jh_template["hub"]["concurrentSpawnLimit"] = 1
+    # Perform base64 decoding if MINIO_ACCESS_KEY or MINIO_SECRET_KEY is not "N/A"
+    if jh_template["singleuser"]["extraEnv"]["MINIO_ACCESS_KEY"] != "N/A":
+        jh_template["singleuser"]["extraEnv"]["MINIO_ACCESS_KEY"] = base64.b64decode(
+            jh_template["singleuser"]["extraEnv"]["MINIO_ACCESS_KEY"]
+        ).decode("utf-8")
 
-    shared_server_user = "user@maia.se"
+    if jh_template["singleuser"]["extraEnv"]["MINIO_SECRET_KEY"] != "N/A":
+        jh_template["singleuser"]["extraEnv"]["MINIO_SECRET_KEY"] = base64.b64decode(
+            jh_template["singleuser"]["extraEnv"]["MINIO_SECRET_KEY"]
+        ).decode("utf-8")
+
+    jh_template["hub"]["activeServerLimit"] = 1 # TODO: Add to form
+    jh_template["hub"]["concurrentSpawnLimit"] = 1 # TODO: Add to form
+
+    shared_server_user = "user@maia.se"  # TODO: Add to form
     jh_template["hub"]["loadRoles"] = {
         "user": {
             "description": "Allow users to access the shared server in addition to default perms",
@@ -381,7 +399,8 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
         },
     ]
 
-    if "maia_monai_toolkit_image" in maia_form:
+    deploy_monai_toolkit = not minimal
+    if "maia_monai_toolkit_image" in maia_form and deploy_monai_toolkit:
         jh_template["singleuser"]["profileList"].append(
             {
                 "display_name": "MONAI Toolkit 3.0",
@@ -399,8 +418,12 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
             }
         )
 
-    mount_cifs = True
-    cifs_mount_path = ""
+    # TODO: Add to form
+    mount_cifs = True 
+    cifs_mount_path = os.environ.get("CIFS_SERVER", "N/A")
+    
+    if cifs_mount_path == "N/A":
+        mount_cifs = False
 
     if mount_cifs:
         jh_template["singleuser"]["storage"]["extraVolumes"].append(
@@ -436,9 +459,22 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
                                 "secretRef": {"name": "{username}-cifs"},
                             },
                         },
+                        {
+                            "name": "cifs-shared",
+                            "flexVolume": {
+                                "driver": "fstab/cifs",
+                                "fsType": "cifs",
+                                "options": {
+                                    "mountOptions": "dir_mode=0777,file_mode=0777,iocharset=utf8,noperm,nounix,rw",
+                                    "networkPath": cifs_mount_path + f"/{namespace}",
+                                },
+                                "secretRef": {"name": "{username}-cifs"},
+                            },
+                        },
                     ],
                     "volume_mounts": [
                         {"mountPath": "/home/maia-user/cifs", "name": "cifs"},
+                        {"mountPath": "/home/maia-user/cifs-shared", "name": "cifs-shared"},
                         {"mountPath": "/home/maia-user/shared", "name": "jupyter-shared"},
                         {"mountPath": "/dev/shm", "name": "shm-volume"},
                         {"mountPath": "/home/maia-user", "name": "home"},
@@ -451,7 +487,11 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     if gpu_request:
         jh_template["singleuser"]["profileList"][0]["kubespawner_override"]["extra_resource_limits"] = {"nvidia.com/gpu": "1"}
         jh_template["singleuser"]["profileList"][-1]["kubespawner_override"]["extra_resource_limits"] = {"nvidia.com/gpu": "1"}
-
+        
+    if mount_cifs:
+        for id in enumerate(jh_template["singleuser"]["profileList"]):
+            jh_template["singleuser"]["profileList"][id]["kubespawner_override"]["service_account"] = "secret-writer"
+        
     jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"] = [yaml.dump(jh_template)]
 
     chart_info = {}

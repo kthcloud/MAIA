@@ -182,7 +182,7 @@ def deploy_maia_toolkit_api(
                 }
             )
 
-    helm_commands.append(create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder))
+    helm_commands.append(create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=minimal))
 
     if not minimal:
         helm_commands.append(deploy_oauth2_proxy(cluster_config_dict, project_form_dict, config_folder))
