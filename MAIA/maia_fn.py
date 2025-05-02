@@ -642,6 +642,7 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         orthanc_config["orthanc_dicom_service_annotations"]["metallb.universe.tf/ip-allocated-from-pool"] = cluster_config.get("metallb_ip_pool", False)
         orthanc_config["orthanc_node_port"] =  {"loadBalancer": orthanc_port}
         orthanc_config["loadBalancerIp"] = cluster_config.get("maia_metallb_ip", False)
+        orthanc_config["serviceType"] = "LoadBalancer"
 
     if cluster_config["ingress_class"] == "maia-core-traefik":
         orthanc_config["ingress_annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
