@@ -600,23 +600,23 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
         for global_namespace in settings.GLOBAL_NAMESPACES:
             if API_URL in settings.PRIVATE_CLUSTERS:
                 token = settings.PRIVATE_CLUSTERS[API_URL]
-                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(namespace),
+                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(global_namespace),
                                         headers={"Authorization": "Bearer {}".format(token)}, verify=False)
             else:
-                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(namespace),
+                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(global_namespace),
                                         headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
             ingresses = json.loads(response.text)
 
             if API_URL in settings.PRIVATE_CLUSTERS:
                 token = settings.PRIVATE_CLUSTERS[API_URL]
                 try:
-                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
+                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(global_namespace),
                                             headers={"Authorization": "Bearer {}".format(token)}, verify=False)
                 except:
                     continue
             else:
                 try:
-                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(namespace),
+                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(global_namespace),
                                             headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
                 except:
                     continue

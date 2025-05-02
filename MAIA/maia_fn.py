@@ -597,6 +597,9 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         "serviceType": "NodePort"
     }
     
+    registry_url = "/".join(maia_config_dict["maia_workspace_pro_image"].split("/")[:-1])
+    orthanc_config["imagePullSecret"] = registry_url.replace(".", "-").replace("/", "-")
+    
     namespace = user_config["group_ID"].lower().replace("_", "-")
     orthanc_custom_config ={
             "DicomModalities" : {
