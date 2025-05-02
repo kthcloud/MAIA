@@ -597,23 +597,23 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         "serviceType": "NodePort"
     }
     
-    orthanc_custom_config = edit_orthanc_configuration(
-        orthanc_config_template="/home/simben/Documents/GitHub/Private/MAIA/docker/MAIA-Orthanc/orthanc.json",
-        orthanc_edit_dict={
+    namespace = user_config["group_ID"].lower().replace("_", "-")
+    orthanc_custom_config ={
             "DicomModalities" : {
-                "dcm4chee" : ["XNAT", "maia-xnat", "8104"]  # [ "DCM4CHEE", "dcm4chee-service.services", 11115 ]
+                f"{namespace}-xnat" : [f"{namespace}-XNAT", "maia-xnat.xnat", "8104"]  
+                # [ "DCM4CHEE", "dcm4chee-service.services", 11115 ]
             },
             "DicomWeb" : {
+                "Servers": {
+                    f"{namespace}-xnat": {
+                        "Url": "http://maia-xnat.xnat:8104",  
+                        # http://dcm4chee-service.services:8080/dcm4chee-arc/aets/KAAPANA/rs
+                        "HasDelete": False
+                    }
+                }
+            }
+        }
 
-            "Servers" : {
-            "dcm4chee" : {
-                "Url" : "http://maia-xnat:8104",  # http://dcm4chee-service.services:8080/dcm4chee-arc/aets/KAAPANA/rs 
-                "HasDelete" : False
-            }
-            }
-        }
-        }
-    )
     orthanc_config.update(
         {
         "orthanc_config_map": {
@@ -622,8 +622,6 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         }
         }
     )
-    
-    
 
     domain = cluster_config["domain"]
     group_subdomain = user_config["group_subdomain"]
@@ -654,8 +652,8 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
 
 
     orthanc_config["chart_name"] = "maia-orthanc"
-    orthanc_config["chart_version"] = "0.0.3"
-    orthanc_config["repo_url"] = "https://kthcloud.github.io/MAIA/"
+    orthanc_config["chart_version"] = "1.0.0"
+    orthanc_config["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
 
     Path(config_folder).joinpath(user_config["group_ID"], "orthanc_values").mkdir(parents=True, exist_ok=True)
 

@@ -194,7 +194,7 @@ def deploy_maia_toolkit_api(
             )
         )
 
-        #helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
+        helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
 
     for helm_command in helm_commands:
         cmd = [
@@ -238,7 +238,7 @@ def deploy_maia_toolkit_api(
         values["defaults"].append({"mlflow_values": "mlflow_values"})
         values["defaults"].append({"mysql_values": "mysql_values"})
         values["defaults"].append({"oauth2_proxy_values": "oauth2_proxy_values"})
-        #values["defaults"].append({"orthanc_values": "orthanc_values"})
+        values["defaults"].append({"orthanc_values": "orthanc_values"})
 
     with open(Path(config_folder).joinpath(group_id, "values.yaml"), "w") as f:
         f.write(OmegaConf.to_yaml(values))
