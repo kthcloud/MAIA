@@ -15,7 +15,10 @@ if __name__ == "__main__":
         "DCMQI",
         "PETDICOMExtension",
         "SegmentEditorExtraEffects",
+        "SlicerConda",
         #"SlicerDevelopmentToolbox",
+        #"DatabaseInteractor",
+        #"DebuggingTools",
         #"MarkupsToModel",
         #"Chest_Imaging_Platform",
         #"MONAIViz",
@@ -34,7 +37,11 @@ if __name__ == "__main__":
         "SegmentWithSAM",
         "SlicerDcm2nii",
         "TCIABrowser",
-        "nnUNet"
+        "nnUNet",
+        "NNInteractive",
+        "ImageAugmenter",
+        "XNATSlicer",
+        "SlicerFreeSurfer",
     ]
 
     load_extensions(extensions)
