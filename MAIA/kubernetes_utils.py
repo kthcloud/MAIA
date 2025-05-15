@@ -597,40 +597,41 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                     elif service["spec"]["type"] == "LoadBalancer":
                                         orthanc["dicom_port"] = port['port']
         
-        for global_namespace in settings.GLOBAL_NAMESPACES:
-            if API_URL in settings.PRIVATE_CLUSTERS:
-                token = settings.PRIVATE_CLUSTERS[API_URL]
-                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(global_namespace),
-                                        headers={"Authorization": "Bearer {}".format(token)}, verify=False)
-            else:
-                response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(global_namespace),
-                                        headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
-            ingresses = json.loads(response.text)
-
-            if API_URL in settings.PRIVATE_CLUSTERS:
-                token = settings.PRIVATE_CLUSTERS[API_URL]
-                try:
-                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(global_namespace),
+        if hasattr(settings, "GLOBAL_NAMESPACES") and settings.GLOBAL_NAMESPACES is not None:
+            for global_namespace in settings.GLOBAL_NAMESPACES:
+                if API_URL in settings.PRIVATE_CLUSTERS:
+                    token = settings.PRIVATE_CLUSTERS[API_URL]
+                    response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(global_namespace),
                                             headers={"Authorization": "Bearer {}".format(token)}, verify=False)
-                except:
-                    continue
-            else:
-                try:
-                    response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(global_namespace),
+                else:
+                    response = requests.get(API_URL + "/apis/networking.k8s.io/v1/namespaces/{}/ingresses".format(global_namespace),
                                             headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
-                except:
-                    continue
-            services = json.loads(response.text)
-            
-            if 'items' in ingresses:
-                if 'items' in services:
-                    for ingress in ingresses['items']:
-                        for rule in ingress['spec']['rules']:
-                            if 'host' not in rule:
-                                rule['host'] = settings.DEFAULT_INGRESS_HOST
-                            for path in rule['http']['paths']:
-                                if path['backend']['service']['name'] == 'maia-xnat':                               
-                                    maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
+                ingresses = json.loads(response.text)
+
+                if API_URL in settings.PRIVATE_CLUSTERS:
+                    token = settings.PRIVATE_CLUSTERS[API_URL]
+                    try:
+                        response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(global_namespace),
+                                                headers={"Authorization": "Bearer {}".format(token)}, verify=False)
+                    except:
+                        continue
+                else:
+                    try:
+                        response = requests.get(API_URL + "/api/v1/namespaces/{}/services".format(global_namespace),
+                                                headers={"Authorization": "Bearer {}".format(id_token)}, verify=False)
+                    except:
+                        continue
+                services = json.loads(response.text)
+                
+                if 'items' in ingresses:
+                    if 'items' in services:
+                        for ingress in ingresses['items']:
+                            for rule in ingress['spec']['rules']:
+                                if 'host' not in rule:
+                                    rule['host'] = settings.DEFAULT_INGRESS_HOST
+                                for path in rule['http']['paths']:
+                                    if path['backend']['service']['name'] == 'maia-xnat':                               
+                                        maia_workspace_apps['xnat'] = "https://" + rule['host'] + path['path']
                                     
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"
