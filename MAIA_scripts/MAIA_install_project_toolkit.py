@@ -123,24 +123,24 @@ async def verify_installed_maia_toolkit(project_id, namespace, get_chart_metadat
 @click.option("--project-config-file", type=str)
 @click.option("--maia-config-file", type=str)
 @click.option("--cluster-config", type=str)
-@click.option("--minimal", is_flag=True)
+@click.option("--no-minimal", is_flag=True)
 @click.option("--config-folder", type=str)
 @click.option("--no-argocd", is_flag=True)
-def main(project_config_file, maia_config_file, cluster_config, config_folder, minimal=False, no_argocd=False):
-    deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, minimal, no_argocd)
+def main(project_config_file, maia_config_file, cluster_config, config_folder, no_minimal=False, no_argocd=False):
+    deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, no_minimal, no_argocd)
 
 
-def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, minimal=False, no_argocd=False):
+def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, config_folder, no_minimal=False, no_argocd=False):
     project_form_dict = yaml.safe_load(Path(project_config_file).read_text())
 
     cluster_config_dict = yaml.safe_load(Path(cluster_config).read_text())
     maia_config_dict = yaml.safe_load(Path(maia_config_file).read_text())
 
-    deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal, no_argocd)
+    deploy_maia_toolkit_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, not no_minimal, no_argocd)
 
 
 def deploy_maia_toolkit_api(
-    project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=False, no_argocd=False, redeploy_enabled=True
+    project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=True, no_argocd=False, redeploy_enabled=True
 ):
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
