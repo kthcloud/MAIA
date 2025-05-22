@@ -203,24 +203,55 @@ def deploy_maia_toolkit_api(
         helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
 
     for helm_command in helm_commands:
-        cmd = [
-            "helm",
-            "upgrade",
-            "--install",
-            "--wait",
-            "-n",
-            helm_command["namespace"],
-            helm_command["release"],
-            helm_command["chart"],
-            "--repo",
-            helm_command["repo"],
-            "--version",
-            helm_command["version"],
-            "--values",
-            helm_command["values"],
-        ]
+        if not helm_command["repo"].startswith("http"):
+            helm_command["repo"] = f"oci://{helm_command['repo']}"
+            cmd = [
+                "helm",
+                "upgrade",
+                "--install",
+                "--wait",
+                "-n",
+                helm_command["namespace"],
+                helm_command["release"],
+                "--repo",
+                "/tmp/"+helm_command["chart"]+"-"+helm_command["version"]+".tgz",
+                "--values",
+                helm_command["values"],
+            ]
+        else:
+            cmd = [
+                "helm",
+                "upgrade",
+                "--install",
+                "--wait",
+                "-n",
+                helm_command["namespace"],
+                helm_command["release"],
+                helm_command["chart"],
+                "--repo",
+                helm_command["repo"],
+                "--version",
+                helm_command["version"],
+                "--values",
+                helm_command["values"],
+            ]
         print(" ".join(cmd))
         if no_argocd:
+            with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
+                subprocess.run(
+                    [
+                        "helm",
+                        "registry",
+                        "login",
+                        "--username",
+                        "_json_key",
+                        "--password-stdin",
+                    ],
+                    stdin=stdin_file,
+                )
+            subprocess.run(
+                ["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"],
+            )
             subprocess.run(cmd)
 
     destination_cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
