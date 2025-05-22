@@ -204,7 +204,25 @@ def deploy_maia_toolkit_api(
 
     for helm_command in helm_commands:
         if not helm_command["repo"].startswith("http"):
+            original_repo = helm_command["repo"]
             helm_command["repo"] = f"oci://{helm_command['repo']}"
+            with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
+                subprocess.run(
+                    [
+                        "helm",
+                        "registry",
+                        original_repo,
+                        "login",
+                        "--username",
+                        "_json_key",
+                        "--password-stdin",
+                    ],
+                    stdin=stdin_file,
+                )
+            subprocess.run(
+                ["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"],
+            )
+            
             cmd = [
                 "helm",
                 "upgrade",
@@ -235,23 +253,9 @@ def deploy_maia_toolkit_api(
                 "--values",
                 helm_command["values"],
             ]
-        print(" ".join(cmd))
+            print(" ".join(cmd))
         if no_argocd:
-            with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
-                subprocess.run(
-                    [
-                        "helm",
-                        "registry",
-                        "login",
-                        "--username",
-                        "_json_key",
-                        "--password-stdin",
-                    ],
-                    stdin=stdin_file,
-                )
-            subprocess.run(
-                ["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"],
-            )
+            print(" ".join(cmd))
             subprocess.run(cmd)
 
     destination_cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
