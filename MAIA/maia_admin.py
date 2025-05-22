@@ -308,7 +308,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         if f"{namespace}-orthanc-svc-orthanc" in ssh_port_dict:
             orthanc_ssh_port = ssh_port_dict["-svc-orthanc"]
         else:
-            orthanc_ssh_port = ssh_ports.pop(0)
+            orthanc_ssh_port = ssh_ports[-1]
     
     minimal_deployment = False
     if minio_configs is None and mlflow_configs is None:
@@ -373,6 +373,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
         
         if "nginx_cluster_issuer" in cluster_config:
             maia_namespace_values["minio"]["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
+            maia_namespace_values["minio"]["ingress"]["annotations"]["nginx.ingress.kubernetes.io/proxy-body-size"] = "10g"
             maia_namespace_values["minio"]["ingress"]["tlsSecretName"] = "{}.{}-tls".format(namespace_config["group_subdomain"], cluster_config["domain"])
         if "traefik_resolver" in cluster_config:
             maia_namespace_values["minio"]["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
@@ -1161,7 +1162,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             { "name": "CLUSTER_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config" },
             { "name": "CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config" },
             { "name": "MAIA_CONFIG_PATH", "value": "/etc/MAIA-Dashboard/config/maia_config.yaml" },
-            {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow"},
+            {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow,istio-system"},
         ]
         maia_dashboard_values["dashboard"]["local_config_path"] = "/etc/MAIA-Dashboard/config"
     else:
