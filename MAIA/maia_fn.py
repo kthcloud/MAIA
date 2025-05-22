@@ -126,6 +126,7 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
                                 used_port.append({svc.metadata.name[:-len('-ssh')]:int(port.port)})
                             else:
                                 used_port.append({svc.metadata.name:int(port.port)})
+        print("Used ports: ", used_port)
         return used_port
     except ApiException as e:
         print("Exception when calling CoreV1Api->list_service_for_all_namespaces: \n")
@@ -176,7 +177,7 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
                 if svc.spec.type == 'NodePort':
                     for port in svc.spec.ports:
                         used_port.append(int(port.port))
-
+        print("Used ports: ", used_port)
         ports = []
 
         for request in range(n_requested_ports):
@@ -480,21 +481,21 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         "namespace": namespace,
         "chart_name": "mlflow-v1",
         "docker_image": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-mlflow",
-        "tag": "1.0",
+        "tag": "1.4",
         "deployment": True,
         "memory_request": "2Gi",
         "cpu_request": "500m",
         "allocationTime": "180d",
         "ports": {
-            "mlflow": [
-                5000
+            "proxy": [
+                80
             ]
         },
         "ingress": {
             "enabled": True,
             "path": "mlflow",
             "host": f"{user_config['group_subdomain']}.{cluster_config['domain']}",
-            "port": 5000,
+            "port": 80,
             "annotations": {}
         },
         "user_secret": [
@@ -507,6 +508,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         "env_variables": {
             "MYSQL_URL": "{}-mysql-mkg".format(namespace),
             "MYSQL_PASSWORD": mysql_config.get("mysql_password", "root"),
+            "NAMESPACE": namespace,
             "MYSQL_USER": mysql_config.get("mysql_user", "root"),
             "BUCKET_NAME": "mlflow",
             "BUCKET_PATH": "mlflow",
@@ -525,7 +527,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config["traefik_resolver"]
 
     if "imagePullSecrets" in cluster_config:
-        mlflow_config["image_pull_secret"] = cluster_config["imagePullSecrets"]
+        mlflow_config["image_pull_secret"] = cluster_config["imagePullSecrets"] # UPDATE TO PRIVATE REGISTRY
 
     mlflow_values = read_config_dict_and_generate_helm_values_dict(mlflow_config, kubeconfig)
 
