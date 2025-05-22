@@ -233,7 +233,6 @@ def deploy_maia_toolkit_api(
                 "-n",
                 helm_command["namespace"],
                 helm_command["release"],
-                "--repo",
                 "/tmp/"+helm_command["chart"]+"-"+helm_command["version"]+".tgz",
                 "--values",
                 helm_command["values"],
