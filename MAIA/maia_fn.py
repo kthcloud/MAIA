@@ -121,11 +121,11 @@ def get_ssh_port_dict(port_type,namespace,port_range, maia_metallb_ip=None):
             elif port_type == "NodePort":
                 if svc.spec.type == 'NodePort' and svc.metadata.namespace == namespace:
                     for port in svc.spec.ports:
-                        if port.nodePort >= port_range[0] and port.nodePort <= port_range[1]:
+                        if port.node_port >= port_range[0] and port.node_port <= port_range[1]:
                             if svc.metadata.name.endswith('-ssh'):
-                                used_port.append({svc.metadata.name[:-len('-ssh')]:int(port.nodePort)})
+                                used_port.append({svc.metadata.name[:-len('-ssh')]:int(port.node_port)})
                             else:
-                                used_port.append({svc.metadata.name:int(port.nodePort)})
+                                used_port.append({svc.metadata.name:int(port.node_port)})
         print("Used ports: ", used_port)
         return used_port
     except ApiException as e:
@@ -176,7 +176,7 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
             elif port_type == "NodePort":
                 if svc.spec.type == 'NodePort':
                     for port in svc.spec.ports:
-                        used_port.append(int(port.nodePort))
+                        used_port.append(int(port.node_port))
         print("Used ports: ", used_port)
         ports = []
 
