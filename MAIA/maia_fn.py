@@ -449,7 +449,7 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
     }
 
 
-def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None, minio_config=None):
+def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, mysql_config=None, minio_config=None):
     """
     Deploy an MLflow instance on a Kubernetes cluster using Helm.
 
@@ -526,8 +526,8 @@ def deploy_mlflow(cluster_config, user_config, config_folder, mysql_config=None,
         mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = 'true'
         mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config["traefik_resolver"]
 
-    if "imagePullSecrets" in cluster_config:
-        mlflow_config["image_pull_secret"] = cluster_config["imagePullSecrets"] # UPDATE TO PRIVATE REGISTRY
+    registry_url = "/".join(maia_config_dict["maia_workspace_pro_image"].split("/")[:-1])
+    mlflow_config["imagePullSecret"] = registry_url.replace(".", "-").replace("/", "-")
 
     mlflow_values = read_config_dict_and_generate_helm_values_dict(mlflow_config, kubeconfig)
 

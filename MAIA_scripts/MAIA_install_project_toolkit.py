@@ -196,7 +196,7 @@ def deploy_maia_toolkit_api(
         helm_commands.append(deploy_mysql(cluster_config_dict, project_form_dict, config_folder, mysql_configs=mysql_configs))
         helm_commands.append(
             deploy_mlflow(
-                cluster_config_dict, project_form_dict, config_folder, mysql_config=mysql_configs, minio_config=minio_configs
+                cluster_config_dict, project_form_dict, config_folder, maia_config_dict, mysql_config=mysql_configs, minio_config=minio_configs
             )
         )
 
