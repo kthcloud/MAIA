@@ -680,6 +680,7 @@ def create_namespace_from_context(namespace_id):
             #print(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespace: \n")
+            print(e)
 
 def create_namespace(request, settings, namespace_id, cluster_id):
     """
