@@ -16,6 +16,7 @@ from hydra import compose as hydra_compose
 from hydra import initialize_config_dir
 from omegaconf import OmegaConf
 from pyhelm3 import Client
+import subprocess
 
 import MAIA
 from MAIA.maia_admin import (
@@ -164,6 +165,11 @@ def deploy_maia_toolkit_api(
         project_form_dict["minio_access_key"] = "N/A"
         project_form_dict["minio_secret_key"] = "N/A"
 
+    print("Creating MAIA Project Namespace")
+    if no_argocd:
+        print("No ArgoCD deployment")
+    else:
+        print("ArgoCD deployment")
 
     helm_commands.append(
         create_maia_namespace_values(
@@ -214,6 +220,8 @@ def deploy_maia_toolkit_api(
             helm_command["values"],
         ]
         print(" ".join(cmd))
+        if no_argocd:
+            subprocess.run(cmd)
 
     destination_cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
 
