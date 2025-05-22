@@ -668,7 +668,7 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
 
     return {
         "namespace": user_config["group_ID"].lower().replace("_", "-"),
-        "release": user_config["group_ID"].lower().replace("_", "-") + "-oauth2-proxy",
+        "release": user_config["group_ID"].lower().replace("_", "-") + "-orthanc",
         "chart": orthanc_config["chart_name"],
         "repo": orthanc_config["repo_url"],
         "version": orthanc_config["chart_version"],
