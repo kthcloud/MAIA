@@ -207,7 +207,7 @@ def deploy_maia_toolkit_api(
             original_repo = helm_command["repo"]
             helm_command["repo"] = f"oci://{helm_command['repo']}"
             with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
-                subprocess.Popen(
+                subprocess.run(
                     [
                         "helm",
                         "registry",
@@ -220,7 +220,7 @@ def deploy_maia_toolkit_api(
                     stdin=stdin_file,
                 )
             print(" ".join(["helm", "registry", "login", original_repo, "--username", "_json_key", "--password-stdin"]))
-            subprocess.Popen(
+            subprocess.run(
                 ["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"],
             )
             print(" ".join(["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"]))
