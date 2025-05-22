@@ -211,17 +211,19 @@ def deploy_maia_toolkit_api(
                     [
                         "helm",
                         "registry",
-                        original_repo,
                         "login",
+                        original_repo,
                         "--username",
                         "_json_key",
                         "--password-stdin",
                     ],
                     stdin=stdin_file,
                 )
+            print(" ".join(["helm", "registry", "login", original_repo, "--username", "_json_key", "--password-stdin"]))
             subprocess.run(
                 ["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"],
             )
+            print(" ".join(["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"]))
             
             cmd = [
                 "helm",
@@ -236,6 +238,7 @@ def deploy_maia_toolkit_api(
                 "--values",
                 helm_command["values"],
             ]
+            print(" ".join(cmd))
         else:
             cmd = [
                 "helm",
@@ -255,7 +258,7 @@ def deploy_maia_toolkit_api(
             ]
             print(" ".join(cmd))
         if no_argocd:
-            print(" ".join(cmd))
+            
             subprocess.run(cmd)
 
     destination_cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
