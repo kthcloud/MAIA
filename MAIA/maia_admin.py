@@ -301,12 +301,12 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     
     if cluster_config["ssh_port_type"] == "LoadBalancer":
         if f"{namespace}-orthanc-svc-orthanc" in ssh_port_dict:
-            orthanc_ssh_port = ssh_port_dict["-svc-orthanc"]
+            orthanc_ssh_port = ssh_port_dict[f"{namespace}-orthanc-svc-orthanc"]
         else:
             orthanc_ssh_port = ssh_ports.pop(0)
     else:
         if f"{namespace}-orthanc-svc-orthanc" in ssh_port_dict:
-            orthanc_ssh_port = ssh_port_dict["-svc-orthanc"]
+            orthanc_ssh_port = ssh_port_dict[f"{namespace}-orthanc-svc-orthanc"]
         else:
             orthanc_ssh_port = ssh_ports[-1]
     
