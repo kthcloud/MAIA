@@ -14,7 +14,7 @@ import yaml
 from kubernetes import config
 from minio import Minio
 from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_toolkit
-from MAIA.kubernetes_utils import generate_kubeconfig
+from MAIA.kubernetes_utils import generate_kubeconfig, get_namespaces
 from MAIA.keycloak_utils import get_groups_in_keycloak
 from datetime import datetime
 import email
@@ -947,6 +947,8 @@ def get_project_argo_status_and_user_table(request, settings, maia_user_model, m
         settings=settings, maia_user_model=maia_user_model, maia_project_model=maia_project_model
     )
     project_argo_status = {}
+    
+    namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
     deployed_projects = asyncio.run(get_list_of_deployed_projects())
     for project_id in maia_groups_dict:
@@ -954,6 +956,11 @@ def get_project_argo_status_and_user_table(request, settings, maia_user_model, m
             project_argo_status[project_id] = 1
         else:
             project_argo_status[project_id] = -1
+        if "ARGOCD_DISABLED" in os.environ and os.environ["ARGOCD_DISABLED"] == "True":
+            if project_id.lower().replace("_", "-") in namespaces:
+                project_argo_status[project_id] = 1
+            else:
+                project_argo_status[project_id] = -1
         # project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
 
     return to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status, users_to_remove_from_group
