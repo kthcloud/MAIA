@@ -284,14 +284,16 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
                     "oauth_callback_url"
                 ] = f"https://{hub_address}/{group_subdomain}-hub/oauth_callback"
 
-    # if "private_hub" in user_form:
+    if "JHUB_IMAGE" in os.environ:
+        jh_template["hub"]["image"] = {
+                    "name": os.environ["JHUB_IMAGE"]+"/jupyterhub-ks-kaapana",
+                    "tag": "1.0"
+                    
 
-    #    jh_template["hub"]["image"] = {
-
-    #                "name": "registry.maia.cloud.cbh.kth.se/jupyterhub",
-    #                "tag": "1.1"
-
-    #    }
+        }
+        jh_template["hub"]["image"]["pullSecrets"] = [
+            os.environ["JHUB_IMAGE"].replace(".", "-").replace("/", "-")
+        ]
 
     if not gpu_request:
         jh_template["singleuser"]["extraEnv"]["NVIDIA_VISIBLE_DEVICES"] = ""
