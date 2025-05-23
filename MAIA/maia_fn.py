@@ -527,7 +527,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, 
         mlflow_config["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = cluster_config["traefik_resolver"]
 
     registry_url = "/".join(maia_config_dict["maia_workspace_pro_image"].split("/")[:-1])
-    mlflow_config["imagePullSecret"] = registry_url.replace(".", "-").replace("/", "-")
+    mlflow_config["image_pull_secret"] = registry_url.replace(".", "-").replace("/", "-")
 
     mlflow_values = read_config_dict_and_generate_helm_values_dict(mlflow_config, kubeconfig)
 
