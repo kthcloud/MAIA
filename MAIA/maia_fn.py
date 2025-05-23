@@ -481,7 +481,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, 
         "namespace": namespace,
         "chart_name": "mlflow-v1",
         "docker_image": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-mlflow",
-        "tag": "1.4",
+        "tag": "1.5",
         "deployment": True,
         "memory_request": "2Gi",
         "cpu_request": "500m",
@@ -514,9 +514,18 @@ def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, 
             "BUCKET_PATH": "mlflow",
             "AWS_ACCESS_KEY_ID": base64.b64decode(minio_config.get("console_access_key", "minio")).decode("utf-8"),
             "AWS_SECRET_ACCESS_KEY": base64.b64decode(minio_config.get("console_secret_key", "minio")).decode("utf-8"),
-            "MLFLOW_S3_ENDPOINT_URL": "http://minio:80"
+            "MLFLOW_S3_ENDPOINT_URL": "http://minio:80",
+            "MLFLOW_PATH": "mlflow",
+            "MINIO_CONSOLE_PATH": "minio-console",
         }
     }
+    
+    if cluster_config["url_type"] == "subpath":
+        mlflow_config["ingress"]["path"] = "{}-mlflow".format(user_config["group_subdomain"])
+        mlflow_config["ingress"]["host"] = cluster_config["domain"]
+        mlflow_config["env_variables"]["MLFLOW_PATH"] = "{}-mlflow".format(user_config["group_subdomain"])
+        mlflow_config["env_variables"]["MINIO_CONSOLE_PATH"] = "{}-minio-console".format(user_config["group_subdomain"])
+        
     
     if "nginx_cluster_issuer" in cluster_config:
         mlflow_config["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
