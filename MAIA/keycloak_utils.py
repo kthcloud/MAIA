@@ -273,7 +273,7 @@ def register_user_in_keycloak(email, settings):
 
     keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
 
-    temp_password = "MAIA"
+    temp_password = "MAIA!"
     maia_login_url = "https://" + settings.HOSTNAME + "/maia/"
     keycloak_admin.create_user(
         {
