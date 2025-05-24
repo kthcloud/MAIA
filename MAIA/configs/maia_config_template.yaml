@@ -2,27 +2,37 @@ argocd_namespace: "argocd"
 admin_group_ID: "MAIA:admin"
 
 core_project_chart: "maia-core-project"
-core_project_repo: "https://kthcloud.github.io/MAIA/"
+core_project_repo: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
 core_project_version: "0.1.5"          
 
 admin_project_chart: "maia-admin-project"
-admin_project_repo: "https://kthcloud.github.io/MAIA/"
-admin_project_version: 0.1.3        
+admin_project_repo: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+admin_project_version: 0.1.4        
 
-docker_build_project_chart: "charts/maia-docker-build-project"
+docker_build_project_chart: "maia-docker-build-project"
+docker_build_project_repo: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+docker_build_project_version: "1.1.4"
 
 maia_project_chart: "maia-project"
 maia_project_repo: "https://kthcloud.github.io/MAIA/"
-maia_project_version: "1.1.2"
+maia_project_version: "1.7.0"
 
-dashboard_image: "registry.<your_domain>/maia/maia-dashboard"
-dashboard_version: "1.0"
+maia_pro_project_chart: "maia-project"
+maia_pro_project_repo: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+maia_pro_project_version: "1.7.0"
 
-maia_workspace_version: "1.1"
-maia_workspace_image: "registry.<your_domain>/maia/maia-workspace-notebook-ssh-addons"
-maia_monai_toolkit_image: "registry.<your_domain>/maia/monai-toolkit:1.0"
+dashboard_image: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-dashboard"
+dashboard_version: "2.0.7"
 
-maia_orthanc_image: "registry.<your_domain>/maia/maia-orthanc"
+maia_workspace_version: "1.7.1"
+maia_workspace_image: "registry.maia-cloud.com/maia/maia-workspace-base-notebook-ssh"
+
+maia_workspace_pro_image: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-workspace-notebook-ssh-addons"
+maia_workspace_pro_version: "1.7.1a"
+
+maia_monai_toolkit_image: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/monai-toolkit:1.0"
+
+maia_orthanc_image: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-orthanc"
 maia_orthanc_version: "1.1"
 
 gpu_list: []
