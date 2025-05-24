@@ -1,5 +1,6 @@
 import os
 
+
 def find_notebooks(directory):
     notebooks = []
     for root, _, files in os.walk(directory):
@@ -7,6 +8,7 @@ def find_notebooks(directory):
             if file.endswith(".ipynb") or file.endswith(".md"):
                 notebooks.append(os.path.relpath(os.path.join(root, file), directory))
     return notebooks
+
 
 def generate_rst(notebooks, output_file):
     grouped_notebooks = {}
@@ -24,23 +26,24 @@ def generate_rst(notebooks, output_file):
                 last_subfolder = subfolder.split("/")[-1]
                 f.write(f"{last_subfolder}\n")
                 f.write(f"{'-' * len(last_subfolder)}\n\n")
-            f.write(f".. toctree::\n")
-            f.write(f"   :maxdepth: 1\n\n")
+            f.write(".. toctree::\n")
+            f.write("   :maxdepth: 1\n\n")
             readme_found = False
             for notebook in notebooks:
                 if "README.md" in notebook:
-                    title = os.path.splitext(os.path.basename(notebook))[0]
+                    # title = os.path.splitext(os.path.basename(notebook))[0]
                     f.write(f"   tutorials/{notebook}\n")
                     readme_found = True
                     break
             if not readme_found:
                 for notebook in notebooks:
-                    title = os.path.splitext(os.path.basename(notebook))[0]
+                    # title = os.path.splitext(os.path.basename(notebook))[0]
                     f.write(f"   tutorials/{notebook}\n")
             f.write("\n")
 
+
 if __name__ == "__main__":
-    tutorial_dir = os.path.join(os.path.dirname(__file__),'..','source', 'apidocs', 'tutorials')
-    output_file = os.path.join(os.path.dirname(__file__), '..','source','apidocs','tutorials.rst')
+    tutorial_dir = os.path.join(os.path.dirname(__file__), '..', 'source', 'apidocs', 'tutorials')
+    output_file = os.path.join(os.path.dirname(__file__), '..', 'source', 'apidocs', 'tutorials.rst')
     notebooks = find_notebooks(tutorial_dir)
     generate_rst(notebooks, output_file)
