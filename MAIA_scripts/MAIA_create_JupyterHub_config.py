@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import base64
 import datetime
+import os
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
@@ -14,8 +16,6 @@ from minio import Minio
 from omegaconf import OmegaConf
 
 import MAIA
-import base64
-import os
 
 version = MAIA.__version__
 
@@ -208,12 +208,12 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
             },
         },
     }
-    
+
     if not minimal:
         jh_template["singleuser"]["extraEnv"]["INSTALL_QUPATH"] = "1"
         jh_template["singleuser"]["extraEnv"]["INSTALL_SLICER"] = "1"
         jh_template["singleuser"]["extraEnv"]["INSTALL_ITKSNAP"] = "1"
-        #jh_template["singleuser"]["extraEnv"]["INSTALL_FREESURFER"] = "1"
+        # jh_template["singleuser"]["extraEnv"]["INSTALL_FREESURFER"] = "1"
         jh_template["singleuser"]["extraEnv"]["INSTALL_MITK"] = "1"
         jh_template["singleuser"]["extraEnv"]["INSTALL_NAPARI"] = "1"
 
@@ -228,8 +228,8 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
             jh_template["singleuser"]["extraEnv"]["MINIO_SECRET_KEY"]
         ).decode("utf-8")
 
-    jh_template["hub"]["activeServerLimit"] = 1 # TODO: Add to form
-    jh_template["hub"]["concurrentSpawnLimit"] = 1 # TODO: Add to form
+    jh_template["hub"]["activeServerLimit"] = 1  # TODO: Add to form
+    jh_template["hub"]["concurrentSpawnLimit"] = 1  # TODO: Add to form
 
     shared_server_user = "user@maia.se"  # TODO: Add to form
     jh_template["hub"]["loadRoles"] = {
@@ -285,15 +285,8 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
                 ] = f"https://{hub_address}/{group_subdomain}-hub/oauth_callback"
 
     if "JHUB_IMAGE" in os.environ:
-        jh_template["hub"]["image"] = {
-                    "name": os.environ["JHUB_IMAGE"]+"/jupyterhub-ks-kaapana",
-                    "tag": "1.0"
-                    
-
-        }
-        jh_template["hub"]["image"]["pullSecrets"] = [
-            os.environ["JHUB_IMAGE"].replace(".", "-").replace("/", "-")
-        ]
+        jh_template["hub"]["image"] = {"name": os.environ["JHUB_IMAGE"] + "/jupyterhub-ks-kaapana", "tag": "1.0"}
+        jh_template["hub"]["image"]["pullSecrets"] = [os.environ["JHUB_IMAGE"].replace(".", "-").replace("/", "-")]
 
     if not gpu_request:
         jh_template["singleuser"]["extraEnv"]["NVIDIA_VISIBLE_DEVICES"] = ""
@@ -363,13 +356,13 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     if not minimal:
         registry_url = "/".join(maia_form["maia_workspace_pro_image"].split("/")[:-1])
         jh_template["singleuser"]["image"]["pullSecrets"].append(registry_url.replace(".", "-").replace("/", "-"))
-    
+
     maia_workspace_version = maia_form["maia_workspace_version"]
     maia_workspace_image = maia_form["maia_workspace_image"]
     if not minimal:
         maia_workspace_image = maia_form["maia_workspace_pro_image"]
         maia_workspace_version = maia_form["maia_workspace_pro_version"]
-        
+
     jh_template["singleuser"]["profileList"] = [
         {
             "display_name": f"MAIA Workspace v{maia_workspace_version}",
@@ -432,9 +425,9 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
             }
 
     # TODO: Add to form
-    mount_cifs = True 
+    mount_cifs = True
     cifs_mount_path = os.environ.get("CIFS_SERVER", "N/A")
-    
+
     if cifs_mount_path == "N/A":
         mount_cifs = False
 
@@ -500,11 +493,11 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     if gpu_request:
         jh_template["singleuser"]["profileList"][0]["kubespawner_override"]["extra_resource_limits"] = {"nvidia.com/gpu": "1"}
         jh_template["singleuser"]["profileList"][-1]["kubespawner_override"]["extra_resource_limits"] = {"nvidia.com/gpu": "1"}
-        
+
     if mount_cifs:
-        for id, profile in enumerate(jh_template["singleuser"]["profileList"]):
+        for id, _ in enumerate(jh_template["singleuser"]["profileList"]):
             jh_template["singleuser"]["profileList"][id]["kubespawner_override"]["service_account"] = "secret-writer"
-        
+
     jh_helm_template["resource"]["helm_release"]["jupyterhub"]["values"] = [yaml.dump(jh_template)]
 
     chart_info = {}
