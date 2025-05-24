@@ -7,7 +7,8 @@ MAIAKubeGate Scripts
    :maxdepth: 1
 
    MAIA_create_JupyterHub_config
-   MAIA_create_MAIA_Addons_config
+   MAIA_send_welcome_user_email
+   MAIA_send_all_user_email
    MAIA_deploy_helm_chart
    MAIA_initialize_config
    MAIA_install_admin_toolkit

@@ -13,6 +13,8 @@ Submodules
    MAIA.maia_core
    MAIA.maia_admin
    MAIA.maia_docker_images
+   MAIA.keycloak_utils
+   MAIA.kubernetes_utils
 
 Module contents
 ---------------
