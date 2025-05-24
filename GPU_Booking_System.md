@@ -23,7 +23,7 @@ apiToken: "secret-token" # The API token for the GPU Schedulability API service
 namespace: "gpu-booking" # The namespace where the GPU Booking component is deployed
 ```
 
-# GPU Booking Post Installation Steps
+## GPU Booking Post Installation Steps
 
 
 The GPU booking system includes a webhook that validates the GPU requests. The webhook requires a CA certificate to be installed in the Kubernetes cluster. The CA certificate is stored in a secret named `gpu-booking-webhook-tls`. The CA certificate is generated during the installation of the GPU Booking component.
