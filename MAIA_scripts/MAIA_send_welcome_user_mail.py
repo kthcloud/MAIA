@@ -86,13 +86,19 @@ def send_welcome_user_email(receiver_email, maia_url):
         server.sendmail(sender_email, receiver_email, message.as_string())
 
 
-def main():
+def get_arg_parser():
     parser = argparse.ArgumentParser(description="Send welcome email to new MAIA users")
     parser.add_argument("--email", required=True, help="Recipient email address")
     parser.add_argument("--url", required=True, help="MAIA platform URL")
 
     args = parser.parse_args()
+    
+    return args
 
+
+def main():
+    
+    args = get_arg_parser()
     try:
         send_welcome_user_email(args.email, args.url)
         print(f"Welcome email sent successfully to {args.email}")
