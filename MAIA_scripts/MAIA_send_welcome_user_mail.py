@@ -1,16 +1,50 @@
+#!/usr/bin/env python
+
 from __future__ import annotations
 
 import argparse
+import datetime
 import os
 import smtplib
 import ssl
 import sys
+from argparse import RawTextHelpFormatter
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
+from textwrap import dedent
 
 import dotenv
 
+import MAIA
+
+version = MAIA.__version__
+
+TIMESTAMP = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.datetime.now())
+
+
 dotenv.load_dotenv()
+
+EPILOG = dedent(
+    """
+    Example call:
+    ::
+        {filename} --email <recipient_email> --url <maia_platform_url>
+    """.format(  # noqa: E501
+        filename=Path(__file__).stem
+    )
+)
+
+
+def get_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Send welcome email to new MAIA users", epilog=EPILOG, formatter_class=RawTextHelpFormatter
+    )
+    parser.add_argument("--email", required=True, help="Recipient email address")
+    parser.add_argument("--url", required=True, help="MAIA platform URL")
+    parser.add_argument("-v", "--version", action="version", version="%(prog)s " + version)
+
+    return parser
 
 
 def send_welcome_user_email(receiver_email, maia_url):
@@ -86,19 +120,9 @@ def send_welcome_user_email(receiver_email, maia_url):
         server.sendmail(sender_email, receiver_email, message.as_string())
 
 
-def get_arg_parser():
-    parser = argparse.ArgumentParser(description="Send welcome email to new MAIA users")
-    parser.add_argument("--email", required=True, help="Recipient email address")
-    parser.add_argument("--url", required=True, help="MAIA platform URL")
-
-    args = parser.parse_args()
-    
-    return args
-
-
 def main():
-    
-    args = get_arg_parser()
+
+    args = get_arg_parser().parse_args()
     try:
         send_welcome_user_email(args.email, args.url)
         print(f"Welcome email sent successfully to {args.email}")
