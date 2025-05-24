@@ -17,6 +17,7 @@ def resolve_requirements(file):
                 requirements.append(r)
     return requirements
 
+
 def read_file(file):
     with open(file) as f:
         content = f.read()
