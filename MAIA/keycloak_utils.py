@@ -1,6 +1,8 @@
-from keycloak import KeycloakAdmin
-from keycloak import KeycloakOpenIDConnection
+from __future__ import annotations
+
 import os
+
+from keycloak import KeycloakAdmin, KeycloakOpenIDConnection
 
 
 def get_user_ids(settings):
@@ -274,22 +276,24 @@ def register_user_in_keycloak(email, settings):
     keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
 
     temp_password = "Maia4YOU!"
-    maia_login_url = "https://" + settings.HOSTNAME + "/maia/"
+
     keycloak_admin.create_user(
         {
             "username": email,
             "email": email,
             "emailVerified": True,
             "enabled": True,
-            #'firstName':'Demo2',
-            #'lastName':'Maia',
+            # 'firstName':'Demo2',
+            # 'lastName':'Maia',
             "requiredActions": ["UPDATE_PASSWORD"],
             "credentials": [{"type": "password", "temporary": True, "value": temp_password}],
         }
     )
-    # if "email_account" in os.environ and "email_password" in os.environ and "email_smtp_server" in os.environ:
-    #    from MAIA.dashboard_utils import send_approved_registration_email
-    #    send_approved_registration_email(email, maia_login_url, temp_password)
+    maia_login_url = "https://" + settings.HOSTNAME + "/maia/"
+    if "email_account" in os.environ and "email_password" in os.environ and "email_smtp_server" in os.environ:
+        from MAIA.dashboard_utils import send_approved_registration_email
+
+        send_approved_registration_email(email, maia_login_url, temp_password)
 
 
 def register_group_in_keycloak(group_id, settings):
@@ -394,7 +398,7 @@ def register_users_in_group_in_keycloak(emails, group_id, settings):
                     try:
                         gid = group["id"]
                         keycloak_admin.group_user_add(uid, gid)
-                    except:
+                    except Exception:
                         ...
 
 
@@ -424,7 +428,7 @@ def get_list_of_groups_requesting_a_user(email, user_model):
 
     try:
         return user_model.objects.filter(email=email).first().namespace.split(",")
-    except:
+    except AttributeError:
         return []
 
 
@@ -504,8 +508,8 @@ def get_maia_users_from_keycloak(settings):
     keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
 
     # Get all groups that start with "MAIA:"
-    groups = keycloak_admin.get_groups()
-    maia_groups = {group["id"]: group["name"] for group in groups if group["name"].startswith("MAIA:")}
+    # groups = keycloak_admin.get_groups()
+    # maia_groups = {group["id"]: group["name"] for group in groups if group["name"].startswith("MAIA:")}
 
     # Get all users and filter those who are in MAIA groups
     maia_users = []

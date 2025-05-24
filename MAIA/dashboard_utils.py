@@ -1,29 +1,29 @@
+from __future__ import annotations
+
+import asyncio
+import email
 import os
 import smtplib
 import ssl
-import requests
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import os
-import asyncio
-from pyhelm3 import Client
-from keycloak import KeycloakAdmin
-from keycloak import KeycloakOpenIDConnection
 from pathlib import Path
+
+import requests
 import yaml
+from bs4 import BeautifulSoup
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from keycloak import KeycloakAdmin, KeycloakOpenIDConnection
 from kubernetes import config
 from minio import Minio
-from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_toolkit
-from MAIA.kubernetes_utils import generate_kubeconfig, get_namespaces
+from pyhelm3 import Client
+
 from MAIA.keycloak_utils import get_groups_in_keycloak
-from datetime import datetime
-import email
-from bs4 import BeautifulSoup
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from MAIA.kubernetes_utils import generate_kubeconfig, get_namespaces
+from MAIA_scripts.MAIA_install_project_toolkit import verify_installed_maia_toolkit
+
 
 def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
     """
@@ -63,19 +63,23 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
 
     overlapping_allocations = []
     for existing_booking in global_existing_bookings:
-        if existing_booking['gpu'] == gpu_name:
-            if isinstance(existing_booking['start_date'], str):
-                existing_booking_start = datetime.strptime(existing_booking['start_date'], "%Y-%m-%d %H:%M:%S")
+        if existing_booking["gpu"] == gpu_name:
+            if isinstance(existing_booking["start_date"], str):
+                existing_booking_start = datetime.strptime(existing_booking["start_date"], "%Y-%m-%d %H:%M:%S")
             else:
-                existing_booking_start = existing_booking['start_date']
-            
-            if isinstance(existing_booking['end_date'], str):
-                existing_booking_end = datetime.strptime(existing_booking['end_date'], "%Y-%m-%d %H:%M:%S")
-            else:
-                existing_booking_end = existing_booking['end_date']
+                existing_booking_start = existing_booking["start_date"]
 
-            new_booking_start = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=existing_booking_start.tzinfo)
-            new_booking_end = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=existing_booking_end.tzinfo)
+            if isinstance(existing_booking["end_date"], str):
+                existing_booking_end = datetime.strptime(existing_booking["end_date"], "%Y-%m-%d %H:%M:%S")
+            else:
+                existing_booking_end = existing_booking["end_date"]
+
+            new_booking_start = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=existing_booking_start.tzinfo
+            )
+            new_booking_end = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=existing_booking_end.tzinfo
+            )
 
             if new_booking_start >= existing_booking_end or new_booking_end <= existing_booking_start:
                 continue
@@ -98,8 +102,12 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
         overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S"))
         overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S"))
     else:
-        overlapping_time_points.append(datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo))
-        overlapping_time_points.append(datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo))
+        overlapping_time_points.append(
+            datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo)
+        )
+        overlapping_time_points.append(
+            datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo)
+        )
     overlapping_time_points = sorted(set(overlapping_time_points))
 
     for overlapping_time_point in overlapping_time_points[:-1]:
@@ -113,15 +121,19 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
         available_gpus = gpu_replicas * gpu_count
         gpu_availability_per_slot.append(available_gpus)
         for existing_booking in global_existing_bookings:
-            if isinstance(existing_booking['start_date'], str):
-                existing_booking_start = datetime.strptime(existing_booking['start_date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_start.tzinfo)
+            if isinstance(existing_booking["start_date"], str):
+                existing_booking_start = datetime.strptime(existing_booking["start_date"], "%Y-%m-%d %H:%M:%S").replace(
+                    tzinfo=new_booking_start.tzinfo
+                )
             else:
-                existing_booking_start = existing_booking['start_date']
-                
-            if isinstance(existing_booking['end_date'], str):
-                existing_booking_end = datetime.strptime(existing_booking['end_date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=new_booking_end.tzinfo)
+                existing_booking_start = existing_booking["start_date"]
+
+            if isinstance(existing_booking["end_date"], str):
+                existing_booking_end = datetime.strptime(existing_booking["end_date"], "%Y-%m-%d %H:%M:%S").replace(
+                    tzinfo=new_booking_end.tzinfo
+                )
             else:
-                existing_booking_end = existing_booking['end_date']
+                existing_booking_end = existing_booking["end_date"]
 
             if existing_booking_start < overlapping_window_end and existing_booking_end > overlapping_window_start:
                 available_gpus -= 1
@@ -133,7 +145,7 @@ def verify_gpu_availability(global_existing_bookings, new_booking, gpu_specs):
 def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bookings, gpu_specs):
     """
     Verify GPU booking policy to ensure the new booking does not exceed the allowed days and GPU availability.
-    
+
     Parameters
     ----------
     existing_bookings : list
@@ -144,7 +156,7 @@ def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bo
         A list of all existing bookings globally.
     gpu_specs : dict
         A dictionary containing the specifications of the GPUs.
-    
+
     Returns
     -------
     bool
@@ -165,13 +177,17 @@ def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bo
     if total_days + new_booking_days > 60:
         return False, "The total number of days for all bookings cannot exceed 60 days."
 
-    overlapping_time_slots, gpu_availability_per_slot, total_replicas = verify_gpu_availability(global_existing_bookings=global_existing_bookings, new_booking=new_booking, gpu_specs=gpu_specs)
-    
+    overlapping_time_slots, gpu_availability_per_slot, total_replicas = verify_gpu_availability(
+        global_existing_bookings=global_existing_bookings, new_booking=new_booking, gpu_specs=gpu_specs
+    )
+
     for idx, gpu_availability in enumerate(gpu_availability_per_slot):
         if gpu_availability == 0:
-            error_msg = "GPU not available between the selected time slots: {} - {}".format(overlapping_time_slots[idx], overlapping_time_slots[idx+1])
+            error_msg = "GPU not available between the selected time slots: {} - {}".format(
+                overlapping_time_slots[idx], overlapping_time_slots[idx + 1]
+            )
             return False, error_msg
-   
+
     return True, None
 
 
@@ -217,7 +233,7 @@ def send_maia_info_email(receiver_email, register_project_url, register_user_url
             <p>The MAIA Admin Team</p>
         </body>
     </html>
-    """.format(
+    """.format(  # noqa: B950
         register_project_url, register_user_url, discord_support_link
     )
 
@@ -364,12 +380,7 @@ def send_discord_message(username, namespace, url, project_registration=False):
     """
     data = {"content": f"{username} is requesting a MAIA account for the project {namespace}.", "username": "MAIA-Bot"}
 
-    data["embeds"] = [
-        {
-            "description": "MAIA User Registration Request",
-            "title": "MAIA Account Request",
-        }
-    ]
+    data["embeds"] = [{"description": "MAIA User Registration Request", "title": "MAIA Account Request"}]
     if project_registration:
         data["embeds"][0]["description"] = "MAIA Project Registration Request"
         data["embeds"][0]["title"] = "MAIA Project Registration Request"
@@ -408,7 +419,7 @@ def get_pending_projects(settings, maia_project_model):
         for project in maia_project_model.objects.all():
             if project.namespace not in active_groups.values():
                 pending_projects.append(project.namespace)
-    except:
+    except Exception:
         ...
 
     return pending_projects
@@ -467,7 +478,7 @@ def get_user_table(settings, maia_user_model, maia_project_model):
         )
 
         minio_envs = [env.object_name[: -len("_env")] for env in list(client.list_objects(settings.BUCKET_NAME))]
-    except:
+    except Exception:
         minio_envs = []
 
     for maia_group in maia_groups:
@@ -700,7 +711,7 @@ def update_user_table(form, user_model, maia_user_model, project_model):
                 namespace_list.append(namespace)
 
     for namespace in namespace_list:
-        namespaced_entries = [entry for entry in form.cleaned_data if entry.endswith(namespace)]
+        # namespaced_entries = [entry for entry in form.cleaned_data if entry.endswith(namespace)]
         if project_model.objects.filter(namespace=namespace).exists():
             project_model.objects.filter(namespace=namespace).update(
                 memory_limit=form.cleaned_data["memory_limit_" + namespace],
@@ -947,7 +958,7 @@ def get_project_argo_status_and_user_table(request, settings, maia_user_model, m
         settings=settings, maia_user_model=maia_user_model, maia_project_model=maia_project_model
     )
     project_argo_status = {}
-    
+
     namespaces = get_namespaces(id_token, api_urls=settings.API_URL, private_clusters=settings.PRIVATE_CLUSTERS)
 
     deployed_projects = asyncio.run(get_list_of_deployed_projects())
@@ -961,7 +972,7 @@ def get_project_argo_status_and_user_table(request, settings, maia_user_model, m
                 project_argo_status[project_id] = 1
             else:
                 project_argo_status[project_id] = -1
-        # project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))
+        # project_argo_status[project_id] = asyncio.run(get_argocd_project_status(argocd_namespace="argocd", project_id=project_id.lower().replace("_", "-")))  # noqa: B950
 
     return to_register_in_groups, to_register_in_keycloak, maia_groups_dict, project_argo_status, users_to_remove_from_group
 
@@ -995,7 +1006,7 @@ def send_maia_message_email(receiver_emails, subject, message_body):
                 <p>The MAIA Admin Team</p>
                 <hr>
                 <p style="font-size: 12px; color: #666666;">
-                    This is an automated message from the MAIA Platform. 
+                    This is an automated message from the MAIA Platform.
                     If you believe you received this in error, please contact support.
                 </p>
             </body>
@@ -1043,28 +1054,26 @@ def generate_encryption_keys(folder_path):
     """
 
     # Generate RSA key pair
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048
-    )
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
     # Extract public key
     public_key = private_key.public_key()
 
     # Save private key to a file
     with open(Path(folder_path).joinpath("private_key.pem"), "wb") as f:
-        f.write(private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        ))
+        f.write(
+            private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        )
 
     # Save public key to a file
     with open(Path(folder_path).joinpath("public_key.pem"), "wb") as f:
-        f.write(public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ))
+        f.write(
+            public_key.public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo)
+        )
 
     print("Keys generated successfully!")
 
@@ -1072,25 +1081,24 @@ def generate_encryption_keys(folder_path):
 def encrypt_string(public_key, string):
     """
     Encrypts a given string using the provided public key.
-    
+
     Parameters
     ----------
     public_key : str
         The file path to the public key in PEM format.
     string : str
         The string to be encrypted.
-    
+
     Returns
     -------
     str
         The encrypted string in hexadecimal format.
-    
+
     Raises
     ------
     ValueError
         If the public key file cannot be read or is invalid.
     """
-
 
     # Load public key
     with open(public_key, "rb") as f:
@@ -1098,37 +1106,31 @@ def encrypt_string(public_key, string):
 
     def encrypt_message(message, public_key):
         encrypted = public_key.encrypt(
-            message.encode(),
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
+            message.encode(), padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
         )
         return encrypted
 
-
     encrypted_message = encrypt_message(string, public_key)
-    
+
     return encrypted_message.hex()
 
 
 def decrypt_string(private_key, string):
     """
     Decrypts an encrypted string using a given private key.
-    
+
     Parameters
     ----------
     private_key : str
         Path to the private key file in PEM format.
     string : bytes
         The encrypted string to be decrypted.
-    
+
     Returns
     -------
     str
         The decrypted string.
-   
+
     Raises
     ------
     ValueError
@@ -1140,15 +1142,10 @@ def decrypt_string(private_key, string):
 
     def decrypt_message(encrypted, private_key):
         decrypted = private_key.decrypt(
-            encrypted,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
+            encrypted, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
         )
         return decrypted.decode()
 
     decrypted_message = decrypt_message(string, private_key)
-    
+
     return decrypted_message
