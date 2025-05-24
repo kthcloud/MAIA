@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import os
+import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
@@ -16,7 +17,6 @@ from hydra import compose as hydra_compose
 from hydra import initialize_config_dir
 from omegaconf import OmegaConf
 from pyhelm3 import Client
-import subprocess
 
 import MAIA
 from MAIA.maia_admin import (
@@ -153,9 +153,9 @@ def deploy_maia_toolkit_api(
     if not minimal:
         minio_configs = generate_minio_configs(namespace=group_id.lower().replace("_", "-"))
         mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
-        
+
         mysql_configs = generate_mysql_configs(namespace=group_id.lower().replace("_", "-"))
-        
+
         project_form_dict["minio_access_key"] = minio_configs["console_access_key"]
         project_form_dict["minio_secret_key"] = minio_configs["console_secret_key"]
     else:
@@ -188,7 +188,9 @@ def deploy_maia_toolkit_api(
                 }
             )
 
-    helm_commands.append(create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=minimal))
+    helm_commands.append(
+        create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=minimal)
+    )
 
     if not minimal:
         helm_commands.append(deploy_oauth2_proxy(cluster_config_dict, project_form_dict, config_folder))
@@ -196,7 +198,12 @@ def deploy_maia_toolkit_api(
         helm_commands.append(deploy_mysql(cluster_config_dict, project_form_dict, config_folder, mysql_configs=mysql_configs))
         helm_commands.append(
             deploy_mlflow(
-                cluster_config_dict, project_form_dict, config_folder, maia_config_dict, mysql_config=mysql_configs, minio_config=minio_configs
+                cluster_config_dict,
+                project_form_dict,
+                config_folder,
+                maia_config_dict,
+                mysql_config=mysql_configs,
+                minio_config=minio_configs,
             )
         )
 
@@ -208,32 +215,43 @@ def deploy_maia_toolkit_api(
             helm_command["repo"] = f"oci://{helm_command['repo']}"
             with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
                 subprocess.run(
-                    [
-                        "helm",
-                        "registry",
-                        "login",
-                        original_repo,
-                        "--username",
-                        "_json_key",
-                        "--password-stdin",
-                    ],
-                    stdin=stdin_file,
+                    ["helm", "registry", "login", original_repo, "--username", "_json_key", "--password-stdin"], stdin=stdin_file
                 )
             print(" ".join(["helm", "registry", "login", original_repo, "--username", "_json_key", "--password-stdin"]))
             subprocess.run(
-                ["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"],
+                [
+                    "helm",
+                    "pull",
+                    helm_command["repo"] + "/" + helm_command["chart"],
+                    "--version",
+                    helm_command["version"],
+                    "--destination",
+                    "/tmp",
+                ]
             )
-            print(" ".join(["helm", "pull", helm_command["repo"]+"/"+helm_command["chart"], "--version", helm_command["version"],"--destination","/tmp"]))
-            
+            print(
+                " ".join(
+                    [
+                        "helm",
+                        "pull",
+                        helm_command["repo"] + "/" + helm_command["chart"],
+                        "--version",
+                        helm_command["version"],
+                        "--destination",
+                        "/tmp",
+                    ]
+                )
+            )
+
             cmd = [
                 "helm",
                 "upgrade",
                 "--install",
-                #"--wait",
+                # "--wait",
                 "-n",
                 helm_command["namespace"],
                 helm_command["release"],
-                "/tmp/"+helm_command["chart"]+"-"+helm_command["version"]+".tgz",
+                "/tmp/" + helm_command["chart"] + "-" + helm_command["version"] + ".tgz",
                 "--values",
                 helm_command["values"],
             ]
@@ -243,7 +261,7 @@ def deploy_maia_toolkit_api(
                 "helm",
                 "upgrade",
                 "--install",
-                #"--wait",
+                # "--wait",
                 "-n",
                 helm_command["namespace"],
                 helm_command["release"],
@@ -257,7 +275,7 @@ def deploy_maia_toolkit_api(
             ]
             print(" ".join(cmd))
         if no_argocd:
-            
+
             subprocess.Popen(cmd)
 
     destination_cluster_address = cluster_config_dict["argocd_destination_cluster_address"]
@@ -276,7 +294,7 @@ def deploy_maia_toolkit_api(
             "https://kthcloud.github.io/MAIA/",
             "https://hub.jupyter.org/helm-chart/",
             "https://oauth2-proxy.github.io/manifests",
-            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
         ],
     }
     if not minimal:
