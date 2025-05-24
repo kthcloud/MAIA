@@ -31,3 +31,8 @@ EXPOSE 443
 
 # Run the webhook server
 CMD ["/root/webhook", "--tls-cert=/tls/tls.crt", "--tls-key=/tls/tls.key"]
+
+
+# To create the go.mod and go.sum files, run the following commands:
+# go mod init
+# go mod tidy
