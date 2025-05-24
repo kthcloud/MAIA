@@ -1,0 +1,13 @@
+image:
+  pod_terminator:
+    repository: kthcloud/gpu-booking-pod-terminator
+    pullPolicy: IfNotPresent
+    tag: "1.4"
+  repository: kthcloud/gpu-booking-admission-controller
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1.6"
+
+apiUrl: "https://maia.se/maia-api/gpu-schedulability/"
+apiToken: "S#perS3crEt_007"
+namespace: gpu-booking
