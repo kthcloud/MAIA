@@ -272,7 +272,7 @@ def create_core_toolkit_values(config_folder, project_id, cluster_config_dict):
     core_toolkit_values = {
         "namespace": "maia-core-toolkit",
         "chart_version": "0.1.7",
-        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "repo_url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
         "chart_name": "maia-core-toolkit",
     }  # TODO: Change this to updated values
 
