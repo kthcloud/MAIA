@@ -16,10 +16,12 @@ from omegaconf import OmegaConf
 from pyhelm3 import Client
 
 import MAIA
+from MAIA.kubernetes_utils import create_helm_repo_secret_from_context
 from MAIA.maia_admin import create_loginapp_values, create_minio_operator_values, install_maia_project
 from MAIA.maia_core import (
     create_cert_manager_values,
     create_core_toolkit_values,
+    create_gpu_booking_values,
     create_gpu_operator_values,
     create_ingress_nginx_values,
     create_loki_values,
@@ -28,9 +30,7 @@ from MAIA.maia_core import (
     create_prometheus_values,
     create_tempo_values,
     create_traefik_values,
-    create_gpu_booking_values
 )
-from MAIA.kubernetes_utils import create_helm_repo_secret_from_context
 
 version = MAIA.__version__
 
@@ -145,8 +145,10 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
 
     helm_commands.append(create_loginapp_values(config_folder, project_id, cluster_config_dict))
     helm_commands.append(create_minio_operator_values(config_folder, project_id, cluster_config_dict))
-    
-    helm_commands.append(create_gpu_booking_values(config_folder, project_id, cluster_config_dict, maia_config_dict=maia_config_dict))
+
+    helm_commands.append(
+        create_gpu_booking_values(config_folder, project_id, cluster_config_dict, maia_config_dict=maia_config_dict)
+    )
 
     for helm_command in helm_commands:
         cmd = [
@@ -199,7 +201,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
             "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/",
             "https://storage.googleapis.com/loginapp-releases/charts/",
             "https://operator.min.io",
-            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
             # "https://kubernetes.github.io/ingress-nginx"
         ],
     }
@@ -220,7 +222,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
         docker_credentials = f.read()
     create_helm_repo_secret_from_context(
         repo_name="maia-cloud-ai-maia-core",
-        argocd_namespace = "argocd",
+        argocd_namespace="argocd",
         helm_repo_config={
             "username": "_json_key",
             "password": docker_credentials,
@@ -228,8 +230,8 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
             "url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
             "type": "helm",
             "name": "maia-cloud-ai-maia-core",
-            "enableOCI": "true"
-        }
+            "enableOCI": "true",
+        },
     )
     if revision == -1:
         print("Installing MAIA Core Toolkit")
@@ -255,7 +257,17 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
             str(Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml")),
         ]
         print(" ".join(cmd))
-        asyncio.run(install_maia_project(project_id, Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),maia_config_dict["argocd_namespace"], project_chart, project_repo=project_repo, project_version=project_version,json_key_path=json_key_path))
+        asyncio.run(
+            install_maia_project(
+                project_id,
+                Path(config_folder).joinpath(project_id, f"{project_id}_values.yaml"),
+                maia_config_dict["argocd_namespace"],
+                project_chart,
+                project_repo=project_repo,
+                project_version=project_version,
+                json_key_path=json_key_path,
+            )
+        )
     else:
         print("Upgrading MAIA Core Toolkit")
 
@@ -270,7 +282,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                 project_chart,
                 project_repo=project_repo,
                 project_version=project_version,
-                json_key_path=json_key_path
+                json_key_path=json_key_path,
             )
         )
 
