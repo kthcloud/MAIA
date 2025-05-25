@@ -12,3 +12,5 @@ maia-workspace-base-notebook: 1.7
 maia-workspace-base-notebook-ssh: 1.7
 maia-filebrowser: 1.0
 maia-mlflow: 1.0
+maia-gpu-booking-admission-controller: 1.0
+maia-gpu-booking-pod-terminator: 1.0

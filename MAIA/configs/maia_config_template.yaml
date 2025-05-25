@@ -3,7 +3,7 @@ admin_group_ID: "MAIA:admin"
 
 core_project_chart: "maia-core-project"
 core_project_repo: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
-core_project_version: "0.1.5"          
+core_project_version: "0.1.6"          
 
 admin_project_chart: "maia-admin-project"
 admin_project_repo: "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
