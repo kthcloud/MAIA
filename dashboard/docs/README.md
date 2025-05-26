@@ -12,7 +12,7 @@ Additionaly, the MAIA Dashboard is used to manage a number of platform operation
 To register a new user, the user must fill out the registration form with their username and email address. The request is then sent to the administrators for approval.
 MAIA administrators can approve the user registration request by clicking on the "ID" icon, the top one next to the user entry. By clicking on the "ID" icon, the corresponding Keycloak user will be created and the user will be able to log in to the MAIA Dashboard. Once the User is correctly registered to Keycloak, the same icon will be replaced by a green check mark.
 <p align="center">
-    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Admin_User_Registration.png" alt="MAIA Apps" width="40%">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/User_Registration.png" alt="MAIA Apps" width="40%">
 </p>
 
 ### Linking a User to an Existing Project
