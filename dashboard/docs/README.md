@@ -12,7 +12,7 @@ Additionaly, the MAIA Dashboard is used to manage a number of platform operation
 To register a new user, the user must fill out the registration form with their username and email address. The request is then sent to the administrators for approval.
 MAIA administrators can approve the user registration request by clicking on the "ID" icon, the top one next to the user entry. By clicking on the "ID" icon, the corresponding Keycloak user will be created and the user will be able to log in to the MAIA Dashboard. Once the User is correctly registered to Keycloak, the same icon will be replaced by a green check mark.
 <p align="center">
-    <img src="images/User_Registration.png" alt="MAIA Apps" width="40%">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Admin_User_Registration.png" alt="MAIA Apps" width="40%">
 </p>
 
 ### Linking a User to an Existing Project
@@ -21,7 +21,7 @@ The user can link their account in the registration form, where they can select 
 In the Users page, MAIA administrators can approve the user liking request to a project by clicking on the "group" icon, the middle one next to the user entry. By clicking on the "group" icon. By clicking on the "group" icon, the corresponding Keycloak user will be assigned to the Keycloak group corresponding to the project. Once the User is correctly linked to the project, the same icon will be replaced by a green check mark.
 A list of all the users part of the project is available in the same page
 <p align="center">
-    <img src="images/Admin_User_Registration.png" alt="MAIA Apps" width="40%">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Admin_User_Registration.png" alt="MAIA Apps" width="40%">
 </p>
 
 ## Project Management
@@ -31,14 +31,14 @@ A list of all the users part of the project is available in the same page
 Users can request a new project by filling out the project request form. The request is then sent to the administrators for approval.
 The requested project will appear in the Projects and Users pages, where MAIA administrators can approve it by registering the corresponding Keycloak group and deploying the MAIA Namespace in the cluster. The Keycloak group will be created by clicking on the "group" icon, the top one on the first column next to the project entry. 
 <p align="center">
-    <img src="images/Project_Registration_user.png" alt="MAIA Apps" width="40%">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Project_Registration_user.png" alt="MAIA Apps" width="40%">
 </p>
 
 ### Deploying Projects [ArgoCD and Re-Sync]
 The MAIA Namespace can be deployed by clicking on the "deploy" icon, on the second column next to the project entry. By clicking on the "deploy" icon, the corresponding ArgoCD application will be created and the project will be deployed in the cluster. Once the Project is correctly registered to Keycloak and deployed in the cluster, the same icons will be replaced by the "update" button.
 
 <p align="center">
-    <img src="images/Project_Registration.png" alt="MAIA Apps" width="40%">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Project_Registration.png" alt="MAIA Apps" width="40%">
 </p>
 
 IMPORTANT!
