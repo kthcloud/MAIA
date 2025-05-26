@@ -149,7 +149,7 @@ cp GPU-Booking-System.png docs/source/apidocs/tutorials/Admin/GPU-Booking-System
 cp Deploy_Custom_App.md docs/source/apidocs/tutorials/Admin/Deploy_Custom_App.md
 cp Deploy_MAIA_Namespace_from_CLI.md docs/source/apidocs/tutorials/Admin/Deploy_MAIA_Namespace_from_CLI.md
 cp CIFS/README.md docs/source/apidocs/tutorials/Admin/README_CIFS.md
-#cp Admin_Handbook.md docs/source/apidocs/tutorials/Admin/Admin_Handbook.md
+cp -r dashboard/docs docs/source/apidocs/tutorials/Dashboard
 cp -r docker/MAIA-Workspace/Tutorials docs/source/apidocs/tutorials/MAIA-Workspace
 python docs/scripts/generate_tutorials_rst.py
 cd docs
