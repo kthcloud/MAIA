@@ -37,7 +37,7 @@ ssh maia-server-3
 
 ### NVIDIA Driver Installation
 
-To install the NVIDIA driver on the hosts, you can use the [Playbooks/install_nvidia_drivers.yaml](Playbooks/install_nvidia_drivers.yaml) playbook. This playbook will install the NVIDIA driver on all hosts defined in the `nvidia_hosts` group in the inventory file. You can run the playbook with the following command:
+To install the NVIDIA driver on the hosts, you can use the [Ansible/Playbooks/install_nvidia_drivers.yaml](Ansible/Playbooks/install_nvidia_drivers.yaml) playbook. This playbook will install the NVIDIA driver on all hosts defined in the `nvidia_hosts` group in the inventory file. You can run the playbook with the following command:
 
 ```bash
 ansible-playbook -i Ansible/inventory -kK Ansible/Playbooks/install_nvidia_drivers.yaml -e ansible_user=maia-admin -e nvidia_driver_package=nvidia-driver-570
