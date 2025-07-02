@@ -210,7 +210,7 @@ def deploy_maia_toolkit_api(
         helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
 
     for helm_command in helm_commands:
-        if not helm_command["repo"].startswith("http"):
+        if not helm_command["repo"].startswith("http") and not return_values_only:
             original_repo = helm_command["repo"]
             helm_command["repo"] = f"oci://{helm_command['repo']}"
             with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
