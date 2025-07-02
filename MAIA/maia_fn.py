@@ -575,8 +575,22 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         "orthanc_path": f"orthanc-{random_path}",
         "orthanc_node_port": orthanc_port,
         "serviceType": "NodePort",
+        "pvc" : {
+            "pvc_type": cluster_config["shared_storage_class"],
+        },
     }
-
+    
+    enable_mysql = True
+    if enable_mysql:
+        mysql_password = generate_human_memorable_password(16)
+        orthanc_config["mysql"] = {
+            "enabled": True,
+            "mysqlRootPassword": mysql_password,
+            "mysqlUser": "maia-admin",
+            "mysqlPassword": mysql_password,
+            "mysqlDatabase": "orthanc",
+        }
+    
     registry_url = "/".join(maia_config_dict["maia_workspace_pro_image"].split("/")[:-1])
     orthanc_config["imagePullSecret"] = registry_url.replace(".", "-").replace("/", "-")
 
@@ -596,6 +610,26 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
             }
         },
     }
+    
+    if enable_mysql:
+        orthanc_custom_config["MySQL"] = {
+            "EnableIndex": True,
+            "EnableStorage": True,
+            "Host": user_config["group_ID"].lower().replace("_", "-") + "-orthanc-mysql",
+            "Port": 3306,
+            "UnixSocket" : "",
+            "Database": "orthanc",
+            "Username": "maia-admin",
+            "Password": mysql_password,
+            "EnableSsl": False,
+            "SslVerifyServerCertificates": True,
+            "SslCACertificates": "",
+            "Lock": True,
+            "MaximumConnectionRetries": 10,
+            "ConnectionRetryInterval": 5,
+            "IndexConnectionsCount": 1,
+        }
+        
 
     orthanc_config.update({"orthanc_config_map": {"enabled": True, "orthanc_config": orthanc_custom_config}})
 

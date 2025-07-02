@@ -141,7 +141,7 @@ def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, c
 
 
 def deploy_maia_toolkit_api(
-    project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=True, no_argocd=False, redeploy_enabled=True
+    project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=True, no_argocd=False, redeploy_enabled=True, return_values_only=False
 ):
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
@@ -150,9 +150,10 @@ def deploy_maia_toolkit_api(
 
     helm_commands = []
 
+    mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
+
     if not minimal:
         minio_configs = generate_minio_configs(namespace=group_id.lower().replace("_", "-"))
-        mlflow_configs = generate_mlflow_configs(namespace=group_id.lower().replace("_", "-"))
 
         mysql_configs = generate_mysql_configs(namespace=group_id.lower().replace("_", "-"))
 
@@ -160,7 +161,6 @@ def deploy_maia_toolkit_api(
         project_form_dict["minio_secret_key"] = minio_configs["console_secret_key"]
     else:
         minio_configs = None
-        mlflow_configs = None
         mysql_configs = None
         project_form_dict["minio_access_key"] = "N/A"
         project_form_dict["minio_secret_key"] = "N/A"
@@ -274,7 +274,7 @@ def deploy_maia_toolkit_api(
                 helm_command["values"],
             ]
             print(" ".join(cmd))
-        if no_argocd:
+        if no_argocd and not return_values_only:
 
             subprocess.Popen(cmd)
 
@@ -318,7 +318,11 @@ def deploy_maia_toolkit_api(
     project_id = namespace
 
     if no_argocd:
-        return
+        if return_values_only:
+            with open(Path(config_folder).joinpath(group_id, f"{group_id}_values.yaml")) as f:
+                return yaml.safe_load(f)
+        else:
+            return
     revision = asyncio.run(verify_installed_maia_toolkit(project_id, maia_config_dict["argocd_namespace"]))
 
     if revision == -1 or redeploy_enabled:
