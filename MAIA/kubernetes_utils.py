@@ -603,6 +603,8 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                         if "host" not in rule:
                             rule["host"] = settings.DEFAULT_INGRESS_HOST
                         for path in rule["http"]["paths"]:
+                            if path["backend"]["service"]["name"].endswith("-maia-monailabel"):
+                                monai_models[path["backend"]["service"]["name"][:-len("-maia-monailabel")]] = {"monai_label" : "https://" + rule["host"] + path["path"] }
                             if path["backend"]["service"]["name"] == "proxy-public":
                                 maia_workspace_apps["hub"] = "https://" + rule["host"] + path["path"]
                             if path["backend"]["service"]["name"] == namespace + "-orthanc-svc":
