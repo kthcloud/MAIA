@@ -50,6 +50,9 @@ If MAIA is deployed as an extension in Kaapana, you will need to enable the corr
 
 ### Deleting Projects
 
+Upon completion of a project, the MAIA administrators can delete the project. This is done in two steps:
+1. Deleting the Keycloak group: This is done by clicking on the "Delete" button. By clicking on the "Delete" button, the corresponding Keycloak group will be deleted and the users will no longer be associated with the group.
+2. Manually deleting the ArgoCD applications: this must be done manually by the MAIA administrators, by going to the ArgoCD dashboard and deleting the corresponding applications. Once the applications and the ArgoCD project are deleted, the administrators can delete the namespace in the cluster.
 
 
 ## Resource Management
@@ -65,3 +68,20 @@ If MAIA is deployed as an extension in Kaapana, you will need to enable the corr
 
 
 ## Automatic Email Notifications
+
+Automatic email notifications are used to welcome new users, notify them of project approvals, and inform them about resource allocations. The email notifications are sent to the user's registered email address and contain important information about their account and project status.
+
+To enable email notifications, the MAIA administrators must configure the email settings in the MAIA Dashboard. This includes setting up the SMTP server, sender email address, and other relevant parameters:
+```yaml
+email_account:  <SMTP email address>
+email_smtp_server: <SMTP server address>
+email_password: <SMTP server password>
+```
+or, in the `maia_config.yaml` file:
+
+```yaml
+email_server_credentials:
+  email_account: 
+  email_password: 
+  email_smtp_server:
+```
