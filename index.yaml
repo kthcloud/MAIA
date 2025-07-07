@@ -3,7 +3,7 @@ entries:
   gpu-booking:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-05-25T11:29:02.281452347+02:00"
+    created: "2025-07-07T10:55:25.41070536+02:00"
     description: A Helm chart for Kubernetes
     digest: 698c176ce8f810daee5b68382dcf532d0dc0df6a5e9df6865a405a634b0e0f4e
     name: gpu-booking
@@ -11,10 +11,21 @@ entries:
     urls:
     - helm_charts/gpu-booking-1.0.0.tgz
     version: 1.0.0
+  maia-admin-toolkit:
+  - apiVersion: v2
+    appVersion: 1.2.5
+    created: "2025-07-07T10:55:25.411662747+02:00"
+    description: A Helm chart for deploying the MAIA Admin Toolkit
+    digest: 380e06a5fa026c2b000ab11a144448235fcb0f61679892160e1a4826e4bc88fb
+    name: maia-admin-toolkit
+    type: application
+    urls:
+    - helm_charts/maia-admin-toolkit-1.2.5.tgz
+    version: 1.2.5
   maia-namespace:
   - apiVersion: v2
     appVersion: 1.7.1
-    created: "2025-05-25T11:29:02.282770564+02:00"
+    created: "2025-07-07T10:55:25.441612479+02:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: 38037be067d67d909ad1589e29b309495bb25b3328b3b95fdec48c240ad13c9f
     name: maia-namespace
@@ -24,7 +35,7 @@ entries:
     version: 1.7.1
   - apiVersion: v2
     appVersion: 1.7.0
-    created: "2025-05-25T11:29:02.282116609+02:00"
+    created: "2025-07-07T10:55:25.432164034+02:00"
     description: A Helm chart to create and configure a MAIA Namespace
     digest: 4865514c68894d4031f321432ad0194571e633ff16cb0824897cca9e1d5fed60
     name: maia-namespace
@@ -35,7 +46,7 @@ entries:
   maia-project:
   - apiVersion: v2
     appVersion: 1.7.0
-    created: "2025-05-25T11:29:02.283256112+02:00"
+    created: "2025-07-07T10:55:25.456013791+02:00"
     description: A Helm chart for Deploying a MAIA Workspace
     digest: 038948354520b06baf272dc0ae4e14ca28f6233427996da40726693860bf47f8
     name: maia-project
@@ -43,4 +54,4 @@ entries:
     urls:
     - helm_charts/maia-project-1.7.0.tgz
     version: 1.7.0
-generated: "2025-05-25T11:29:02.280569611+02:00"
+generated: "2025-07-07T10:55:25.398088739+02:00"
