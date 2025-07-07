@@ -91,3 +91,27 @@ You can use the [Ansible/Playbooks/create_ufw_roles.yaml](Ansible/Playbooks/crea
 ```bash
 ansible-playbook -i Ansible/inventory -kK Ansible/Playbooks/create_ufw_roles.yaml -e ansible_user=maia-admin
 ```
+
+### CIFS Configuration
+If you want to use CIFS for shared storage, you can use the [Ansible/Playbooks/enable_CIFS.yaml](Ansible/Playbooks/enable_CIFS.yaml) playbook. This playbook will install the necessary packages and configure the CIFS server on the host. You can run the playbook with the following command:
+
+```bash
+ansible-playbook -i Ansible/inventory -kK Ansible/Playbooks/enable_CIFS.yaml -e ansible_user=maia-admin -e private_key_path=<PATH_TO_PRIVATE_KEY>
+``` 
+Where `private_key_path` is the path to the private key file used for credential encryption of CIFS accounts.
+
+
+## Post-Deployment Rancher Cluster
+
+After deploying the Kubernetes cluster via Rancher, some additional steps are required to finalize the MAIA-specific setup:
+- Connect ArgoCD to the Rancher cluster.
+- Connect the MAIA Dashboard to the Rancher cluster.
+
+### Connect ArgoCD to the Rancher Cluster
+To connect ArgoCD to the Rancher cluster, you can add the new Rancher cluster information to the Helm Chart values for the `maia-admin-admin-toolkit` application in ArgoCD, in the `maia-admin` ArgoCD project:
+```yaml
+additional_clusters:
+    - name: "maia-cluster-name"
+      server: "https://<RANCHER_CLUSTER_API_SERVER>"
+      token: "<RANCHER_CLUSTER_API_TOKEN>"
+```
