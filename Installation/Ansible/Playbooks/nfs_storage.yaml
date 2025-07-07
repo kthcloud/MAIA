@@ -63,16 +63,16 @@
         msg: "{{ nfs_server_ip }}"
 
 
-- name: Allow NFS clients to access NFS server
-  hosts: nfs_server
-  become: yes
-  tasks:
-    - name: Allow NFS clients to access NFS server
-      ufw:
-        rule: allow
-        from_ip: "{{ item }}"
-        to_port: 2049
-      with_items: "{{ groups['nfs_clients'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
+#- name: Allow NFS clients to access NFS server
+#  hosts: nfs_server
+#  become: yes
+#  tasks:
+#    - name: Allow NFS clients to access NFS server
+#      ufw:
+#        rule: allow
+#        from_ip: "{{ item }}"
+#        to_port: 2049
+#      with_items: "{{ groups['nfs_clients'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
 
 - name: Setup NFS Client
   hosts: nfs_clients
