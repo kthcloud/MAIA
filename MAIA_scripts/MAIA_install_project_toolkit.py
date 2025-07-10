@@ -306,10 +306,11 @@ def deploy_maia_toolkit_api(
         "sourceRepos": [
             "https://kthcloud.github.io/MAIA/",
             "https://hub.jupyter.org/helm-chart/",
-            "https://oauth2-proxy.github.io/manifests",
-            private_maia_registry,
+            "https://oauth2-proxy.github.io/manifests"
         ],
     }
+    if private_maia_registry:
+        values["sourceRepos"].append(private_maia_registry)
     if not minimal:
         values["defaults"].append({"mlflow_values": "mlflow_values"})
         values["defaults"].append({"mysql_values": "mysql_values"})
