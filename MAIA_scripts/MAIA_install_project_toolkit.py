@@ -350,6 +350,8 @@ def deploy_maia_toolkit_api(
             project_repo = maia_config_dict["maia_pro_project_repo"]
             project_version = maia_config_dict["maia_pro_project_version"]
             json_key_path = os.environ.get("JSON_KEY_PATH", None)
+        print(f"Installing MAIA Project Toolkit {project_chart} from {project_repo} version {project_version}")
+        print(f"Using JSON key path: {json_key_path}")
         msg = asyncio.run(
             install_maia_project(
                 group_id,
