@@ -144,6 +144,9 @@ def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, c
 def deploy_maia_toolkit_api(
     project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=True, no_argocd=False, redeploy_enabled=True, return_values_only=False
 ):
+    project_form_dict["extra_configs"] = {
+        "enable_cifs": True  # Default value, can be overridden by the form
+    }
     private_maia_registry = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
