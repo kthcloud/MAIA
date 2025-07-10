@@ -11,6 +11,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import click
+import json
 import hydra
 import yaml
 from hydra import compose as hydra_compose
@@ -143,6 +144,7 @@ def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, c
 def deploy_maia_toolkit_api(
     project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=True, no_argocd=False, redeploy_enabled=True, return_values_only=False
 ):
+    private_maia_registry = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
 
@@ -209,15 +211,26 @@ def deploy_maia_toolkit_api(
 
         helm_commands.append(deploy_orthanc(cluster_config_dict, project_form_dict, maia_config_dict, config_folder))
 
+    json_key_path = os.environ.get("JSON_KEY_PATH", None)
     for helm_command in helm_commands:
         if not helm_command["repo"].startswith("http") and not return_values_only:
             original_repo = helm_command["repo"]
             helm_command["repo"] = f"oci://{helm_command['repo']}"
-            with open(os.environ.get("JSON_KEY_PATH", ""), "rb") as stdin_file:
-                subprocess.run(
-                    ["helm", "registry", "login", original_repo, "--username", "_json_key", "--password-stdin"], stdin=stdin_file
-                )
-            print(" ".join(["helm", "registry", "login", original_repo, "--username", "_json_key", "--password-stdin"]))
+            try:
+                with open(json_key_path, "r") as f:
+                    docker_credentials = json.load(f)
+                    username = docker_credentials.get("harbor_username")
+                    password = docker_credentials.get("harbor_password")
+            except:
+                with open(json_key_path, "r") as f:
+                    docker_credentials = f.read()
+                    username = "_json_key"
+                    password = docker_credentials
+      
+            subprocess.run(
+                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode())
+
+            print(" ".join(["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"]))
             subprocess.run(
                 [
                     "helm",
@@ -294,7 +307,7 @@ def deploy_maia_toolkit_api(
             "https://kthcloud.github.io/MAIA/",
             "https://hub.jupyter.org/helm-chart/",
             "https://oauth2-proxy.github.io/manifests",
-            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
+            private_maia_registry,
         ],
     }
     if not minimal:
