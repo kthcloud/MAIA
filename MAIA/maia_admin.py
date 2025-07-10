@@ -596,6 +596,10 @@ async def install_maia_project(
     with open(values_file) as f:
         values = yaml.safe_load(f)
 
+    print(chart)
+    print(values)
+    print(argo_cd_namespace)
+    print(group_id.lower().replace("_", "-"))
     revision = await client.install_or_upgrade_release(
         group_id.lower().replace("_", "-"), chart, values, namespace=argo_cd_namespace, wait=True
     )
