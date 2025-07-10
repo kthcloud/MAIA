@@ -347,7 +347,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
             orthanc_ssh_port = ssh_ports[-1]
 
     minimal_deployment = False
-    if minio_configs is None and mlflow_configs is None:
+    if minio_configs is None or mlflow_configs is None:
         minimal_deployment = True
 
     maia_namespace_values = {
