@@ -721,6 +721,8 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                 for path in rule["http"]["paths"]:
                                     if path["backend"]["service"]["name"] == "maia-xnat":
                                         maia_workspace_apps["xnat"] = "https://" + rule["host"] + path["path"]
+                                    if path["backend"]["service"]["name"] == "istio-ingressgateway":
+                                        maia_workspace_apps["kubeflow"] = "https://" + rule["host"] + path["path"]
 
     if "hub" not in maia_workspace_apps:
         maia_workspace_apps["hub"] = "N/A"
