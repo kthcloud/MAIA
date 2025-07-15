@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import json
 import os
 import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -11,7 +12,6 @@ from pathlib import Path
 from textwrap import dedent
 
 import click
-import json
 import hydra
 import yaml
 from hydra import compose as hydra_compose
@@ -21,13 +21,13 @@ from pyhelm3 import Client
 
 import MAIA
 from MAIA.maia_admin import (
+    create_filebrowser_values,
     create_maia_namespace_values,
     generate_minio_configs,
     generate_mlflow_configs,
     generate_mysql_configs,
     get_maia_toolkit_apps,
     install_maia_project,
-    create_filebrowser_values
 )
 from MAIA.maia_fn import deploy_mlflow, deploy_mysql, deploy_oauth2_proxy, deploy_orthanc
 from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
@@ -143,11 +143,16 @@ def deploy_maia_toolkit(project_config_file, maia_config_file, cluster_config, c
 
 
 def deploy_maia_toolkit_api(
-    project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=True, no_argocd=False, redeploy_enabled=True, return_values_only=False
+    project_form_dict,
+    maia_config_dict,
+    cluster_config_dict,
+    config_folder,
+    minimal=True,
+    no_argocd=False,
+    redeploy_enabled=True,
+    return_values_only=False,
 ):
-    project_form_dict["extra_configs"] = {
-        "enable_cifs": True  # Default value, can be overridden by the form
-    }
+    project_form_dict["extra_configs"] = {"enable_cifs": True}  # Default value, can be overridden by the form
     private_maia_registry = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     group_id = project_form_dict["group_ID"]
     Path(config_folder).joinpath(project_form_dict["group_ID"]).mkdir(parents=True, exist_ok=True)
@@ -197,9 +202,9 @@ def deploy_maia_toolkit_api(
     helm_commands.append(
         create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=minimal)
     )
-    
+
     helm_commands.append(
-        create_filebrowser_values(project_form_dict, cluster_config_dict, config_folder ,mlflow_configs=mlflow_configs)
+        create_filebrowser_values(project_form_dict, cluster_config_dict, config_folder, mlflow_configs=mlflow_configs)
     )
     if not minimal:
         helm_commands.append(deploy_oauth2_proxy(cluster_config_dict, project_form_dict, config_folder))
@@ -228,14 +233,15 @@ def deploy_maia_toolkit_api(
                     docker_credentials = json.load(f)
                     username = docker_credentials.get("harbor_username")
                     password = docker_credentials.get("harbor_password")
-            except:
+            except Exception:
                 with open(json_key_path, "r") as f:
                     docker_credentials = f.read()
                     username = "_json_key"
                     password = docker_credentials
-      
+
             subprocess.run(
-                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode())
+                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode()
+            )
 
             print(" ".join(["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"]))
             subprocess.run(
@@ -306,7 +312,7 @@ def deploy_maia_toolkit_api(
             {"maia_namespace_values": "namespace_values"},
             {"jupyterhub_values": "jupyterhub_values"},
             {"jupyterhub_chart_info": "jupyterhub_chart_info"},
-            {"maia_filebrowser_values", "maia_filebrowser_values"}
+            {"maia_filebrowser_values": "maia_filebrowser_values"},
         ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "group_ID": f"MAIA:{group_id}",
@@ -314,7 +320,7 @@ def deploy_maia_toolkit_api(
         "sourceRepos": [
             "https://kthcloud.github.io/MAIA/",
             "https://hub.jupyter.org/helm-chart/",
-            "https://oauth2-proxy.github.io/manifests"
+            "https://oauth2-proxy.github.io/manifests",
         ],
     }
     if private_maia_registry:

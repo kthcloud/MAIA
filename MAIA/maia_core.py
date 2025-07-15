@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
-import os
 from kubernetes import client, config
 from omegaconf import OmegaConf
 
@@ -58,26 +58,23 @@ def create_prometheus_values(config_folder, project_id, cluster_config_dict, mai
             "kubeScheduler": {"endpoints": internal_ips},
             "grafana": {
                 "grafana.ini": {
-                    "server": {
-                        "root_url": "https://grafana." + cluster_config_dict["domain"]
-                    },
+                    "server": {"root_url": "https://grafana." + cluster_config_dict["domain"]},
                     "auth.generic_oauth": {
-                            "api_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/userinfo",
-                            "auth_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/auth",
-                            "client_id": "maia",
-                            "client_secret": cluster_config_dict["keycloak"]["client_secret"],
-                            "enabled": True,
-                            "name": "OAuth",
-                            "empty_scopes": False,
-                            "role_attribute_path": f"contains(groups[*], '{admin_group_id}') && 'Admin' || 'Viewer'",
-                            "scopes": "openid profile email",
-                            "team_ids": admin_group_id,
-                            "team_ids_attribute_path": "groups[*]",
-                            "teams_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/userinfo",
-                            "token_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/token",
-                        }
+                        "api_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/userinfo",
+                        "auth_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/auth",
+                        "client_id": "maia",
+                        "client_secret": cluster_config_dict["keycloak"]["client_secret"],
+                        "enabled": True,
+                        "name": "OAuth",
+                        "empty_scopes": False,
+                        "role_attribute_path": f"contains(groups[*], '{admin_group_id}') && 'Admin' || 'Viewer'",
+                        "scopes": "openid profile email",
+                        "team_ids": admin_group_id,
+                        "team_ids_attribute_path": "groups[*]",
+                        "teams_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/userinfo",
+                        "token_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/token",
                     },
-                    
+                },
                 "assertNoLeakedSecrets": False,
                 "defaultDashboardsEnabled": True,
                 "persistence": {"enabled": True},

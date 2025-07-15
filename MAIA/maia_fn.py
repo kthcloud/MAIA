@@ -562,7 +562,7 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
 
     random_path = generate_random_password(16)
     orthanc_config = {
-        "pvc": {"pvc_type": cluster_config["storage_class"], "access_mode": "ReadWriteMany", "size": "10Gi"},
+        "pvc": {"pvc_type": cluster_config["shared_storage_class"], "access_mode": "ReadWriteMany", "size": "10Gi"},
         "imagePullSecret": cluster_config["imagePullSecrets"],
         "image": {"repository": maia_config_dict["maia_orthanc_image"], "tag": maia_config_dict["maia_orthanc_version"]},
         "cpu": "1000m",
@@ -575,11 +575,8 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         "orthanc_path": f"orthanc-{random_path}",
         "orthanc_node_port": orthanc_port,
         "serviceType": "NodePort",
-        "pvc" : {
-            "pvc_type": cluster_config["shared_storage_class"],
-        },
     }
-    
+
     enable_mysql = True
     if enable_mysql:
         mysql_password = generate_human_memorable_password(16)
@@ -590,7 +587,7 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
             "mysqlPassword": mysql_password,
             "mysqlDatabase": "orthanc",
         }
-    
+
     registry_url = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     orthanc_config["imagePullSecret"] = registry_url.replace(".", "-").replace("/", "-")
 
@@ -610,14 +607,14 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
             }
         },
     }
-    
+
     if enable_mysql:
         orthanc_custom_config["MySQL"] = {
             "EnableIndex": True,
             "EnableStorage": True,
             "Host": user_config["group_ID"].lower().replace("_", "-") + "-orthanc-mysql",
             "Port": 3306,
-            "UnixSocket" : "",
+            "UnixSocket": "",
             "Database": "orthanc",
             "Username": "maia-admin",
             "Password": mysql_password,
@@ -629,7 +626,6 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
             "ConnectionRetryInterval": 5,
             "IndexConnectionsCount": 1,
         }
-        
 
     orthanc_config.update({"orthanc_config_map": {"enabled": True, "orthanc_config": orthanc_custom_config}})
 

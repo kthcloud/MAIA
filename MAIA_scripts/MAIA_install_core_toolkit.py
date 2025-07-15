@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import json
 import os
+import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
 
-import json
 import click
-import subprocess
 import yaml
 from hydra import compose as hydra_compose
 from hydra import initialize_config_dir
@@ -153,7 +153,7 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     helm_commands.append(
         create_gpu_booking_values(config_folder, project_id, cluster_config_dict, maia_config_dict=maia_config_dict)
     )
-
+    json_key_path = os.environ.get("JSON_KEY_PATH", None)
     for helm_command in helm_commands:
         if not helm_command["repo"].startswith("http"):
             original_repo = helm_command["repo"]
@@ -163,14 +163,14 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
                     docker_credentials = json.load(f)
                     username = docker_credentials.get("harbor_username")
                     password = docker_credentials.get("harbor_password")
-            except:
+            except Exception:
                 with open(json_key_path, "r") as f:
                     docker_credentials = f.read()
                     username = "_json_key"
                     password = docker_credentials
-      
+
             subprocess.run(
-                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode(),
+                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode()
             )
             print(" ".join(["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"]))
             subprocess.run(
@@ -260,8 +260,8 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
             "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/",
             "https://storage.googleapis.com/loginapp-releases/charts/",
             "https://operator.min.io",
-            private_maia_registry
-            #"europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
+            private_maia_registry,
+            # "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
             # "https://kubernetes.github.io/ingress-nginx"
         ],
     }
@@ -280,14 +280,12 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
 
     revision = asyncio.run(verify_installed_maia_core_toolkit(project_id, maia_config_dict["argocd_namespace"]))
 
-    json_key_path = os.environ.get("JSON_KEY_PATH", None)
-
     try:
         with open(json_key_path, "r") as f:
             docker_credentials = json.load(f)
             username = docker_credentials.get("harbor_username")
             password = docker_credentials.get("harbor_password")
-    except:
+    except Exception:
         with open(json_key_path, "r") as f:
             docker_credentials = f.read()
             username = "_json_key"

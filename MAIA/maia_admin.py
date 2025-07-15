@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 import os
 import subprocess
 from pathlib import Path
 from pprint import pprint
 from secrets import token_urlsafe
 
-import json
 import argocd_client
 import yaml
 from kubernetes import client, config
@@ -455,24 +455,23 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
 
 
 def create_filebrowser_values(namespace_config, cluster_config, config_folder, mlflow_configs=None):
-    
+
     namespace_id = namespace_config["group_ID"].lower().replace("_", "-")
-    
+
     maia_filebrowser_values = {
         "chart_name": "maia-filebrowser",
         "chart_version": "",
         "repo_url": "https://kthcloud.github.io/MAIA/",
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
-
     }
-    
+
     maia_filebrowser_values["image"] = {
-        "repository": os.environ.get("MAIA_PRIVATE_REGISTRY", None)+"/maia-filebrowser",
+        "repository": os.environ.get("MAIA_PRIVATE_REGISTRY", None) + "/maia-filebrowser",
         "tag": "1.0",
     }
-    
+
     maia_filebrowser_values["imagePullSecrets"] = cluster_config.get("imagePullSecrets", [])
-    
+
     if mlflow_configs is None:
         pw = generate_human_memorable_password(16)
     else:
@@ -483,14 +482,9 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
         {"name": "user", "value": "maia-admin"},
         {"name": "password", "value": pw},
     ]
-    
-    maia_filebrowser_values["volumeMounts"] = [
-        {
-            "name": "cifs",
-            "mountPath": "/home/cifs",
-        }
-    ]
-    
+
+    maia_filebrowser_values["volumeMounts"] = [{"name": "cifs", "mountPath": "/home/cifs"}]
+
     cifs_user = convert_username_to_jupyterhub_username(namespace_config["users"][0])
     maia_filebrowser_values["volumes"] = [
         {
@@ -498,7 +492,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
             "flexVolume": {
                 "driver": "fstab/cifs",
                 "fsType": "cifs",
-                "secretRef": {"name": cifs_user },
+                "secretRef": {"name": cifs_user},
                 "options": {
                     "mountOptions": "dir_mode=0777,file_mode=0777,iocharset=utf8,noperm,nounix,rw",
                     "networkPath": os.environ.get("CIFS_SERVER", "N/A"),
@@ -517,6 +511,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
             Path(config_folder).joinpath(namespace_config["group_ID"], "maia_filebrowser_values", "maia_filebrowser_values.yaml")
         ),
     }
+
 
 async def get_maia_toolkit_apps(group_id, token, argo_cd_host):
     """
@@ -626,14 +621,14 @@ async def install_maia_project(
                     docker_credentials = json.load(f)
                     username = docker_credentials.get("harbor_username")
                     password = docker_credentials.get("harbor_password")
-            except:
+            except Exception:
                 with open(json_key_path, "r") as f:
                     docker_credentials = f.read()
                     username = "_json_key"
                     password = docker_credentials
             result = subprocess.run(
                 ["helm", "registry", "login", project_repo, "-u", username, "--password-stdin"],
-                input= password.encode(),
+                input=password.encode(),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 check=True,
@@ -1246,8 +1241,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
                 {"name": "email_smtp_server", "value": maia_config_dict["email_server_credentials"]["email_smtp_server"]},
             ]
         )
-    maia_dashboard_values["env"].append(
-        {"name": "MAIA_PRIVATE_REGISTRY", "value": maia_config_dict["maia_private_registry"]})
+    maia_dashboard_values["env"].append({"name": "MAIA_PRIVATE_REGISTRY", "value": maia_config_dict["maia_private_registry"]})
     if "minio" in maia_config_dict:
         maia_dashboard_values["dashboard"]["minio"] = {
             "url": maia_config_dict["minio"]["url"],

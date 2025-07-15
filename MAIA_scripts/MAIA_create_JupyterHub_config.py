@@ -102,7 +102,7 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     hub_storage_class = None
     if "hub_storage_class" in cluster_config:
         hub_storage_class = cluster_config["hub_storage_class"]
-    else
+    else:
         hub_storage_class = cluster_config["shared_storage_class"]
 
     hub_image = None
