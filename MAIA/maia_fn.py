@@ -417,7 +417,7 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
 
     mysql_values["chart_name"] = "mkg"
     mysql_values["chart_version"] = "1.0.4"
-    mysql_values["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+    mysql_values["repo_url"] = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
 
     Path(config_folder).joinpath(user_config["group_ID"], "mysql_values").mkdir(parents=True, exist_ok=True)
 
@@ -513,14 +513,14 @@ def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, 
             "traefik_resolver"
         ]
 
-    registry_url = "/".join(maia_config_dict["maia_workspace_pro_image"].split("/")[:-1])
+    registry_url = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     mlflow_config["image_pull_secret"] = registry_url.replace(".", "-").replace("/", "-")
 
     mlflow_values = read_config_dict_and_generate_helm_values_dict(mlflow_config, kubeconfig)
 
     mlflow_values["chart_name"] = "mkg"
     mlflow_values["chart_version"] = "1.0.4"
-    mlflow_values["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+    mlflow_values["repo_url"] = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
 
     Path(config_folder).joinpath(user_config["group_ID"], "mlflow_values").mkdir(parents=True, exist_ok=True)
 
@@ -591,7 +591,7 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
             "mysqlDatabase": "orthanc",
         }
     
-    registry_url = "/".join(maia_config_dict["maia_workspace_pro_image"].split("/")[:-1])
+    registry_url = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     orthanc_config["imagePullSecret"] = registry_url.replace(".", "-").replace("/", "-")
 
     namespace = user_config["group_ID"].lower().replace("_", "-")
@@ -666,10 +666,13 @@ def deploy_orthanc(cluster_config, user_config, maia_config_dict, config_folder)
         ]
     elif cluster_config["ingress_class"] == "nginx":
         orthanc_config["ingress_annotations"]["cert-manager.io/cluster-issuer"] = "cluster-issuer"
+        orthanc_config["ingress_annotations"]["nginx.ingress.kubernetes.io/proxy-body-size"] = "8g"
+        orthanc_config["ingress_annotations"]["nginx.ingress.kubernetes.io/proxy-read-timeout"] = "300"
+        orthanc_config["ingress_annotations"]["nginx.ingress.kubernetes.io/proxy-send-timeout"] = "300"
 
     orthanc_config["chart_name"] = "maia-orthanc"
     orthanc_config["chart_version"] = "1.0.0"
-    orthanc_config["repo_url"] = "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry"
+    orthanc_config["repo_url"] = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
 
     Path(config_folder).joinpath(user_config["group_ID"], "orthanc_values").mkdir(parents=True, exist_ok=True)
 

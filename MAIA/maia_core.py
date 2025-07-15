@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import os
 from kubernetes import client, config
 from omegaconf import OmegaConf
 
@@ -27,7 +28,7 @@ def create_prometheus_values(config_folder, project_id, cluster_config_dict, mai
         A dictionary containing the namespace, repository URL, chart version, path to the values file, release name, and chart name.
     """
 
-    config.load_kube_config()
+    config.load_kube_config(config_file=os.environ.get("DEPLOY_KUBECONFIG", None))
 
     # Create a CoreV1Api instance
     v1 = client.CoreV1Api()
@@ -58,12 +59,13 @@ def create_prometheus_values(config_folder, project_id, cluster_config_dict, mai
             "grafana": {
                 "grafana.ini": {
                     "server": {
-                        "root_url": "https://grafana." + cluster_config_dict["domain"],
-                        "auth.generic_oauth": {
+                        "root_url": "https://grafana." + cluster_config_dict["domain"]
+                    },
+                    "auth.generic_oauth": {
                             "api_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/userinfo",
                             "auth_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/auth",
                             "client_id": "maia",
-                            "client_secret": cluster_config_dict["keycloak_maia_client_secret"],
+                            "client_secret": cluster_config_dict["keycloak"]["client_secret"],
                             "enabled": True,
                             "name": "OAuth",
                             "empty_scopes": False,
@@ -73,9 +75,9 @@ def create_prometheus_values(config_folder, project_id, cluster_config_dict, mai
                             "team_ids_attribute_path": "groups[*]",
                             "teams_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/userinfo",
                             "token_url": f"https://iam.{domain}/realms/maia/protocol/openid-connect/token",
-                        },
-                    }
-                },
+                        }
+                    },
+                    
                 "assertNoLeakedSecrets": False,
                 "defaultDashboardsEnabled": True,
                 "persistence": {"enabled": True},
@@ -86,8 +88,8 @@ def create_prometheus_values(config_folder, project_id, cluster_config_dict, mai
                     "tls": [{"hosts": ["grafana." + cluster_config_dict["domain"]]}],
                 },
                 "additionalDataSources": [
-                    {"name": "loki", "type": "loki", "url": "http://loki-maia-core.observability.svc.cluster.local:3100"},
-                    {"name": "tempo", "type": "tempo", "url": "http://tempo-maia-core.observability.svc.cluster.local:3100"},
+                    {"name": "loki", "type": "loki", "url": "http://maia-core-loki.observability.svc.cluster.local:3100"},
+                    {"name": "tempo", "type": "tempo", "url": "http://maia-core-tempo.observability.svc.cluster.local:3100"},
                 ],
             },
         }
@@ -272,13 +274,13 @@ def create_core_toolkit_values(config_folder, project_id, cluster_config_dict):
     core_toolkit_values = {
         "namespace": "maia-core-toolkit",
         "chart_version": "0.1.7",
-        "repo_url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
+        "repo_url": os.environ.get("MAIA_PRIVATE_REGISTRY", None),
         "chart_name": "maia-core-toolkit",
     }  # TODO: Change this to updated values
 
     core_toolkit_values.update(
         {
-            "metric_server": {"enabled": True},
+            "metric_server": {"enabled": True},  # Replace with https://artifacthub.io/packages/helm/metrics-server/metrics-server
             "dashboard": {"enabled": True},
             "default_ingress_class": cluster_config_dict["ingress_class"],
             "cert_manager": {"enabled": True, "email": cluster_config_dict["ingress_resolver_email"]},
@@ -621,7 +623,7 @@ def create_gpu_operator_values(config_folder, project_id, cluster_config_dict):
 
     gpu_operator_values = {
         "namespace": "gpu-operator",
-        "chart_version": "24.3.0",
+        "chart_version": "25.3.1",
         "repo_url": "https://helm.ngc.nvidia.com/nvidia",
         "chart_name": "gpu-operator",
     }  # TODO: Change this to updated values
