@@ -102,6 +102,8 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     hub_storage_class = None
     if "hub_storage_class" in cluster_config:
         hub_storage_class = cluster_config["hub_storage_class"]
+    else
+        hub_storage_class = cluster_config["shared_storage_class"]
 
     hub_image = None
     hub_tag = None
@@ -354,7 +356,7 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
     if "imagePullSecrets" in cluster_config:
         jh_template["singleuser"]["image"]["pullSecrets"] = [cluster_config["imagePullSecrets"]]
     if not minimal:
-        registry_url = "/".join(maia_form["maia_workspace_pro_image"].split("/")[:-1])
+        registry_url = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
         jh_template["singleuser"]["image"]["pullSecrets"].append(registry_url.replace(".", "-").replace("/", "-"))
 
     maia_workspace_version = maia_form["maia_workspace_version"]
@@ -424,8 +426,7 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
                 "nvidia.com/gpu": "1"
             }
 
-    # TODO: Add to form
-    mount_cifs = True
+    mount_cifs = form.get("extra_configs", {}).get("enable_cifs", False)
     cifs_mount_path = os.environ.get("CIFS_SERVER", "N/A")
 
     if cifs_mount_path == "N/A":
