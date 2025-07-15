@@ -27,6 +27,7 @@ from MAIA.maia_admin import (
     generate_mysql_configs,
     get_maia_toolkit_apps,
     install_maia_project,
+    create_filebrowser_values
 )
 from MAIA.maia_fn import deploy_mlflow, deploy_mysql, deploy_oauth2_proxy, deploy_orthanc
 from MAIA_scripts.MAIA_create_JupyterHub_config import create_jupyterhub_config_api
@@ -196,7 +197,10 @@ def deploy_maia_toolkit_api(
     helm_commands.append(
         create_jupyterhub_config_api(project_form_dict, maia_config_dict, cluster_config_dict, config_folder, minimal=minimal)
     )
-
+    
+    helm_commands.append(
+        create_filebrowser_values(project_form_dict, cluster_config_dict, config_folder ,mlflow_configs=mlflow_configs)
+    )
     if not minimal:
         helm_commands.append(deploy_oauth2_proxy(cluster_config_dict, project_form_dict, config_folder))
 
@@ -302,6 +306,7 @@ def deploy_maia_toolkit_api(
             {"maia_namespace_values": "namespace_values"},
             {"jupyterhub_values": "jupyterhub_values"},
             {"jupyterhub_chart_info": "jupyterhub_chart_info"},
+            {"maia_filebrowser_values", "maia_filebrowser_values"}
         ],
         "argo_namespace": maia_config_dict["argocd_namespace"],
         "group_ID": f"MAIA:{group_id}",

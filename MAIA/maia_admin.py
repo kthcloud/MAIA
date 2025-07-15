@@ -467,7 +467,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
     }
     
     maia_filebrowser_values["image"] = {
-        "repository": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-filebrowser",
+        "repository": os.environ.get("MAIA_PRIVATE_REGISTRY", None)+"/maia-filebrowser",
         "tag": "1.0",
     }
     
