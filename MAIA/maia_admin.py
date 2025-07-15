@@ -501,6 +501,10 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
         }
     ]
 
+    Path(config_folder).joinpath(namespace_id, "maia_filebrowser_values").mkdir(parents=True, exist_ok=True)
+    with open(Path(config_folder).joinpath(namespace_id, "maia_filebrowser_values", "maia_filebrowser_values.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(maia_filebrowser_values))
+
     return {
         "namespace": maia_filebrowser_values["namespace"],
         "release": f"{namespace_id}-namespace",
