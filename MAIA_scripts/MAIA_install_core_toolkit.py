@@ -8,7 +8,9 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from textwrap import dedent
 
+import json
 import click
+import subprocess
 import yaml
 from hydra import compose as hydra_compose
 from hydra import initialize_config_dir
@@ -111,7 +113,7 @@ def main(maia_config_file, cluster_config, config_folder):
 
 
 def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
-
+    private_maia_registry = os.environ.get("MAIA_PRIVATE_REGISTRY", None)
     maia_config_dict = yaml.safe_load(Path(maia_config_file).read_text())
 
     cluster_config_dict = yaml.safe_load(Path(cluster_config).read_text())
@@ -135,8 +137,10 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     helm_commands.append(create_core_toolkit_values(config_folder, project_id, cluster_config_dict))
 
     # Allow either traefik or nginx ingress controller
-    helm_commands.append(create_traefik_values(config_folder, project_id, cluster_config_dict))
-    helm_commands.append(create_ingress_nginx_values(config_folder, project_id))
+    if cluster_config_dict["ingress_class"] == "maia-core-traefik":
+        helm_commands.append(create_traefik_values(config_folder, project_id, cluster_config_dict))
+    else:
+        helm_commands.append(create_ingress_nginx_values(config_folder, project_id))
 
     helm_commands.append(create_metallb_values(config_folder, project_id))
     helm_commands.append(create_cert_manager_values(config_folder, project_id))
@@ -151,23 +155,79 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
     )
 
     for helm_command in helm_commands:
-        cmd = [
-            "helm",
-            "upgrade",
-            "--install",
-            "--wait",
-            "-n",
-            helm_command["namespace"],
-            helm_command["release"],
-            helm_command["chart"],
-            "--repo",
-            helm_command["repo"],
-            "--version",
-            helm_command["version"],
-            "--values",
-            helm_command["values"],
-        ]
-        print(" ".join(cmd))
+        if not helm_command["repo"].startswith("http"):
+            original_repo = helm_command["repo"]
+            helm_command["repo"] = f"oci://{helm_command['repo']}"
+            try:
+                with open(json_key_path, "r") as f:
+                    docker_credentials = json.load(f)
+                    username = docker_credentials.get("harbor_username")
+                    password = docker_credentials.get("harbor_password")
+            except:
+                with open(json_key_path, "r") as f:
+                    docker_credentials = f.read()
+                    username = "_json_key"
+                    password = docker_credentials
+      
+            subprocess.run(
+                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode(),
+            )
+            print(" ".join(["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"]))
+            subprocess.run(
+                [
+                    "helm",
+                    "pull",
+                    helm_command["repo"] + "/" + helm_command["chart"],
+                    "--version",
+                    helm_command["version"],
+                    "--destination",
+                    "/tmp",
+                ]
+            )
+            print(
+                " ".join(
+                    [
+                        "helm",
+                        "pull",
+                        helm_command["repo"] + "/" + helm_command["chart"],
+                        "--version",
+                        helm_command["version"],
+                        "--destination",
+                        "/tmp",
+                    ]
+                )
+            )
+            cmd = [
+                "helm",
+                "upgrade",
+                "--install",
+                # "--wait",
+                "-n",
+                helm_command["namespace"],
+                helm_command["release"],
+                "/tmp/" + helm_command["chart"] + "-" + helm_command["version"] + ".tgz",
+                "--values",
+                helm_command["values"],
+            ]
+            print(" ".join(cmd))
+        else:
+            cmd = [
+                "helm",
+                "upgrade",
+                "--install",
+                "--wait",
+                "-n",
+                helm_command["namespace"],
+                helm_command["release"],
+                helm_command["chart"],
+                "--repo",
+                helm_command["repo"],
+                "--version",
+                helm_command["version"],
+                "--values",
+                helm_command["values"],
+            ]
+            print(" ".join(cmd))
 
     values = {
         "defaults": [
@@ -176,13 +236,11 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
             {"loki_values": "loki_values"},
             {"tempo_values": "tempo_values"},
             {"core_toolkit_values": "core_toolkit_values"},
-            {"traefik_values": "traefik_values"},
             {"metallb_values": "metallb_values"},
             {"cert_manager_values": "cert_manager_values"},
             {"loginapp_values": "loginapp_values"},
             {"minio_operator_values": "minio_operator_values"},
             {"gpu_operator_values": "gpu_operator_values"},
-            {"ingress_nginx_values": "ingress_nginx_values"},
             {"nfs_provisioner_values": "nfs_provisioner_values"},
             {"cert_manager_chart_info": "cert_manager_chart_info"},
             {"gpu_booking_values": "gpu_booking_values"},
@@ -198,13 +256,19 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
             "https://metallb.github.io/metallb",
             "https://charts.jetstack.io",
             "https://helm.ngc.nvidia.com/nvidia",
+            "https://kubernetes.github.io/ingress-nginx",
             "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/",
             "https://storage.googleapis.com/loginapp-releases/charts/",
             "https://operator.min.io",
-            "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
+            private_maia_registry
+            #"europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
             # "https://kubernetes.github.io/ingress-nginx"
         ],
     }
+    if cluster_config_dict["ingress_class"] == "maia-core-traefik":
+        values["defaults"].append({"traefik_values": "traefik_values"})
+    else:
+        values["defaults"].append({"ingress_nginx_values": "ingress_nginx_values"})
     Path(config_folder).joinpath(project_id).mkdir(parents=True, exist_ok=True)
 
     with open(Path(config_folder).joinpath(project_id, "values.yaml"), "w") as f:
@@ -218,18 +282,26 @@ def install_maia_core_toolkit(maia_config_file, cluster_config, config_folder):
 
     json_key_path = os.environ.get("JSON_KEY_PATH", None)
 
-    with open(json_key_path, "r") as f:
-        docker_credentials = f.read()
+    try:
+        with open(json_key_path, "r") as f:
+            docker_credentials = json.load(f)
+            username = docker_credentials.get("harbor_username")
+            password = docker_credentials.get("harbor_password")
+    except:
+        with open(json_key_path, "r") as f:
+            docker_credentials = f.read()
+            username = "_json_key"
+            password = docker_credentials
     create_helm_repo_secret_from_context(
-        repo_name="maia-cloud-ai-maia-core",
+        repo_name="maia-cloud-ai-maia-private",
         argocd_namespace="argocd",
         helm_repo_config={
-            "username": "_json_key",
-            "password": docker_credentials,
-            "project": "maia-core",
-            "url": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry",
+            "username": username,
+            "password": password,
+            "project": project_id,
+            "url": private_maia_registry,
             "type": "helm",
-            "name": "maia-cloud-ai-maia-core",
+            "name": "maia-cloud-ai-maia-private",
             "enableOCI": "true",
         },
     )
