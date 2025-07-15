@@ -8,3 +8,4 @@ cp CIFS/README.md docs/source/apidocs/tutorials/Admin/README_CIFS.md
 cp -r dashboard/docs docs/source/apidocs/tutorials/Dashboard
 cp -r docker/MAIA-Workspace/Tutorials docs/source/apidocs/tutorials/MAIA-Workspace
 python docs/scripts/generate_tutorials_rst.py
+python docs/scripts/generate_scripts_rst.py
