@@ -36,8 +36,9 @@ docker_username: docker-username # Robot Account from Harbor
 domain: cluster.domain
 imagePullSecrets: docker-registry-secret-name
 ingress_class: traefik-or-nginx
-ingress_resolver_email: admin@maia.se
-k8s_distribution: microk8s-or-rke
+maia_metallb_ip: "" # Optional, MetalLB IP address for the cluster, if using MetalLB and Services of type LoadBalancer
+metallb_shared_ip: "" #Optional, MetalLB Shared IP for the cluster, if using MetalLB and Services of type LoadBalancer
+metallb_ip_pool: "" # Optional, MetalLB IP Pool for the cluster, if using MetalLB and Services of type LoadBalancer
 keycloak:
   authorize_url: https://<keycloak_url>/realms/<realm_name>/protocol/openid-connect/auth
   client_id: keycloak-client-id
@@ -45,35 +46,26 @@ keycloak:
   issuer_url: https://<keycloak_url>/realms/<realm_name>
   token_url: https://<keycloak_url>/realms/<realm_name>/protocol/openid-connect/token
   userdata_url: https://<keycloak_url>/realms/<realm_name>/protocol/openid-connect/userinfo
-keycloak_maia_client_secret: keycloak-maia-client-secret # Keycloak client secret for MAIA client in Core Cluster
-maia_dashboard:
-  enabled: true
-  token: '' # Optional Rancher token for the MAIA Dashboard, to be uses if RBAC is disabled
 port_range: # LoadBalancer or NodePorts range assigned to the cluster
 - 2022
 - 2122
-rancher_password: rancher-admin-password
-services: # Dashboard links to services
-  argocd: https://argocd.maia.se
-  dashboard: https://dashboard.maia.se
-  grafana: https://grafana.maia.se
-  keycloak: https://iam.maia.se
-  login: https://login.maia.se
-  rancher: https://mgmt.maia.se
-  registry: https://registry.maia.se
-  traefik: https://traefik.maia.se
 shared_storage_class: nfs # StorageClass for shared storage
 ssh_hostname:  cluster.domain # Domain for SSH access
 ssh_port_type: NodePort # LoadBalancer or NodePort
 storage_class: microk8s-hostpath # StorageClass for local storage
-traefik_dashboard_password: traefik # Password for Traefik dashboard
 traefik_resolver: maiamediumresolver # Traefik resolver
+nginx_cluster_issuer: cluster-issuer # If using Nginx Ingress Controller
 url_type: subdomain # Subpath or Subdomain
 ```
 - `maia-config.yaml`: This file contains the MAIA configuration about the different Docker images and the MAIA components.
 ```yaml
 admin_group_ID: MAIA:admin
 argocd_namespace: argocd
+argocd_host
+argocd_token:
+
+maia_orthanc_image
+maia_orthanc_version
 
 maia_monai_toolkit_image: <registry.domain>/maia/monai-toolkit:1.0  # Optional, Docker image for MONAI Toolkit
 maia_project_chart: maia-project
@@ -81,6 +73,8 @@ maia_project_repo: https://kthcloud.github.io/MAIA/
 maia_project_version: X.Y.Z
 maia_workspace_image: maia-workspace-image
 maia_workspace_version: 'X.Y.Z'
+maia_workspace_pro_image: maia-workspace-image
+maia_workspace_pro_version: 'X.Y.Z'
 ```
 
 ## Deploy the MAIA Namespace
