@@ -499,12 +499,13 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
             },
         }
     ]
-    
+        
     maia_filebrowser_values["ingress"] = {
         "enabled": True,
         "annotations": {},
-        "host": "cifs.{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
-        "serviceName": f"{namespace_id}-filebrowser-maia-filebrowser",
+        "hosts": [{"host": "cifs.{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
+                   "paths": [{"path": "/", "pathType": "ImplementationSpecific"}]}],
+        "tls": [{"hosts": ["cifs.{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"])]}],
     }
     if "nginx_cluster_issuer" in cluster_config:
         maia_filebrowser_values["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
@@ -512,6 +513,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
         maia_filebrowser_values["ingress"]["tlsSecretName"] = "{}.{}-tls".format(
             namespace_config["group_subdomain"], cluster_config["domain"]
         )
+        maia_filebrowser_values["ingress"]["tls"][0]["secretName"] = "{}.{}-tls".format(namespace_config["group_subdomain"], cluster_config["domain"])
     if "traefik_resolver" in cluster_config:
         maia_filebrowser_values["ingress"]["annotations"][
             "traefik.ingress.kubernetes.io/router.entrypoints"
