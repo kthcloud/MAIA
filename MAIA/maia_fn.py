@@ -466,7 +466,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, 
     mlflow_config = {
         "namespace": namespace,
         "chart_name": "mlflow-v1",
-        "docker_image": "europe-north2-docker.pkg.dev/maia-core-455019/maia-registry/maia-mlflow",
+        "docker_image": os.environ.get("MAIA_PRIVATE_REGISTRY", None)+"/maia-mlflow",
         "tag": "1.5",
         "deployment": True,
         "memory_request": "2Gi",
