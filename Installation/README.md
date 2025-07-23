@@ -200,13 +200,13 @@ maia_dashboard:
   enabled: true # Whether the Cluster should be managed by the MAIA Dashboard
   token: # Optional Token for the MAIA Dashboard, to be used if RBAC is disabled (as in Rancher deployments)
 services: # List of links to services in the cluster
-  argocd: https://argocd.maia-cloud.com
+  argocd:  N/A
   dashboard: N/A
   grafana: N/A
-  keycloak: https://iam.maia-cloud.com
+  keycloak: N/A
   login: N/A
-  rancher: https://mgmt.maia-cloud.com
-  registry: https://registry.maia-cloud.com
+  rancher: N/A
+  registry: N/A
   traefik: N/A
 # For Deploying Projects in the Cluster
 argocd_destination_cluster_address: https://<RANCHER_CLUSTER_API_SERVER> # Address of the Rancher cluster API server, usually the same as `api`
