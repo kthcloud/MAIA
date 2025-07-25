@@ -7,9 +7,9 @@ maia-workspace-notebook-ssh-addons: 1.7
 monai-toolkit: 1.0
 maia-xnat: 1.0
 maia-orthanc: 1.0
-maia-workspace-base: 1.7
-maia-workspace-base-notebook: 1.7
-maia-workspace-base-notebook-ssh: 1.7
+maia-workspace-base: 1.7.1
+maia-workspace-base-notebook: 1.7.1
+maia-workspace-base-notebook-ssh: 1.7.1
 maia-filebrowser: 1.0
 maia-mlflow: 1.0
 maia-gpu-booking-admission-controller: 1.0
