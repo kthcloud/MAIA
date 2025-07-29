@@ -1,3 +1,5 @@
+{% raw %}
+```yaml
 ---
 - name: Setup NFS Server
   hosts: nfs_server
@@ -101,3 +103,5 @@
         fstype: nfs
         opts: rw,sync,vers=4
         state: mounted
+```
+{% endraw %}
