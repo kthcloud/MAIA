@@ -39,6 +39,14 @@ MAIA serves two main purposes:
 
 The toolkit provides a set of scripts and tools to deploy and manage the MAIA platform as a Kubernetes cluster.
 
+## Citation
+
+If you use the MAIA platform in your work, please cite the following [preprint](https://arxiv.org/abs/2507.19489):
+
+```
+Bendazzoli, S., Persson, S., Astaraki, M., Pettersson, S., Grozman, V., & Moreno, R. (2025). MAIA: A Collaborative Medical AI Platform for Integrated Healthcare Innovation. arXiv preprint [arXiv:2507.19489](https://arxiv.org/abs/2507.19489).
+```
+
 ## Installation
 
 To install the MAIA Toolkit, run:
@@ -137,30 +145,6 @@ Additionally, the MAIA platform provides access to a range of cloud services and
   <img src="https://raw.githubusercontent.com/kthcloud/maia/master/Workspace.png" width="70%" alt='MAIA'>
 </p>
 
-
-## Build the Documentation
-To build the documentation, run:
-
-```shell
-cp README.md docs/source/README.md
-mkdir -p docs/source/apidocs/tutorials/Admin
-cp GPU_Booking_System.md docs/source/apidocs/tutorials/Admin/GPU_Booking_System.md
-cp GPU-Booking-System.png docs/source/apidocs/tutorials/Admin/GPU-Booking-System.png
-cp Deploy_Custom_App.md docs/source/apidocs/tutorials/Admin/Deploy_Custom_App.md
-cp Deploy_MAIA_Namespace_from_CLI.md docs/source/apidocs/tutorials/Admin/Deploy_MAIA_Namespace_from_CLI.md
-cp CIFS/README.md docs/source/apidocs/tutorials/Admin/README_CIFS.md
-cp -r dashboard/docs docs/source/apidocs/tutorials/Dashboard
-cp -r docker/MAIA-Workspace/Tutorials docs/source/apidocs/tutorials/MAIA-Workspace
-python docs/scripts/generate_tutorials_rst.py
-cd docs
-sphinx-autobuild source _build/html
-```
-
-## MAIA Toolkit Documentation
-
-### Keycloak Email Configuration
-
-To configure the Keycloak email settings, follow the instructions in the [Keycloak documentation](https://www.keycloak.org/docs/latest/server_admin/index.html#_email).
 
 
 
