@@ -1,5 +1,7 @@
 # MAIA Toolkit
 
+[![arXiv](https://img.shields.io/badge/arXiv-2507.19489-b31b1b.svg)](https://arxiv.org/abs/2507.19489)
+
 [![Build](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml/badge.svg)](https://github.com/kthcloud/MAIA/actions/workflows/build.yaml)
 
 [![Documentation Status](https://readthedocs.org/projects/maia-toolkit/badge/?version=latest)](https://maia-toolkit.readthedocs.io/en/latest/?badge=latest)
