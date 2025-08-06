@@ -23,6 +23,9 @@ A list of all the users part of the project is available in the same page
 <p align="center">
     <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Admin_User_Registration.png" alt="MAIA Apps" width="40%">
 </p>
+If a user wishes to be removed from a project, administrators can unlink the user by updating the project list in the user's entry and clicking the unlink icon. Once unlinked, the user will lose access to the project's resources and tools.
+
+
 
 ## Project Management
 
@@ -58,18 +61,36 @@ Upon completion of a project, the MAIA administrators can delete the project. Th
 ## Resource Management
 
 ### Monitoring Cluster Status
+The MAIA Dashboard Home page provides an overview of the MAIA cluster status, with one table for each cluster. The tables display the number of nodes per cluster and their current status (e.g., Ready, NotReady, UnderMaintenance). In addition, for each cluster, it is possible to navigate to the cluster's available monitoring services, such as Grafana and Kubernetes Dashboard, and other relevant applications, such as the Traefik dashboard, Rancher, ArgoCD, Keycloak and the Harbor registry.
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/Clusters.png" alt="MAIA Clusters" width="80%">
+</p>
 
 ### Monitoring GPU Allocations
 
-### Cluster Management and Monitoring
+The MAIA Dashboard features a *Resources* page dedicated to tracking GPU usage across all projects. This page displays a table listing each allocated GPU, the associated project, and the requesting user, enabling administrators to monitor GPU utilization and optimize resource allocation.
+
+Additionally, a filter below the GPU allocation table allows administrators to sort nodes by requested resources, including CPU, Memory, and GPU. This makes it easy to identify nodes that match specific requirements and locate available computing resources within the clusters.
 
 
 ### GPU Booking System
 
+This system is implemented only for a subset of GPUs. The way it works is that users need to book a GPU in order to be able to use it. TThe booking is done through the *Book a GPU* page, where the user inserts the required information, such as the project, the GPU type, and the booking duration. Once the booking is confirmed, the user will receive an email notification with the booking details.
+The booked GPU will be displayed in the *My GPU Booking* page, where the user can see the status of their bookings and any relevant information.
+It is also possible to cancel a booking, which will free up the GPU for other users. The cancellation can be done by clicking on the "Delete" button next to the booking entry in the *My GPU Booking* page.
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/GPU_booking.png" alt="MAIA Clusters" width="40%">
+</p>
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/kthcloud/maia/master/dashboard/docs/images/gpu_booking.png" alt="MAIA Clusters" width="90%">
+</p>
 
 ## Automatic Email Notifications
 
-Automatic email notifications are used to welcome new users, notify them of project approvals, and inform them about resource allocations. The email notifications are sent to the user's registered email address and contain important information about their account and project status.
+Automatic email notifications are used to welcome new users, notify them of project approvals, and inform them about resource allocations (including the GPU Booking system). The email notifications are sent to the user's registered email address and contain important information about their account and project status.
 
 To enable email notifications, the MAIA administrators must configure the email settings in the MAIA Dashboard. This includes setting up the SMTP server, sender email address, and other relevant parameters:
 ```yaml
