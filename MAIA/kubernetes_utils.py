@@ -313,6 +313,10 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters=
                                 "gpu_size": gpu_size,
                                 "expiration": pod["metadata"]["annotations"].get("terminate-at", "N/A"),
                             }
+                            if "terminate-at" in pod["metadata"]["annotations"]:
+                                expiry_time = datetime.strptime(pod["metadata"]["annotations"].get("terminate-at"), "%Y-%m-%dT%H:%M:%SZ")
+                                if datetime.utcnow() > expiry_time:
+                                    gpu_allocations[pod_name + ", " + pod["metadata"]["namespace"]]["is_expired"] = True
 
                             n_gpu_requested += int(req["nvidia.com/gpu"])
                         if "cpu" in req:
