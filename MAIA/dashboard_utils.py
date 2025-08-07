@@ -172,7 +172,7 @@ def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bo
             return False, "There is an active booking, you cannot book a new one while another is active."
         if booking.start_date <= datetime.now(tz=booking.start_date.tzinfo) and booking.end_date <= datetime.now(tz=booking.end_date.tzinfo):
             if (datetime.now(tz=booking.start_date.tzinfo) - booking.end_date).days < 14:
-                return False, "You have a past booking that is less than 14 days old, you can book a new one in {} days.".format(14 - (booking.end_date - datetime.now(tz=booking.end_date.tzinfo)).days)
+                return False, "You have a past booking that is less than 14 days old, you can book a new one in {} days.".format(14 - (datetime.now(tz=booking.end_date.tzinfo) - booking.end_date).days)
         if booking.start_date >= datetime.now(tz=booking.start_date.tzinfo) and booking.end_date >= datetime.now(tz=booking.end_date.tzinfo):
             return False, "You already have a planned booking [{} - {}], you cannot book a new one.".format(booking.start_date, booking.end_date)
     ending_time = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S")
