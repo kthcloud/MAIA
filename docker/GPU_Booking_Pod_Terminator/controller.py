@@ -122,6 +122,14 @@ def trigger_delete_expired_pods():
     thread.join()
     return jsonify({"status": "success", "deleted_pod": pod_to_delete.metadata.name}), 200
 
+@app.route('/get-expired-pods', methods=['GET'])
+def get_expired_pods():
+    expired_pods = find_all_expired_pods()
+    if not expired_pods:
+        return jsonify({"status": "no expired pods found"}), 200
+    pod_names = [pod.metadata.name for pod in expired_pods]
+    return jsonify({"status": "success", "expired_pods": pod_names}), 200
+
 if __name__ == "__main__":
     #delete_expired_pods()
     app.run(host="0.0.0.0", port=8080)
