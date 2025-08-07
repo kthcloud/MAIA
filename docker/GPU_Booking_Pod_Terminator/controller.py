@@ -72,11 +72,11 @@ def recreate_pod(pod):
             found = False
             for env in env_vars:
                 if env.name == "NVIDIA_VISIBLE_DEVICES":
-                    env.value = "None"
+                    env.value = ""
                     found = True
                     break
             if not found:
-                env_vars.append(client.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value="None"))
+                env_vars.append(client.V1EnvVar(name="NVIDIA_VISIBLE_DEVICES", value=""))
             container.env = env_vars
 
     # Remove the "terminate-at" annotation if it exists
