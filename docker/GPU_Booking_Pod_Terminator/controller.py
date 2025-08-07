@@ -1,7 +1,10 @@
+from random import random
 from kubernetes import client, config, watch
 import time
 from datetime import datetime, timedelta
 import logging
+from flask import Flask, jsonify
+import threading
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -12,6 +15,29 @@ config.load_incluster_config()  # Use in-cluster config
 # config.load_kube_config()  # Uncomment for local testing
 
 v1 = client.CoreV1Api()
+
+
+def find_all_expired_pods():
+    expired_pods = []
+    pods = v1.list_pod_for_all_namespaces(watch=False).items
+    for pod in pods:
+        annotations = pod.metadata.annotations or {}
+        if "terminate-at" in annotations:
+            try:
+                expiry_time = datetime.strptime(annotations["terminate-at"], "%Y-%m-%dT%H:%M:%SZ")
+                if datetime.utcnow() > expiry_time:
+                    expired_pods.append(pod)
+            except Exception as e:
+                logger.error(f"Error processing pod {pod.metadata.name}: {e}")
+    return expired_pods
+
+def delete_expired_pod(pod):
+    try:
+        v1.delete_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
+        recreate_pod(pod=pod)
+    except Exception as e:
+        logger.error(f"Error processing deletion for pod {pod.metadata.name}: {e}")
+
 
 def delete_expired_pods():
     while True:
@@ -27,7 +53,7 @@ def delete_expired_pods():
                           # Wait 5 seconds before checking the next pod
                         recreate_pod(pod=pod)
                 except Exception as e:
-                    logger.error(f"Error processing pod {pod.metadata.name}: {e}")
+                    logger.error(f"Error processing deletion for pod {pod.metadata.name}: {e}")
         time.sleep(30)  # Check every 30 seconds
 
 def recreate_pod(pod):
@@ -79,5 +105,23 @@ def recreate_pod(pod):
         
     
 
+app = Flask(__name__)
+
+@app.route('/random-delete', methods=['POST'])
+def trigger_delete_expired_pods():
+    expired_pods = find_all_expired_pods()
+    if not expired_pods:
+        return jsonify({"status": "no expired pods found"}), 200
+    logger.info(f"Found {len(expired_pods)} expired pods, starting deletion process.")
+    # Randomly select one pod to delete
+    pod_to_delete = random.choice(expired_pods)
+    # Run the pod deletion in a background thread to avoid blocking
+    logger.info(f"Selected pod {pod_to_delete.metadata.name} from {pod_to_delete.metadata.namespace} for deletion.")
+    thread = threading.Thread(target=delete_expired_pod, args=(pod_to_delete,), daemon=True)
+    thread.start()
+    thread.join()
+    return jsonify({"status": "success", "deleted_pod": pod_to_delete.metadata.name}), 200
+
 if __name__ == "__main__":
-    delete_expired_pods()
+    #delete_expired_pods()
+    app.run(host="0.0.0.0", port=8080)
