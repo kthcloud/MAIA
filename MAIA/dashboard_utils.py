@@ -167,15 +167,26 @@ def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bo
 
     total_days = sum((booking.end_date - booking.start_date).days for booking in existing_bookings)
 
+    for booking in existing_bookings:
+        print("Checking booking: ", booking.start_date, booking.end_date)
+        print("Current time: ", datetime.now())
+        print("Booking active: ", booking.start_date <= datetime.now() and booking.end_date >= datetime.now())
+        if booking.start_date <= datetime.now() and booking.end_date >= datetime.now():
+            return False, "There is an active booking, you cannot book a new one while another is active."
     # Calculate the number of days for the new booking
     ending_time = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S")
     starting_time = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S")
 
     new_booking_days = (ending_time - starting_time).days
 
+    if new_booking_days <= 0:
+        return False, "The booking must be at least one day long."
+    
+    if new_booking_days > 14:
+        return False, "The booking cannot exceed 14 days."
     # Verify that the sum of existing bookings and the new booking does not exceed 60 days
-    if total_days + new_booking_days > 60:
-        return False, "The total number of days for all bookings cannot exceed 60 days."
+    #if total_days + new_booking_days > 60:
+    #    return False, "The total number of days for all bookings cannot exceed 60 days."
 
     overlapping_time_slots, gpu_availability_per_slot, total_replicas = verify_gpu_availability(
         global_existing_bookings=global_existing_bookings, new_booking=new_booking, gpu_specs=gpu_specs
