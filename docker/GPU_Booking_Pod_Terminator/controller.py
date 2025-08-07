@@ -93,7 +93,6 @@ def recreate_pod(pod):
         ),
         spec=pod.spec
     )
-    time.sleep(30)
     
     for attempt in range(10):
         try:
@@ -102,7 +101,7 @@ def recreate_pod(pod):
             break
         except Exception as e:
             logger.error(f"Error recreating pod {pod.metadata.name} (attempt {attempt + 1}/10): {e}")
-            time.sleep(10)  # Wait 5 seconds before retrying
+            time.sleep(5)  # Wait 5 seconds before retrying
         
     
 
