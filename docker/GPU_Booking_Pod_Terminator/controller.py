@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import logging
 from flask import Flask, jsonify
 import threading
+from flask import request
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -129,6 +130,31 @@ def get_expired_pods():
         return jsonify({"status": "no expired pods found"}), 200
     pod_names = [pod.metadata.name for pod in expired_pods]
     return jsonify({"status": "success", "expired_pods": pod_names}), 200
+
+@app.route('/delete-expired-pod', methods=['POST'])
+def delete_expired_pod_endpoint():
+    data = request.json
+    pod_name = data.get("pod_name")
+    namespace = data.get("namespace")
+    if not pod_name or not namespace:
+        return jsonify({"status": "error", "message": "pod_name and namespace are required"}), 400
+
+    pod = None
+    pods = v1.list_namespaced_pod(namespace=namespace).items
+    for p in pods:
+        if p.metadata.name == pod_name:
+            pod = p
+            break
+    # Verify if the pod is expired
+    expired_pods = find_all_expired_pods()
+    if pod not in expired_pods:
+        return jsonify({"status": "error", "message": "Pod is not expired"}), 400
+    if not pod:
+        return jsonify({"status": "error", "message": "Pod not found"}), 404
+
+    logger.info(f"Deleting expired pod {pod.metadata.name} from {pod.metadata.namespace}.")
+    delete_expired_pod(pod)
+    return jsonify({"status": "success", "deleted_pod": pod.metadata.name}), 200
 
 if __name__ == "__main__":
     #delete_expired_pods()
