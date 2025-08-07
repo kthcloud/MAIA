@@ -311,6 +311,7 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters=
                                 "gpu": req["nvidia.com/gpu"],
                                 "gpu_name": gpu_name,
                                 "gpu_size": gpu_size,
+                                "expiration": pod["metadata"]["annotations"].get("terminate-at", "N/A"),
                             }
 
                             n_gpu_requested += int(req["nvidia.com/gpu"])
