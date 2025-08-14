@@ -182,7 +182,27 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 						}
 					}
 					log.Printf("Available GPUs for %s: %d", gpu_to_book, available_gpus)
-				}
+					if available_gpus <= 0 {
+						// Handle case where no GPUs are available
+						// POST to url/random-delete
+						randomDeleteURL := "http://pod-terminator:8080/random-delete"
+						if randomDeleteURL != "" {
+							payload, _ := json.Marshal(map[string]string{
+
+							})
+							resp, err := http.Post(randomDeleteURL, "application/json", bytes.NewBuffer(payload))
+							if err != nil {
+								log.Printf("Failed to POST to random-delete: %v", err)
+							} else {
+								defer resp.Body.Close()
+								log.Printf("POST to random-delete returned status: %d", resp.StatusCode)
+								body, _ := ioutil.ReadAll(resp.Body)
+								log.Printf("Response body: %s", body)
+							}
+						} else {
+							log.Printf("RANDOM_DELETE_URL not set, skipping random-delete POST")
+						}
+					}
 
 			}
 		}
