@@ -1,4 +1,4 @@
-from random import random
+import random
 from kubernetes import client, config, watch
 import time
 from datetime import datetime, timedelta
@@ -26,7 +26,8 @@ def find_all_expired_pods():
         if "terminate-at" in annotations:
             try:
                 expiry_time = datetime.strptime(annotations["terminate-at"], "%Y-%m-%dT%H:%M:%SZ")
-                if datetime.utcnow() > expiry_time:
+                # Check if pod is expired and in Running phase
+                if datetime.utcnow() > expiry_time and pod.status.phase == "Running":
                     expired_pods.append(pod)
             except Exception as e:
                 logger.error(f"Error processing pod {pod.metadata.name}: {e}")
