@@ -5,7 +5,7 @@ import email
 import os
 import smtplib
 import ssl
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -167,16 +167,23 @@ def verify_gpu_booking_policy(existing_bookings, new_booking, global_existing_bo
 
     total_days = sum((booking.end_date - booking.start_date).days for booking in existing_bookings)
 
+    ending_time = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S")
+    starting_time = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S")
+    
     for booking in existing_bookings:
+        print(booking.start_date)
+        print(booking.end_date)
+        print(ending_time)
+        print(starting_time)
+        print(booking.start_date.tzinfo)
         if booking.start_date <= datetime.now(tz=booking.start_date.tzinfo) and booking.end_date >= datetime.now(tz=booking.end_date.tzinfo):
             return False, "There is an active booking, you cannot book a new one while another is active."
         if booking.start_date <= datetime.now(tz=booking.start_date.tzinfo) and booking.end_date <= datetime.now(tz=booking.end_date.tzinfo):
-            if (datetime.now(tz=booking.start_date.tzinfo) - booking.end_date).days < 14:
-                return False, "You have a past booking that is less than 14 days old, you can book a new one in {} days.".format(14 - (datetime.now(tz=booking.end_date.tzinfo) - booking.end_date).days)
+            if (booking.end_date - starting_time).days < 14:
+                return False, "The time between your old booking and the new booking must be at least 14 days. You can start a new booking on {}.".format(booking.end_date + timedelta(days=14))
         if booking.start_date >= datetime.now(tz=booking.start_date.tzinfo) and booking.end_date >= datetime.now(tz=booking.end_date.tzinfo):
             return False, "You already have a planned booking [{} - {}], you cannot book a new one.".format(booking.start_date, booking.end_date)
-    ending_time = datetime.strptime(new_booking["ending_time"], "%Y-%m-%d %H:%M:%S")
-    starting_time = datetime.strptime(new_booking["starting_time"], "%Y-%m-%d %H:%M:%S")
+
 
     new_booking_days = (ending_time - starting_time).days
 
