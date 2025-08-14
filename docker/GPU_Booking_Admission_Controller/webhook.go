@@ -187,9 +187,7 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 						// POST to url/random-delete
 						randomDeleteURL := "http://pod-terminator:8080/random-delete"
 						if randomDeleteURL != "" {
-							payload, _ := json.Marshal(map[string]string{
-
-							})
+							payload, _ := json.Marshal(map[string]string{})
 							resp, err := http.Post(randomDeleteURL, "application/json", bytes.NewBuffer(payload))
 							if err != nil {
 								log.Printf("Failed to POST to random-delete: %v", err)
@@ -203,6 +201,7 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 							log.Printf("RANDOM_DELETE_URL not set, skipping random-delete POST")
 						}
 					}
+				}
 
 			}
 		}
