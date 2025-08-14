@@ -291,6 +291,8 @@ def get_available_resources(id_token, api_urls, cluster_names, private_clusters=
                     continue
                 if pod["spec"]["nodeName"] != node_name.split("/")[1]:
                     continue
+                if pod["status"].get("phase") != "Running":
+                    continue
                 containers = pod["spec"]["containers"]
                 for container in containers:
                     resources = container["resources"]
