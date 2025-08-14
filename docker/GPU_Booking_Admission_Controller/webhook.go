@@ -17,6 +17,7 @@ import (
 type ApiResponse struct {
 	Schedulable bool      `json:"schedulable"`
 	Until       time.Time `json:"until"`
+	GPU         string    `json:"gpu"`
 }
 
 func handleMutation(w http.ResponseWriter, r *http.Request) {
@@ -95,12 +96,12 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 	var apiResponse ApiResponse
 	if err != nil || apiResp.StatusCode != http.StatusOK {
 		// Default to schedulable = false if API call fails
-		apiResponse = ApiResponse{Schedulable: false}
+		apiResponse = ApiResponse{Schedulable: false, GPU: "unknown"}
 	} else {
 		defer apiResp.Body.Close()
 		if err := json.NewDecoder(apiResp.Body).Decode(&apiResponse); err != nil {
 			// Default to schedulable = false if response parsing fails
-			apiResponse = ApiResponse{Schedulable: false}
+			apiResponse = ApiResponse{Schedulable: false, GPU: "unknown"}
 		}
 	}
 
@@ -169,7 +170,7 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 					gpuStatus := response["gpu"]
 					log.Printf("GPU status summary: %+v", gpuStatus)
 				}
-				gpu_to_book := apiResponse.gpu
+				gpu_to_book := apiResponse.GPU
 				available_gpus := 0
 				if gpuStatusMap, ok := gpuStatus.(map[string]interface{}); ok {
 					if gpuInfo, ok := gpuStatusMap[gpu_to_book]; ok {
