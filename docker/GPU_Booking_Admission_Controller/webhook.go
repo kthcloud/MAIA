@@ -169,21 +169,21 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 				} else {
 					gpuStatus := response["gpu"]
 					log.Printf("GPU status summary: %+v", gpuStatus)
-				}
-				gpu_to_book := apiResponse.GPU
-				available_gpus := 0
-				if gpuStatusMap, ok := gpuStatus.(map[string]interface{}); ok {
-					if gpuInfo, ok := gpuStatusMap[gpu_to_book]; ok {
-						if gpuInfoMap, ok := gpuInfo.(map[string]interface{}); ok {
-							if val, ok := gpuInfoMap["available_gpus"]; ok {
-								if num, ok := val.(float64); ok {
-									available_gpus = int(num)
+					gpu_to_book := apiResponse.GPU
+					available_gpus := 0
+					if gpuStatusMap, ok := gpuStatus.(map[string]interface{}); ok {
+						if gpuInfo, ok := gpuStatusMap[gpu_to_book]; ok {
+							if gpuInfoMap, ok := gpuInfo.(map[string]interface{}); ok {
+								if val, ok := gpuInfoMap["available_gpus"]; ok {
+									if num, ok := val.(float64); ok {
+										available_gpus = int(num)
+									}
 								}
 							}
 						}
 					}
+					log.Printf("Available GPUs for %s: %d", gpu_to_book, available_gpus)
 				}
-				log.Printf("Available GPUs for %s: %d", gpu_to_book, available_gpus)
 
 			}
 		}
