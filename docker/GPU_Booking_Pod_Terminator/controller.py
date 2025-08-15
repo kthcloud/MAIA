@@ -27,7 +27,19 @@ def find_all_expired_pods():
             try:
                 expiry_time = datetime.strptime(annotations["terminate-at"], "%Y-%m-%dT%H:%M:%SZ")
                 # Check if pod is expired and in Running phase
-                if datetime.utcnow() > expiry_time and pod.status.phase == "Running":
+                if (
+                    datetime.utcnow() > expiry_time
+                    and pod.status.phase == "Running"
+                    and pod.spec.containers
+                    and any(
+                        c.resources
+                        and (
+                            (c.resources.limits and "nvidia.com/gpu" in c.resources.limits)
+                            or (c.resources.requests and "nvidia.com/gpu" in c.resources.requests)
+                        )
+                        for c in pod.spec.containers
+                    )
+                ):
                     expired_pods.append(pod)
             except Exception as e:
                 logger.error(f"Error processing pod {pod.metadata.name}: {e}")

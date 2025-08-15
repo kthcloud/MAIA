@@ -114,12 +114,23 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !apiResponse.Schedulable {
-		patches := []map[string]interface{}{
-			{
+		// Skip patch if no GPU is requested
+		gpuRequested := false
+		for _, container := range pod.Spec.Containers {
+			if val, ok := container.Resources.Requests["nvidia.com/gpu"]; ok {
+				if val.Value() > 0 {
+					gpuRequested = true
+					break
+				}
+			}
+		}
+		var patches []map[string]interface{}
+		if gpuRequested {
+			patches = append(patches, map[string]interface{}{
 				"op":    "add",
 				"path":  "/metadata/annotations/terminate-at",
 				"value": time.Date(1900, 1, 1, 8, 0, 0, 0, time.UTC).Format(time.RFC3339),
-			},
+			})
 		}
 
 		gpuReq, err := http.NewRequest("GET", gpu_stats_url, nil)
