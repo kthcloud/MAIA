@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -119,6 +120,96 @@ func handleMutation(w http.ResponseWriter, r *http.Request) {
 				"path":  "/metadata/annotations/terminate-at",
 				"value": time.Date(1900, 1, 1, 8, 0, 0, 0, time.UTC).Format(time.RFC3339),
 			},
+		}
+
+		gpuReq, err := http.NewRequest("GET", gpu_stats_url, nil)
+		if err != nil {
+			log.Printf("Failed to create GPU status request: %v", err)
+		} else {
+			gpuReq.Header.Set("Content-Type", "application/json")
+			client := &http.Client{Timeout: 5 * time.Second}
+			gpuResp, err := client.Do(gpuReq)
+			if err != nil {
+				log.Printf("Failed to get GPU status summary: %v", err)
+			} else {
+				defer gpuResp.Body.Close()
+				// Optionally, parse and use the response here if needed
+				log.Printf("GPU status summary response code: %d", gpuResp.StatusCode)
+				var response map[string]interface{}
+				if err := json.NewDecoder(gpuResp.Body).Decode(&response); err != nil {
+					log.Printf("Failed to decode GPU status summary: %v", err)
+				} else {
+					gpuStatus := response["gpu"]
+					log.Printf("GPU status summary: %+v", gpuStatus)
+					gpu_to_book := apiResponse.GPU
+					available_gpus := 0
+					if statusMap, ok := gpuStatus.(map[string]interface{}); ok {
+						if val, exists := statusMap[gpu_to_book]; exists {
+							switch v := val.(type) {
+							case float64:
+								available_gpus = int(v)
+							case int:
+								available_gpus = v
+							}
+						}
+					}
+					log.Printf("Available GPUs for %s: %d", gpu_to_book, available_gpus)
+					if available_gpus <= 0 {
+						// Iterate through containers to remove GPU requests/limits and add ENV variable
+						for i, container := range pod.Spec.Containers {
+							// Remove GPU requests if they exist
+							if _, exists := container.Resources.Requests["nvidia.com/gpu"]; exists {
+								patches = append(patches, map[string]interface{}{
+									"op":   "remove",
+									"path": fmt.Sprintf("/spec/containers/%d/resources/requests/nvidia.com~1gpu", i),
+								})
+							}
+							// Remove GPU limits if they exist
+							if _, exists := container.Resources.Limits["nvidia.com/gpu"]; exists {
+								patches = append(patches, map[string]interface{}{
+									"op":   "remove",
+									"path": fmt.Sprintf("/spec/containers/%d/resources/limits/nvidia.com~1gpu", i),
+								})
+							}
+
+							// Check if NVIDIA_VISIBLE_DEVICES exists
+							envVarExists := false
+							for j, envVar := range container.Env {
+								if envVar.Name == "NVIDIA_VISIBLE_DEVICES" {
+									envVarExists = true
+									patches = append(patches, map[string]interface{}{
+										"op":    "replace",
+										"path":  fmt.Sprintf("/spec/containers/%d/env/%d/value", i, j),
+										"value": "none",
+									})
+									break
+								}
+							}
+
+							// If NVIDIA_VISIBLE_DEVICES does not exist, add it
+							if !envVarExists {
+								// Ensure the env field exists
+								if len(container.Env) == 0 {
+									patches = append(patches, map[string]interface{}{
+										"op":    "add",
+										"path":  fmt.Sprintf("/spec/containers/%d/env", i),
+										"value": []corev1.EnvVar{},
+									})
+								}
+
+								// Add NVIDIA_VISIBLE_DEVICES=NULL environment variable
+								envVarPatch := map[string]interface{}{
+									"op":    "add",
+									"path":  fmt.Sprintf("/spec/containers/%d/env/-", i),
+									"value": map[string]string{"name": "NVIDIA_VISIBLE_DEVICES", "value": "none"},
+								}
+								patches = append(patches, envVarPatch)
+							}
+						}
+					}
+				}
+
+			}
 		}
 
 		admissionResponse := &admissionv1.AdmissionResponse{
