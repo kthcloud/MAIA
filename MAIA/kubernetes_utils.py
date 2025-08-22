@@ -661,7 +661,10 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                     .replace("-40", "@")
                                     .replace("-2e", ".")
                                 )
-                                app_name = service["spec"]["selector"]["app"]
+                                try:
+                                    app_name = service["spec"]["selector"]["app"]
+                                except Exception:
+                                    app_name = service["metadata"]["name"][len("jupyter-") :]
                                 url = f"{hub_url}/notebook/{namespace}/{app_name}/proxy/80/desktop/{user}/"
                                 if user_id == user or is_admin:
                                     remote_desktop_dict[user] = url
