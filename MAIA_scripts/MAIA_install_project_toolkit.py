@@ -240,7 +240,9 @@ def deploy_maia_toolkit_api(
                     password = docker_credentials
 
             subprocess.run(
-                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"], stdin=password.encode()
+                ["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"],
+                input=password,
+                text=True
             )
 
             print(" ".join(["helm", "registry", "login", original_repo, "--username", username, "--password-stdin"]))
