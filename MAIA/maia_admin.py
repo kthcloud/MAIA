@@ -428,8 +428,10 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     if mlflow_configs:
         maia_namespace_values["mlflow"] = {
             "enabled": True,
-            "user": base64.b64decode(mlflow_configs["mlflow_user"]).decode("ascii"),
-            "password": base64.b64decode(mlflow_configs["mlflow_password"]).decode("ascii"),
+            #"user": base64.b64decode(mlflow_configs["mlflow_user"]).decode("ascii"),
+            "user": mlflow_configs["mlflow_user"],
+            "password": mlflow_configs["mlflow_password"]
+            #"password": base64.b64decode(mlflow_configs["mlflow_password"]).decode("ascii"),
         }
 
     enable_cifs = namespace_config.get("extra_configs", {}).get("enable_cifs", False)
@@ -461,7 +463,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
     application in a Kubernetes namespace. It handles image configuration, environment variables, volume
     mounts, CIFS volume setup, and ingress settings for both NGINX and Traefik ingress controllers. The
     resulting configuration is written to a YAML file in the specified config folder.
-    
+
     Parameters
     ----------
     namespace_config : dict
@@ -474,7 +476,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
     mlflow_configs : dict, optional
         Optional dictionary containing MLflow configuration, specifically the base64-encoded
         'mlflow_password'. If not provided, a new human-memorable password is generated.
-    
+
     Returns
     -------
     dict
@@ -485,7 +487,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
             - 'repo': The Helm chart repository URL.
             - 'version': The Helm chart version.
             - 'values': Path to the generated YAML values file.
-    
+
     Notes
     -----
     - The function expects certain helper functions and environment variables to be available, such as
@@ -502,10 +504,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
     }
 
-    maia_filebrowser_values["image"] = {
-        "repository": cluster_config["docker_server"] + "/maia/maia-filebrowser",
-        "tag": "1.0",
-    }
+    maia_filebrowser_values["image"] = {"repository": cluster_config["docker_server"] + "/maia/maia-filebrowser", "tag": "1.0"}
 
     maia_filebrowser_values["imagePullSecrets"] = [{"name": cluster_config["imagePullSecrets"]}]
     if mlflow_configs is None:
@@ -536,29 +535,37 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
             },
         }
     ]
-        
+
     maia_filebrowser_values["ingress"] = {
         "enabled": True,
         "annotations": {},
-        "hosts": [{"host": "cifs.{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
-                   "paths": [{"path": "/", "pathType": "ImplementationSpecific"}]}],
+        "hosts": [
+            {
+                "host": "cifs.{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
+                "paths": [{"path": "/", "pathType": "ImplementationSpecific"}],
+            }
+        ],
         "tls": [{"hosts": ["cifs.{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"])]}],
     }
     if "nginx_cluster_issuer" in cluster_config:
-        maia_filebrowser_values["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config["nginx_cluster_issuer"]
+        maia_filebrowser_values["ingress"]["annotations"]["cert-manager.io/cluster-issuer"] = cluster_config[
+            "nginx_cluster_issuer"
+        ]
         maia_filebrowser_values["ingress"]["annotations"]["nginx.ingress.kubernetes.io/proxy-body-size"] = "10g"
-        maia_filebrowser_values["ingress"]["tls"][0]["secretName"] = "{}.{}-tls".format(namespace_config["group_subdomain"], cluster_config["domain"])
+        maia_filebrowser_values["ingress"]["tls"][0]["secretName"] = "{}.{}-tls".format(
+            namespace_config["group_subdomain"], cluster_config["domain"]
+        )
     if "traefik_resolver" in cluster_config:
-        maia_filebrowser_values["ingress"]["annotations"][
-            "traefik.ingress.kubernetes.io/router.entrypoints"
-        ] = "websecure"
+        maia_filebrowser_values["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.entrypoints"] = "websecure"
         maia_filebrowser_values["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls"] = "true"
         maia_filebrowser_values["ingress"]["annotations"]["traefik.ingress.kubernetes.io/router.tls.certresolver"] = (
             cluster_config["traefik_resolver"]
         )
 
     Path(config_folder).joinpath(namespace_config["group_ID"], "maia_filebrowser_values").mkdir(parents=True, exist_ok=True)
-    with open(Path(config_folder).joinpath(namespace_config["group_ID"], "maia_filebrowser_values", "maia_filebrowser_values.yaml"), "w") as f:
+    with open(
+        Path(config_folder).joinpath(namespace_config["group_ID"], "maia_filebrowser_values", "maia_filebrowser_values.yaml"), "w"
+    ) as f:
         f.write(OmegaConf.to_yaml(maia_filebrowser_values))
 
     return {
@@ -1281,6 +1288,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             {"name": "DB_USERNAME", "value": "maia-admin"},
             {"name": "DB_PASS", "value": db_password},
             {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow,istio-system"},
+            {"name": "POD_TERMINATOR_ADDRESS", "value": ""},       
         ]
         if maia_config_dict["cifs_server"]:
             cifs_server = maia_config_dict["cifs_server"]
