@@ -653,6 +653,17 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                 url = f"{hub_url}/user/{user}/proxy/80/desktop/{user}/"
                                 if user_id == user or is_admin:
                                     remote_desktop_dict[user] = url
+                            else:
+                                hub_url = "KUBEFLOW"
+                                user = (
+                                    service["metadata"]["name"][len("jupyter-") :]
+                                    .replace("-2d", "-")
+                                    .replace("-40", "@")
+                                    .replace("-2e", ".")
+                                )
+                                url = f"{hub_url}/notebook/{namespace}/{user}/proxy/80/desktop/{user}/"
+                                if user_id == user or is_admin:
+                                    remote_desktop_dict[user] = url
 
                         if "name" in port and port["name"] == "ssh":
                             # Backward compatibility
@@ -743,6 +754,12 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
         maia_workspace_apps["label_studio"] = "N/A"
     if "kubeflow" not in maia_workspace_apps:
         maia_workspace_apps["kubeflow"] = "N/A"
+    else:
+        for remote_desktop in remote_desktop_dict:
+            if remote_desktop_dict[remote_desktop].startswith("KUBEFLOW"):
+                remote_desktop_dict[remote_desktop] = maia_workspace_apps["kubeflow"] + remote_desktop_dict[remote_desktop][
+                    len("KUBEFLOW") :
+                ] 
     if "mlflow" not in maia_workspace_apps:
         maia_workspace_apps["mlflow"] = "N/A"
     if "minio_console" not in maia_workspace_apps:
