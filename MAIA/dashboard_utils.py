@@ -231,7 +231,7 @@ def send_maia_info_email(receiver_email, register_project_url, register_user_url
     sender_email = os.environ["email_account"]
     message = MIMEMultipart()
     message["Subject"] = "Registration Information for the MAIA Platform"
-    message["From"] = "MAIA Team"
+    message["From"] = f"MAIA Admin Team <{sender_email}>"
     message["To"] = receiver_email
 
     html = """\
@@ -261,13 +261,16 @@ def send_maia_info_email(receiver_email, register_project_url, register_user_url
 
     message.attach(part1)
 
-    port = 465  # For SSL
+    port = 587  # For SSL
     password = os.environ["email_password"]
 
     # Create a secure SSL context
-    context = ssl.create_default_context()
+    #context = ssl.create_default_context()
 
-    with smtplib.SMTP_SSL(os.environ["email_smtp_server"], port, context=context) as server:
+    
+    with smtplib.SMTP(os.environ["email_smtp_server"], port) as server:
+        server.ehlo()           # identify ourselves to SMTP server
+        server.starttls()       # encrypt the session
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message.as_string())
 
@@ -334,7 +337,7 @@ def send_approved_registration_email(receiver_email, login_url, temp_password):
     sender_email = os.environ["email_account"]
     message = MIMEMultipart()
     message["Subject"] = "Account Registration Approved"
-    message["From"] = "MAIA Registration"
+    message["From"] = f"MAIA Registration <{sender_email}>"
     message["To"] = receiver_email
 
     html = """\
@@ -359,13 +362,16 @@ def send_approved_registration_email(receiver_email, login_url, temp_password):
 
     message.attach(part1)
 
-    port = 465  # For SSL
+    port = 587  # For SSL
     password = os.environ["email_password"]
 
     # Create a secure SSL context
-    context = ssl.create_default_context()
+    #context = ssl.create_default_context()
 
-    with smtplib.SMTP_SSL(os.environ["email_smtp_server"], port, context=context) as server:
+    
+    with smtplib.SMTP(os.environ["email_smtp_server"], port) as server:
+        server.ehlo()           # identify ourselves to SMTP server
+        server.starttls()       # encrypt the session
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message.as_string())
 
