@@ -131,6 +131,8 @@ def get_ssh_port_dict(port_type, namespace, port_range, maia_metallb_ip=None):
                                 used_port.append({svc.metadata.name: int(port.node_port)})
                 if svc.spec.type == "LoadBalancer" and svc.metadata.namespace == namespace:
                     for port in svc.spec.ports:
+                        if port.node_port is None:
+                            continue
                         if port.node_port >= port_range[0] and port.node_port <= port_range[1]:
                             if svc.metadata.name.endswith("-ssh"):
                                 used_port.append({svc.metadata.name[: -len("-ssh")]: int(port.node_port)})
@@ -191,6 +193,8 @@ def get_ssh_ports(n_requested_ports, port_type, ip_range, maia_metallb_ip=None):
                         used_port.append(int(port.node_port))
                 if svc.spec.type == "LoadBalancer":
                     for port in svc.spec.ports:
+                        if port.node_port is None:
+                            continue
                         used_port.append(int(port.node_port))
         print("Used ports: ", used_port)
         ports = []
@@ -412,7 +416,7 @@ def deploy_mysql(cluster_config, user_config, config_folder, mysql_configs):
             {
                 "mountPath": "/var/lib/mysql",
                 "size": "20Gi",
-                "access_mode": "ReadWriteMany",
+                "access_mode": "ReadWriteOnce",
                 "pvc_type": cluster_config["storage_class"],
             }
         ],
@@ -478,7 +482,7 @@ def deploy_mlflow(cluster_config, user_config, config_folder, maia_config_dict, 
         "namespace": namespace,
         "chart_name": "mlflow-v1",
         "docker_image": os.environ.get("MAIA_PRIVATE_REGISTRY", None) + "/maia-mlflow",
-        "tag": "1.5",
+        "tag": "1.0",
         "deployment": True,
         "memory_request": "2Gi",
         "cpu_request": "500m",
