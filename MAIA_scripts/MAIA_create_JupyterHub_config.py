@@ -257,8 +257,8 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
             secret_key=cluster_config["minio_secret_key"],
             secure=cluster_config["minio_secure"],
         )
-        client.fget_object(cluster_config["bucket_name"], minio_env_name, minio_env_name)
         try:
+            client.fget_object(cluster_config["bucket_name"], minio_env_name, minio_env_name)
             with open(minio_env_name, "r") as f:
                 file_string = f.read()
                 if file_string.startswith("name:"):
