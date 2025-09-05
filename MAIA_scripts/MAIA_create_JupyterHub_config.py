@@ -258,13 +258,16 @@ def create_jupyterhub_config_api(form, maia_config_file, cluster_config_file, co
             secure=cluster_config["minio_secure"],
         )
         client.fget_object(cluster_config["bucket_name"], minio_env_name, minio_env_name)
-        with open(minio_env_name, "r") as f:
-            file_string = f.read()
-            if file_string.startswith("name:"):
-                jh_template["singleuser"]["extraEnv"]["CONDA_ENV"] = str(file_string)
-            else:
-                jh_template["singleuser"]["extraEnv"]["PIP_ENV"] = str(file_string)
-
+        try:
+            with open(minio_env_name, "r") as f:
+                file_string = f.read()
+                if file_string.startswith("name:"):
+                    jh_template["singleuser"]["extraEnv"]["CONDA_ENV"] = str(file_string)
+                else:
+                    jh_template["singleuser"]["extraEnv"]["PIP_ENV"] = str(file_string)
+        except Exception as e:
+            print(e)
+            print(f"Could not read {minio_env_name} from MinIO bucket {cluster_config['bucket_name']}")
     if "url_type" in cluster_config:
         if cluster_config["url_type"] == "subpath":
             jh_template["hub"]["baseUrl"] = f"/{group_subdomain}-hub"
