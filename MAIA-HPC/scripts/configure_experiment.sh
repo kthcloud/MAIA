@@ -42,7 +42,7 @@ echo "Please provide the command to run from the Singularity image: "
 read COMMAND
 
 
-
+mkdir -p /home/maia-user/.maia-hpc/
 ## Create the job configuration file
 cat > ~/.maia-hpc/experiments/$JOB_NAME.json <<EOF
 {

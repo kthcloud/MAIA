@@ -74,11 +74,22 @@ def main(server_config_file, job_config_file,script_file):
 
     if job_config["project_dir"] is not None:
         cmd += f" -B {server_config['project_dir']}:{job_config['project_dir']}"
+
+    if job_config["singularity_image"].startswith("$"):
+        cmd += f" {job_config['singularity_image']}"
+    else:
+        cmd += f" {server_config['project_dir']}/{job_config['singularity_image']}"
+
+    if "pip_packages" in job_config[server_name]:
+        pip_cmd = cmd + " pip install --user " + " ".join(job_config[server_name]["pip_packages"])
+        header += f" {pip_cmd}\n"
+        
+    if "pip_packages_no_deps" in job_config[server_name]:
+        pip_cmd = cmd + " pip install --user --no-deps " + " ".join(job_config[server_name]["pip_packages"])
+        header += f" {pip_cmd}\n"
     
-    cmd += f" {server_config['project_dir']}/{job_config['singularity_image']}"
-
     cmd += f" {job_config['command']}"
-
+            
     with open(script_file, "w") as f:
         f.write(header + cmd)
 
