@@ -77,6 +77,8 @@ def main(server_config_file, job_config_file,script_file):
 
     if job_config["singularity_image"].startswith("$"):
         cmd += f" {job_config['singularity_image']}"
+    elif job_config["singularity_image"].startswith("docker://") or job_config["singularity_image"].startswith("library://"):
+        cmd += f" {job_config['singularity_image']}"
     else:
         cmd += f" {server_config['project_dir']}/{job_config['singularity_image']}"
 
