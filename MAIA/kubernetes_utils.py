@@ -558,6 +558,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
     monai_models = {}
     ssh_ports = {}
     deployed_clusters = []
+    nvflare_dashboards = []
 
     for api_url in settings.API_URL:
         if api_url in settings.PRIVATE_CLUSTERS:
@@ -630,6 +631,11 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                             "url": "https://" + rule["host"] + path["path"] + "/dicom-web/",
                                         }
                                     )
+                            if "app.kubernetes.io/name" in ingress["metadata"]["labels"] and ingress["metadata"]["labels"]["app.kubernetes.io/name"] == "maia-nvflare-dashboard":
+                                nvflare_dashboards.append({
+                                    "name": ingress["metadata"]["name"][:-len("-maia-nvflare-dashboard")],
+                                    "url": "https://" + rule["host"] + path["path"],
+                                })
                             if path["backend"]["service"]["name"] == namespace + "-mlflow-mkg" and path["path"].endswith(
                                 "mlflow"
                             ):
@@ -771,7 +777,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
     if "xnat" not in maia_workspace_apps:
         maia_workspace_apps["xnat"] = "N/A"
 
-    return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters
+    return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters, nvflare_dashboards
 
 
 def create_namespace_from_context(namespace_id):
