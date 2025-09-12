@@ -97,7 +97,7 @@ def get_namespaces(id_token, api_urls, private_clusters=None):
         if "items" in namespaces:
             for namespace in namespaces["items"]:
                 namespace_list.append(namespace["metadata"]["name"])
-    return list(set(namespace_list))
+    return sorted(set(namespace_list))
 
 
 def get_cluster_status(id_token, api_urls, cluster_names, private_clusters=None):
