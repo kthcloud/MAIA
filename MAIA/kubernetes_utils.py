@@ -6,7 +6,7 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
+from minio import Minio
 import kubernetes
 import requests
 import yaml
