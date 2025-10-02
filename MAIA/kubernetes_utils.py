@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 def get_minio_shareable_link(object_name, bucket_name, settings):
     try:
         client = Minio(
-            settings.MINIO_PUBLIC_URL,
+            settings.MINIO_URL,
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_PUBLIC_SECURE,
+            secure=settings.MINIO_SECURE,
         )
         client.bucket_exists(settings.BUCKET_NAME)
         url = client.presigned_get_object(
