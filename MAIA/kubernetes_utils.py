@@ -17,6 +17,25 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
+def get_minio_shareable_link(object_name, bucket_name, settings):
+    try:
+        client = Minio(
+            settings.MINIO_URL,
+            access_key=settings.MINIO_ACCESS_KEY,
+            secret_key=settings.MINIO_SECRET_KEY,
+            secure=settings.MINIO_SECURE,
+        )
+        client.bucket_exists(settings.BUCKET_NAME)
+        url = client.presigned_get_object(
+            bucket_name,
+            object_name,
+            expires=timedelta(hours=24)
+        )
+        return url
+    except Exception as e:
+        logger.error(f"Error connecting to MinIO: {e}")
+        return None
+    
 def label_pod_for_deletion(namespace, pod_name):
     """
     Label a Kubernetes pod for deletion by adding a 'terminate-at' annotation.
