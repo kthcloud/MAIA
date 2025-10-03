@@ -4,7 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 USER root
 
 RUN apt-get update && apt-get install -y openssh-server build-essential
-RUN apt-get install -y sudo screen git nano tmux vim curl tree htop zsh wget rsync btop
+RUN apt-get install -y sudo screen git nano tmux vim curl tree htop zsh wget rsync btop python3-is-python
 
 COPY sshd-1.service /etc/systemd/system/sshd-1.service
 COPY start.sh /opt/start.sh

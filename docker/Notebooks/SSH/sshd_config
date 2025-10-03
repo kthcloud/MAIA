@@ -5,6 +5,7 @@ ChallengeResponseAuthentication yes
 PermitRootLogin                 no
 PrintMotd                       yes
 PubkeyAuthentication            yes
+PasswordAuthentication          no
 UseDNS                          yes
 UsePAM                          no
 X11Forwarding yes
