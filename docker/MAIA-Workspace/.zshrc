@@ -20,3 +20,26 @@ source $ZSH/oh-my-zsh.sh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 sudo run-parts /etc/update-motd.d
+
+# Load K8s env vars from a container PID
+load_k8s_env() {
+  local pid=$1
+  if [[ -z "$pid" ]]; then
+    echo "Usage: load_k8s_env <container-pid>"
+    return 1
+  fi
+
+  if [[ ! -r "/proc/$pid/environ" ]]; then
+    echo "Cannot read /proc/$pid/environ. Do you have permissions?"
+    return 1
+  fi
+
+  # Safely export KUBERNETES_* env vars
+  while IFS='=' read -r key value; do
+    [[ $key == KUBERNETES_* ]] && export "$key=$value"
+  done < <(tr '\0' '\n' < "/proc/$pid/environ")
+
+  echo "Kubernetes env vars loaded from PID $pid"
+}
+
+load_k8s_env 1
