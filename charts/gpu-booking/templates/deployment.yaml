@@ -22,6 +22,8 @@ spec:
               value: {{ .Values.apiToken }}
             - name: API_URL
               value: {{ .Values.apiUrl }}
+            - name: GPU_STATS_URL
+              value: {{ .Values.gpuStatsUrl }}
           volumeMounts:
             - name: webhook-tls
               mountPath: "/etc/webhook/certs"
