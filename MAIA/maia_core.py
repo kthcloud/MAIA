@@ -818,6 +818,7 @@ def create_gpu_booking_values(config_folder, project_id, cluster_config_dict, ma
                 "tag": "1.6",
             },
             "apiUrl": f"https://{domain}/maia-api/gpu-schedulability",
+            "gpuStatsUrl": f"https://{domain}/maia/resources/gpu_status_summary/",
             "apiToken": maia_config_dict["dashboard_api_secret"],
         }
     )
