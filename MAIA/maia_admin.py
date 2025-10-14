@@ -367,7 +367,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
     if minimal_deployment:
         maia_namespace_values["chart_name"] = "maia-namespace"
         maia_namespace_values["chart_version"] = "1.7.2"
-        maia_namespace_values["repo_url"] = "https://kthcloud.github.io/MAIA/"
+        maia_namespace_values["repo_url"] = "https://minnelab.github.io/MAIA/"
 
     if "imagePullSecrets" in cluster_config:
         maia_namespace_values["dockerRegistrySecret"] = {
@@ -396,6 +396,7 @@ def create_maia_namespace_values(namespace_config, cluster_config, config_folder
                 "annotations": {},
                 "host": "{}.{}".format(namespace_config["group_subdomain"], cluster_config["domain"]),
                 "path": "minio-console",
+                "port": 80,
                 "serviceName": f"{namespace}-mlflow-mkg",
             },
         }
@@ -500,7 +501,7 @@ def create_filebrowser_values(namespace_config, cluster_config, config_folder, m
     maia_filebrowser_values = {
         "chart_name": "maia-filebrowser",
         "chart_version": "1.0.0",
-        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "repo_url": "https://minnelab.github.io/MAIA/",
         "namespace": namespace_config["group_ID"].lower().replace("_", "-"),
     }
 
@@ -766,7 +767,7 @@ def create_maia_admin_toolkit_values(config_folder, project_id, cluster_config_d
 
     admin_toolkit_values = {
         "namespace": "maia-admin-toolkit",
-        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "repo_url": "https://minnelab.github.io/MAIA/",
         "chart_name": "maia-admin-toolkit",
         "chart_version": "1.2.6",
     }
@@ -1159,7 +1160,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
 
     maia_dashboard_values = {
         "namespace": "maia-dashboard",
-        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "repo_url": "https://minnelab.github.io/MAIA/",
         "chart_name": "maia-dashboard",
         "chart_version": "0.1.6",
     }
@@ -1192,6 +1193,7 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             "gpuList": maia_config_dict["gpu_list"],
             "dashboard": {
                 "host": cluster_config_dict["domain"],
+                "openwebai_api_key": "",
                 "api_secret_key": maia_config_dict["dashboard_api_secret"],
                 "keycloak": {
                     "client_id": "maia",
@@ -1251,8 +1253,8 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
 
     if "discord_url" in maia_config_dict:
         maia_dashboard_values["dashboard"]["discord_url"] = maia_config_dict["discord_url"]
-    if "discord_signup_url" in maia_config_dict:
-        maia_dashboard_values["dashboard"]["discord_signup_url"] = maia_config_dict["discord_signup_url"]
+    #if "discord_signup_url" in maia_config_dict:
+    #    maia_dashboard_values["dashboard"]["discord_signup_url"] = maia_config_dict["discord_signup_url"]
     if "discord_support_url" in maia_config_dict:
         maia_dashboard_values["dashboard"]["discord_support_url"] = maia_config_dict["discord_support_url"]
 
@@ -1288,7 +1290,9 @@ def create_maia_dashboard_values(config_folder, project_id, cluster_config_dict,
             {"name": "DB_USERNAME", "value": "maia-admin"},
             {"name": "DB_PASS", "value": db_password},
             {"name": "GLOBAL_NAMESPACES", "value": "xnat,kubeflow,istio-system"},
-            {"name": "POD_TERMINATOR_ADDRESS", "value": ""},       
+            {"name": "POD_TERMINATOR_ADDRESS", "value": ""},
+            {"name": "MINIO_CONSOLE_URL", "value": ""},
+            {"name": "MAIA_SEGMENTATION_PORTAL_NAMESPACE_ID", "value": "maia-segmentation"},
         ]
         if maia_config_dict["cifs_server"]:
             cifs_server = maia_config_dict["cifs_server"]
