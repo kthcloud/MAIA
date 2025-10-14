@@ -799,7 +799,7 @@ def create_gpu_booking_values(config_folder, project_id, cluster_config_dict, ma
     """
     gpu_booking_values = {
         "namespace": "maia-webhooks",
-        "repo_url": "https://kthcloud.github.io/MAIA/",
+        "repo_url": "https://minnelab.github.io/MAIA/",
         "chart_name": "gpu-booking",
         "chart_version": "1.0.0",
     }
@@ -809,11 +809,11 @@ def create_gpu_booking_values(config_folder, project_id, cluster_config_dict, ma
         {
             "image": {
                 "pod_terminator": {
-                    "repository": "kthcloud/gpu-booking-pod-terminator",
+                    "repository": "minnelab/gpu-booking-pod-terminator",
                     "pullPolicy": "IfNotPresent",
                     "tag": "1.4",
                 },
-                "repository": "kthcloud/gpu-booking-admission-controller",
+                "repository": "minnelab/gpu-booking-admission-controller",
                 "pullPolicy": "IfNotPresent",
                 "tag": "1.6",
             },
