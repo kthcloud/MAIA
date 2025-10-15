@@ -20,16 +20,16 @@ logger = logging.getLogger(__name__)
 def get_minio_shareable_link(object_name, bucket_name, settings):
     try:
         client = Minio(
-            settings.MINIO_URL,
+            settings.MINIO_PUBLIC_URL,
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_SECURE,
+            secure=settings.MINIO_PUBLIC_SECURE,
         )
         client.bucket_exists(settings.BUCKET_NAME)
         url = client.presigned_get_object(
             bucket_name,
             object_name,
-            expires=timedelta(hours=24)
+            expires=timedelta(hours=168),  # Link valid for 7 days
         )
         return url
     except Exception as e:
@@ -93,6 +93,8 @@ def get_namespaces(id_token, api_urls, private_clusters=None):
     list
         A list of unique namespace names retrieved from the provided API URLs.
     """
+    if "BACKEND" in os.environ and os.environ["BACKEND"] == "compose":
+        return [os.environ["PROJECT_NAME"]]
     if private_clusters is None:
         private_clusters = {}
     namespace_list = []
@@ -722,7 +724,8 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                         orthanc["dicom_port"] = port["nodePort"]
                                     elif service["spec"]["type"] == "LoadBalancer":
                                         orthanc["dicom_port"] = port["port"]
-
+        if settings.CLUSTER_NAMES[api_url] not in deployed_clusters:
+            continue
         if hasattr(settings, "GLOBAL_NAMESPACES") and settings.GLOBAL_NAMESPACES is not None:
             for global_namespace in settings.GLOBAL_NAMESPACES:
                 if api_url in settings.PRIVATE_CLUSTERS:
