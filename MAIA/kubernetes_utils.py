@@ -799,7 +799,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
     if "xnat" not in maia_workspace_apps:
         maia_workspace_apps["xnat"] = "N/A"
 
-    return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters, nvflare_dashboards
+    return maia_workspace_apps, remote_desktop_dict, ssh_ports, monai_models, orthanc_list, deployed_clusters #, nvflare_dashboards
 
 
 def create_namespace_from_context(namespace_id):
