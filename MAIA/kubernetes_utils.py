@@ -652,7 +652,7 @@ def get_namespace_details(settings, id_token, namespace, user_id, is_admin=False
                                             "url": "https://" + rule["host"] + path["path"] + "/dicom-web/",
                                         }
                                     )
-                            if "app.kubernetes.io/name" in ingress["metadata"]["labels"] and ingress["metadata"]["labels"]["app.kubernetes.io/name"] == "maia-nvflare-dashboard":
+                            if "labels" in ingress["metadata"] and "app.kubernetes.io/name" in ingress["metadata"]["labels"] and ingress["metadata"]["labels"]["app.kubernetes.io/name"] == "maia-nvflare-dashboard":
                                 nvflare_dashboards.append({
                                     "name": ingress["metadata"]["name"][:-len("-maia-nvflare-dashboard")],
                                     "url": "https://" + rule["host"] + path["path"],
